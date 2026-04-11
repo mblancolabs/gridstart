@@ -43,7 +43,7 @@ export default function Settings() {
     const ids = items.map((s) => s.id);
     let next: string[];
     if (enable) {
-      next = [...new Set([...enabledSeries, ...ids])];
+      next = Array.from(new Set([...enabledSeries, ...ids]));
     } else {
       next = enabledSeries.filter((s) => !ids.includes(s));
     }

@@ -149,7 +149,7 @@ function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeeken
 
   // Build weekends
   const weekends: RaceWeekend[] = [];
-  for (const [, sessions] of raceGroupMap) {
+  raceGroupMap.forEach((sessions) => {
     const first = sessions[0];
     weekends.push({
       raceName: first.raceName!,
@@ -159,10 +159,11 @@ function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeeken
       location: first.location,
       round: first.round,
       sessions: sessions.sort(
-        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        (a: CalendarEvent, b: CalendarEvent) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       ),
     });
-  }
+  });
 
   // Merge weekends and single events, sorted by earliest start date
   const allItems: { sortDate: string; item: CalendarEvent | RaceWeekend }[] = [];
@@ -175,7 +176,8 @@ function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeeken
   }
 
   allItems.sort(
-    (a, b) => new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime()
+    (a: { sortDate: string; item: CalendarEvent | RaceWeekend }, b: { sortDate: string; item: CalendarEvent | RaceWeekend }) =>
+      new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime()
   );
 
   return allItems.map((i) => i.item);

@@ -1,9 +1,21 @@
-node_modules
-dist
-.DS_Store
-server/public
+# Dependencies
+/node_modules/
+
+# Build outputs
+/dist/
+/build/
+/server/public/
+
+# Vite config files
 vite.config.ts.*
-*.tar.gz
+
+# Environment variables
+.env
+
+# Database
 *.db
 *.db-shm
 *.db-wal
+
+# Project documentation
+/backlog/

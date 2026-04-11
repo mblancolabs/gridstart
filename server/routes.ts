@@ -1,15 +1,22 @@
-import type { Express } from "express";
+import { z } from "zod";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserPreferencesSchema } from "@shared/schema";
+import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import ICAL from "ical.js";
 import fs from "fs";
 import path from "path";
+import { safeLoadJsonFile } from "./utils";
 
-// Load ICS feeds config
+// Load ICS feeds config with validation
 const feedsPath = path.resolve(process.cwd(), "ics-feeds.json");
-const feedsConfig = JSON.parse(fs.readFileSync(feedsPath, "utf-8"));
+const feedsConfig = safeLoadJsonFile(feedsPath, process.cwd());
+
+// Basic structure validation
+if (!feedsConfig.categories || !Array.isArray(feedsConfig.categories)) {
+  throw new Error("Invalid feeds configuration: missing or invalid categories array");
+}
 
 // Build flat series list from categories
 function getAllSeries(): SeriesInfo[] {
@@ -552,7 +559,7 @@ async function fetchEventsForSeries(
   if (JOLPICA_SERIES.has(series.id)) {
     // Use Jolpica API for F1 session-level data
     let allEvents: CalendarEvent[] = [];
-    for (const year of years) {
+    for (const year of Array.from(years)) {
       const events = await fetchF1Sessions(series, year);
       allEvents.push(...events);
     }
@@ -562,7 +569,7 @@ async function fetchEventsForSeries(
   if (MOTOGP_SERIES.has(series.id)) {
     // Use MotoGP Pulselive API for session-level data
     let allEvents: CalendarEvent[] = [];
-    for (const year of years) {
+    for (const year of Array.from(years)) {
       const events = await fetchMotoGPSessions(series, year);
       allEvents.push(...events);
     }
@@ -596,28 +603,32 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // GET /api/series — list all series
-  app.get("/api/series", (_req, res) => {
+  app.get("/api/series", (_req: Request, res: Response) => {
     res.json(allSeries);
   });
 
   // GET /api/events?series=f1,motogp&from=2026-01-01&to=2026-12-31
-  app.get("/api/events", async (req, res) => {
+  app.get("/api/events", async (req: Request, res: Response) => {
     try {
-      const seriesParam = (req.query.series as string) || "";
-      const fromParam = req.query.from as string | undefined;
-      const toParam = req.query.to as string | undefined;
-
-      const seriesIds = seriesParam
+      const query = eventsQuerySchema.parse(req.query);
+      const seriesIds = query.series
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+
+      // Validate series IDs exist
+      const validSeriesIds = allSeries.map(s => s.id);
+      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
+      if (invalidSeries.length > 0) {
+        return res.status(400).json({ message: "Invalid series IDs: " + invalidSeries.join(", ") });
+      }
 
       if (seriesIds.length === 0) {
         return res.json([]);
       }
 
-      const fromDate = fromParam ? new Date(fromParam) : undefined;
-      const toDate = toParam ? new Date(toParam) : undefined;
+      const fromDate = query.from ? new Date(query.from) : undefined;
+      const toDate = query.to ? new Date(query.to) : undefined;
 
       const allEvents: CalendarEvent[] = [];
 
@@ -644,12 +655,15 @@ export async function registerRoutes(
       res.json(allEvents);
     } catch (err) {
       console.error("Error fetching events:", err);
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid query parameters" });
+      }
       res.status(500).json({ message: "Failed to fetch events" });
     }
   });
 
   // GET /api/preferences
-  app.get("/api/preferences", async (_req, res) => {
+  app.get("/api/preferences", async (_req: Request, res: Response) => {
     const prefs = await storage.getPreferences();
     if (prefs) {
       res.json(prefs);
@@ -663,7 +677,7 @@ export async function registerRoutes(
   });
 
   // PUT /api/preferences
-  app.put("/api/preferences", async (req, res) => {
+  app.put("/api/preferences", async (req: Request, res: Response) => {
     try {
       const parsed = insertUserPreferencesSchema.parse(req.body);
       const saved = await storage.savePreferences(parsed);
@@ -674,13 +688,21 @@ export async function registerRoutes(
   });
 
   // GET /api/export.ics?series=f1,motogp
-  app.get("/api/export.ics", async (req, res) => {
+  app.get("/api/export.ics", async (req: Request, res: Response) => {
     try {
-      const seriesParam = (req.query.series as string) || "";
-      const seriesIds = seriesParam
+      const query = exportIcsQuerySchema.parse(req.query);
+      const seriesIds = query.series
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+
+      // Validate series IDs exist
+      const validSeriesIds = allSeries.map(s => s.id);
+      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
+      if (invalidSeries.length > 0) {
+        res.set("Content-Type", "text/plain");
+        return res.status(400).send("Invalid series IDs: " + invalidSeries.join(", "));
+      }
 
       if (seriesIds.length === 0) {
         res.set("Content-Type", "text/calendar; charset=utf-8");
@@ -727,6 +749,10 @@ export async function registerRoutes(
       res.send(icsString);
     } catch (err) {
       console.error("Error exporting ICS:", err);
+      if (err instanceof z.ZodError) {
+        res.set("Content-Type", "text/plain");
+        return res.status(400).send("Invalid query parameters");
+      }
       res.status(500).json({ message: "Failed to export calendar" });
     }
   });

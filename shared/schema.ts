@@ -11,6 +11,20 @@ export const insertUserPreferencesSchema = createInsertSchema(userPreferences).o
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 
+// API Query Schemas
+export const eventsQuerySchema = z.object({
+  series: z.string().min(1, "Series parameter is required"),
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD").optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD").optional(),
+});
+
+export const exportIcsQuerySchema = z.object({
+  series: z.string().min(1, "Series parameter is required"),
+});
+
+export type EventsQuery = z.infer<typeof eventsQuerySchema>;
+export type ExportIcsQuery = z.infer<typeof exportIcsQuerySchema>;
+
 // Types for the API responses (not DB tables)
 export interface CalendarEvent {
   id: string;

@@ -5,6 +5,7 @@ import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
+import { validateFilePath } from "./utils";
 
 const viteLogger = createLogger();
 
@@ -41,6 +42,11 @@ export async function setupVite(server: Server, app: Express) {
         "client",
         "index.html",
       );
+
+      // Validate template path for security
+      if (!validateFilePath(clientTemplate, path.resolve(import.meta.dirname, ".."))) {
+        throw new Error("Invalid template file path");
+      }
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");

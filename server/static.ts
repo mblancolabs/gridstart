@@ -10,7 +10,17 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Serve static files with security headers
+  app.use(express.static(distPath, {
+    setHeaders: (res, path) => {
+      // Prevent MIME type sniffing
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      // Prevent clickjacking
+      res.setHeader('X-Frame-Options', 'DENY');
+      // Enable XSS protection
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+    }
+  }));
 
   // fall through to index.html if the file doesn't exist
   app.use("/{*path}", (_req, res) => {
