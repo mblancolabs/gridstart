@@ -1,13 +1,18 @@
 import "dotenv/config";
 
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import { randomUUID } from "crypto";
+import helmet from "helmet";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { createServer } from "http";
-import cors from 'cors';
+import { errorHandler } from "./errorHandler";
+import { requestComplete } from "./logger";
 
 const app = express();
 const httpServer = createServer(app);
+const isProduction = process.env.NODE_ENV === "production";
 
 // Enable CORS with specific configuration
 app.use(cors({
@@ -24,6 +29,14 @@ declare module "http" {
   }
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      requestId?: string;
+    }
+  }
+}
+
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -33,6 +46,32 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+app.use(
+  helmet({
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "https://api.fontshare.com"],
+            fontSrc: ["'self'", "https://api.fontshare.com"],
+            imgSrc: ["'self'", "data:"],
+            connectSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+          },
+        }
+      : false,
+  }),
+);
+
+app.use((req, res, next) => {
+  req.requestId = randomUUID();
+  res.set("X-Request-Id", req.requestId);
+  next();
+});
 
 export function log(message: string, source = "gridstart") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -59,12 +98,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      log(logLine);
+      requestComplete(req.requestId ?? "unknown", res.statusCode, duration, capturedJsonResponse);
     }
   });
 
@@ -74,18 +108,7 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    console.error("Internal Server Error:", err);
-
-    if (res.headersSent) {
-      return next(err);
-    }
-
-    return res.status(status).json({ message });
-  });
+  app.use(errorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

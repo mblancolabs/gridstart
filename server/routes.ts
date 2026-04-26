@@ -1,10 +1,12 @@
 import { z } from "zod";
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generalApiLimiter, exportLimiter, preferencesLimiter } from "./middleware/rateLimit";
 import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
+import { BadRequestError } from "./errors";
+import * as logger from "./logger";
 import ICAL from "ical.js";
 import fs from "fs";
 import path from "path";
@@ -228,7 +230,7 @@ async function fetchF1Sessions(
     jolpicaCache.set(cacheKey, { data: events, fetchedAt: Date.now() });
     return events;
   } catch (err) {
-    console.error("Failed to fetch Jolpica F1 data:", err);
+    logger.error(err, "Failed to fetch Jolpica F1 data", { seriesId: series.id });
     if (cached) return cached.data;
     return [];
   }
@@ -475,17 +477,18 @@ async function fetchMotoGPSessions(
           });
         }
       } catch (sessionErr) {
-        console.error(
-          `Failed to fetch sessions for MotoGP event ${mgpEvent.name}:`,
-          sessionErr
-        );
+        logger.warn(`Failed to fetch sessions for MotoGP event ${mgpEvent.name}`, {
+          seriesId: series.id,
+          eventName: mgpEvent.name,
+          error: sessionErr instanceof Error ? sessionErr.message : String(sessionErr),
+        });
       }
     }
 
     motogpCache.set(cacheKey, { data: events, fetchedAt: Date.now() });
     return events;
   } catch (err) {
-    console.error("Failed to fetch MotoGP data:", err);
+    logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
     if (cached) return cached.data;
     return [];
   }
@@ -550,7 +553,7 @@ function parseICSEvents(
       });
     }
   } catch (err) {
-    console.error(`Error parsing ICS for ${series.id}:`, err);
+    logger.error(err, `Error parsing ICS for ${series.id}`);
   }
 
   return events;
@@ -684,7 +687,7 @@ export async function registerRoutes(
   });
 
   // GET /api/events?series=f1,motogp&from=2026-01-01&to=2026-12-31
-  app.get("/api/events", generalApiLimiter, async (req: Request, res: Response) => {
+  app.get("/api/events", generalApiLimiter, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = eventsQuerySchema.parse(req.query);
       const seriesIds = query.series
@@ -696,7 +699,7 @@ export async function registerRoutes(
       const validSeriesIds = allSeries.map(s => s.id);
       const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
-        return res.status(400).json({ message: "Invalid series IDs: " + invalidSeries.join(", ") });
+        throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
@@ -716,7 +719,7 @@ export async function registerRoutes(
           const events = await fetchEventsForSeries(series, fromDate, toDate);
           allEvents.push(...events);
         } catch (err) {
-          console.error(`Failed to fetch events for ${seriesId}:`, err);
+          logger.error(err, `Failed to fetch events for ${seriesId}`, { seriesId });
         }
       });
 
@@ -730,11 +733,10 @@ export async function registerRoutes(
 
       res.json(allEvents);
     } catch (err) {
-      console.error("Error fetching events:", err);
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid query parameters" });
+        return next(new BadRequestError("Invalid query parameters"));
       }
-      res.status(500).json({ message: "Failed to fetch events" });
+      next(err);
     }
   });
 
@@ -753,18 +755,21 @@ export async function registerRoutes(
   });
 
   // PUT /api/preferences
-  app.put("/api/preferences", preferencesLimiter, async (req: Request, res: Response) => {
+  app.put("/api/preferences", preferencesLimiter, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = insertUserPreferencesSchema.parse(req.body);
       const saved = await storage.savePreferences(parsed);
       res.json(saved);
     } catch (err) {
-      res.status(400).json({ message: "Invalid preferences data" });
+      if (err instanceof z.ZodError) {
+        return next(new BadRequestError("Invalid preferences data"));
+      }
+      next(err);
     }
   });
 
   // GET /api/export.ics?series=f1,motogp
-  app.get("/api/export.ics", exportLimiter, async (req: Request, res: Response) => {
+  app.get("/api/export.ics", exportLimiter, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = exportIcsQuerySchema.parse(req.query);
       const seriesIds = query.series
@@ -776,8 +781,7 @@ export async function registerRoutes(
       const validSeriesIds = allSeries.map(s => s.id);
       const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
-        res.set("Content-Type", "text/plain");
-        return res.status(400).send("Invalid series IDs: " + invalidSeries.join(", "));
+        throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
@@ -801,10 +805,7 @@ export async function registerRoutes(
           const events = await fetchEventsForSeries(series);
           allEvents.push(...events);
         } catch (err) {
-          console.error(
-            `Failed to fetch events for export ${seriesId}:`,
-            err
-          );
+          logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
         }
       });
 
@@ -824,12 +825,10 @@ export async function registerRoutes(
       );
       res.send(icsString);
     } catch (err) {
-      console.error("Error exporting ICS:", err);
       if (err instanceof z.ZodError) {
-        res.set("Content-Type", "text/plain");
-        return res.status(400).send("Invalid query parameters");
+        return next(new BadRequestError("Invalid query parameters"));
       }
-      res.status(500).json({ message: "Failed to export calendar" });
+      next(err);
     }
   });
 
