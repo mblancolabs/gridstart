@@ -281,7 +281,7 @@ interface MotoGPEvent {
 
 interface MotoGPSession {
   id: string;
-  date: string; // ISO 8601 with timezone e.g. "2026-03-27T10:45:00+00:00"
+  date: string; // ISO 8601 with timezone, often reported as +00:00 even when the time is local
   number: number | null;
   type: string; // "FP", "PR", "Q", "SPR", "WUP", "RAC"
   status: string;
@@ -306,6 +306,83 @@ function getMotoGPSessionDuration(type: string): number {
     case "RAC": return 105;
     default: return 45;
   }
+}
+
+const MOTOGP_TIMEZONE_OVERRIDES: Record<string, string> = {
+  Austin: "America/Chicago",
+  "Phillip Island": "Australia/Melbourne",
+  Lombok: "Asia/Makassar",
+  Sepang: "Asia/Kuala_Lumpur",
+  Doha: "Asia/Qatar",
+  Buriram: "Asia/Bangkok",
+  Goiania: "America/Sao_Paulo",
+  Motegi: "Asia/Tokyo",
+};
+
+const MOTOGP_COUNTRY_TIMEZONES: Record<string, string> = {
+  AT: "Europe/Vienna",
+  AU: "Australia/Melbourne",
+  BR: "America/Sao_Paulo",
+  CZ: "Europe/Prague",
+  DE: "Europe/Berlin",
+  ES: "Europe/Madrid",
+  FR: "Europe/Paris",
+  GB: "Europe/London",
+  HU: "Europe/Budapest",
+  ID: "Asia/Makassar",
+  IT: "Europe/Rome",
+  JP: "Asia/Tokyo",
+  MY: "Asia/Kuala_Lumpur",
+  NL: "Europe/Amsterdam",
+  PT: "Europe/Lisbon",
+  QA: "Asia/Qatar",
+  TH: "Asia/Bangkok",
+  US: "America/Chicago",
+  SM: "Europe/Rome",
+};
+
+function getMotoGPTimeZone(event: MotoGPEvent): string | undefined {
+  return (
+    MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] ||
+    MOTOGP_COUNTRY_TIMEZONES[event.country.iso]
+  );
+}
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts = formatter.formatToParts(date);
+  const tzPart = parts.find((part) => part.type === "timeZoneName")?.value;
+  if (!tzPart) return 0;
+
+  const match = tzPart.match(/GMT([+-]\d{1,2})(?::?(\d{2}))?/);
+  if (!match) return 0;
+
+  const sign = match[1].startsWith("-") ? -1 : 1;
+  const hours = Math.abs(Number(match[1]));
+  const minutes = Number(match[2] || "0");
+  return sign * (hours * 60 + minutes) * 60 * 1000;
+}
+
+function parseMotoGPSessionDate(sessionDate: string, event: MotoGPEvent): string {
+  const localDate = sessionDate.replace(/([+-]\d{2}:?\d{2}|Z)$/, "");
+  const candidateUtc = new Date(`${localDate}Z`);
+  const timeZone = getMotoGPTimeZone(event);
+  if (!timeZone || Number.isNaN(candidateUtc.getTime())) {
+    return candidateUtc.toISOString();
+  }
+
+  const offsetMs = getTimeZoneOffsetMs(candidateUtc, timeZone);
+  return new Date(candidateUtc.getTime() - offsetMs).toISOString();
 }
 
 async function fetchMotoGPSessions(
@@ -376,12 +453,10 @@ async function fetchMotoGPSessions(
             label = `Qualifying ${session.number}`;
           }
 
-          // Parse the date — MotoGP API returns "+00:00" format
-          const startDate = new Date(session.date).toISOString();
+          // Parse the date — MotoGP API returns local session times labeled as UTC.
+          const startDate = parseMotoGPSessionDate(session.date, mgpEvent);
           const durationMs = getMotoGPSessionDuration(session.type) * 60 * 1000;
-          const endDate = new Date(
-            new Date(session.date).getTime() + durationMs
-          ).toISOString();
+          const endDate = new Date(new Date(startDate).getTime() + durationMs).toISOString();
 
           events.push({
             id: `motogp-${year}-r${roundNum}-${session.type}${session.number || ""}`,
