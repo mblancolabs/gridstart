@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { errorHandler } from "./errorHandler";
-import { BadRequestError } from "./errors";
+import { errorHandler } from "../errorHandler";
+import { BadRequestError } from "../errors";
 
 function createMockResponse() {
   let statusCode = 200;

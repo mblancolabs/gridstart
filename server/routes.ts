@@ -57,7 +57,7 @@ const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number 
 const motogpCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
-async function fetchICSData(seriesId: string, icsUrl: string): Promise<string> {
+export async function fetchICSData(seriesId: string, icsUrl: string): Promise<string> {
   const cached = icsCache.get(seriesId);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
     return cached.data;
@@ -117,7 +117,7 @@ interface JolpicaRace {
   SprintShootout?: JolpicaSession;
 }
 
-async function fetchF1Sessions(
+export async function fetchF1Sessions(
   series: SeriesInfo,
   year: number
 ): Promise<CalendarEvent[]> {
@@ -237,7 +237,7 @@ async function fetchF1Sessions(
   }
 }
 
-function getDurationForSession(sessionKey: string): number {
+export function getDurationForSession(sessionKey: string): number {
   switch (sessionKey) {
     case "fp1":
     case "fp2":

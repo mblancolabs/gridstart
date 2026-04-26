@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import express from "express";
 import request from "supertest";
 import { createServer } from "http";
-import { registerRoutes } from "./routes";
-import { errorHandler } from "./errorHandler";
-import { csrfProtection, validateCsrfToken, handleCsrfError } from "./middleware/csrf";
+import { registerRoutes } from "../routes";
+import { errorHandler } from "../errorHandler";
+import { csrfProtection, validateCsrfToken, handleCsrfError } from "../middleware/csrf";
 import cookieParser from "cookie-parser";
 
 describe("routes", () => {
@@ -85,5 +85,81 @@ describe("routes", () => {
 
     // Should succeed (or fail for other reasons, but not CSRF)
     expect(res.status).not.toBe(403);
+  });
+
+  it("returns series list from /api/series", async () => {
+    const app = express();
+    app.use(express.json());
+
+    const server = createServer(app);
+    await registerRoutes(server, app);
+    app.use(errorHandler);
+
+    const res = await request(app).get("/api/series");
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.body[0]).toHaveProperty("id");
+    expect(res.body[0]).toHaveProperty("name");
+    expect(res.body[0]).toHaveProperty("enabled");
+  });
+
+  it("validates query parameters for /api/events", async () => {
+    const app = express();
+    app.use(express.json());
+
+    const server = createServer(app);
+    await registerRoutes(server, app);
+    app.use(errorHandler);
+
+    // Test missing series parameter
+    const res = await request(app).get("/api/events");
+    expect(res.status).toBe(400);
+  });
+
+  it("returns preferences from /api/preferences", async () => {
+    const app = express();
+    app.use(express.json());
+
+    const server = createServer(app);
+    await registerRoutes(server, app);
+    app.use(errorHandler);
+
+    const res = await request(app).get("/api/preferences");
+
+    expect(res.status).toBe(200);
+    // Preferences might be null if not set
+    expect(res.body).toBeDefined();
+  });
+
+  it("returns CSRF token from /api/csrf-token", async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(cookieParser());
+    app.use(csrfProtection);
+
+    const server = createServer(app);
+    await registerRoutes(server, app);
+    app.use(errorHandler);
+
+    const res = await request(app).get("/api/csrf-token");
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-csrf-token']).toBeDefined();
+    expect(res.headers['set-cookie']).toBeDefined();
+  });
+
+  it("validates query parameters for /api/export.ics", async () => {
+    const app = express();
+    app.use(express.json());
+
+    const server = createServer(app);
+    await registerRoutes(server, app);
+    app.use(errorHandler);
+
+    // Test missing series parameter
+    const res = await request(app).get("/api/export.ics");
+    expect(res.status).toBe(400);
   });
 });
