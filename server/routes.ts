@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { generalApiLimiter, exportLimiter, preferencesLimiter } from "./middleware/rateLimit";
 import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import ICAL from "ical.js";
@@ -603,12 +604,12 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // GET /api/series — list all series
-  app.get("/api/series", (_req: Request, res: Response) => {
+  app.get("/api/series", generalApiLimiter, (_req: Request, res: Response) => {
     res.json(allSeries);
   });
 
   // GET /api/events?series=f1,motogp&from=2026-01-01&to=2026-12-31
-  app.get("/api/events", async (req: Request, res: Response) => {
+  app.get("/api/events", generalApiLimiter, async (req: Request, res: Response) => {
     try {
       const query = eventsQuerySchema.parse(req.query);
       const seriesIds = query.series
@@ -663,7 +664,7 @@ export async function registerRoutes(
   });
 
   // GET /api/preferences
-  app.get("/api/preferences", async (_req: Request, res: Response) => {
+  app.get("/api/preferences", generalApiLimiter, async (_req: Request, res: Response) => {
     const prefs = await storage.getPreferences();
     if (prefs) {
       res.json(prefs);
@@ -677,7 +678,7 @@ export async function registerRoutes(
   });
 
   // PUT /api/preferences
-  app.put("/api/preferences", async (req: Request, res: Response) => {
+  app.put("/api/preferences", preferencesLimiter, async (req: Request, res: Response) => {
     try {
       const parsed = insertUserPreferencesSchema.parse(req.body);
       const saved = await storage.savePreferences(parsed);
@@ -688,7 +689,7 @@ export async function registerRoutes(
   });
 
   // GET /api/export.ics?series=f1,motogp
-  app.get("/api/export.ics", async (req: Request, res: Response) => {
+  app.get("/api/export.ics", exportLimiter, async (req: Request, res: Response) => {
     try {
       const query = exportIcsQuerySchema.parse(req.query);
       const seriesIds = query.series

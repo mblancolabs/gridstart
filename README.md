@@ -117,6 +117,12 @@ The application supports the following environment variables:
 - `NODE_ENV`: Environment mode (`development` or `production`)
 - `CORS_ORIGIN`: CORS origin for development (default: `http://localhost:5173`)
 - `SQLITE_FILE_PATH`: Path to the SQLite database file (default: `data.db` in the current directory)
+- `RATE_LIMIT_WINDOW_MS`: General API rate limit window in milliseconds (default: 900000 / 15 minutes)
+- `RATE_LIMIT_MAX`: General API max requests per IP per window (default: 100)
+- `EXPORT_RATE_LIMIT_WINDOW_MS`: Export endpoint rate limit window in milliseconds (default: 3600000 / 1 hour)
+- `EXPORT_RATE_LIMIT_MAX`: Export endpoint max requests per IP per window (default: 10)
+- `PREFERENCES_RATE_LIMIT_WINDOW_MS`: Preferences update rate limit window in milliseconds (default: 300000 / 5 minutes)
+- `PREFERENCES_RATE_LIMIT_MAX`: Preferences update max requests per IP per window (default: 20)
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 
@@ -166,6 +172,16 @@ The application will be available at `http://localhost:5000` (or the port specif
 - `GET /api/preferences` - Get user preferences (enabled series)
 - `PUT /api/preferences` - Update user preferences
 - `GET /api/export.ics?series=f1,motogp` - Export calendar as ICS file
+
+### Rate limiting
+
+The backend applies rate limiting to protect the API and preserve service availability:
+
+- `GET /api/series`, `GET /api/events`, `GET /api/preferences`: 100 requests per IP every 15 minutes
+- `PUT /api/preferences`: 20 requests per IP every 5 minutes
+- `GET /api/export.ics`: 10 requests per IP every 1 hour
+
+Rate-limited requests return HTTP `429 Too Many Requests` with a JSON payload and `Retry-After` header.
 
 ## Configuration
 
