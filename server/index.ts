@@ -5,10 +5,12 @@ import { createServer } from "http";
 import { randomUUID } from "crypto";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { errorHandler } from "./errorHandler";
 import { requestComplete } from "./logger";
+import { csrfProtection, setCsrfToken, handleCsrfError } from "./middleware/csrf";
 
 const app = express();
 const httpServer = createServer(app);
@@ -33,6 +35,7 @@ declare global {
   namespace Express {
     interface Request {
       requestId?: string;
+      csrfToken?: () => string;
     }
   }
 }
@@ -46,6 +49,8 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+app.use(cookieParser());
 
 app.use(
   helmet({
@@ -66,6 +71,10 @@ app.use(
       : false,
   }),
 );
+
+// CSRF protection middleware
+app.use(csrfProtection);
+app.use(setCsrfToken);
 
 app.use((req, res, next) => {
   req.requestId = randomUUID();
@@ -108,6 +117,8 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
+  // CSRF error handler should be before general error handler
+  app.use(handleCsrfError);
   app.use(errorHandler);
 
   // importantly only setup vite in development and after

@@ -3,6 +3,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generalApiLimiter, exportLimiter, preferencesLimiter } from "./middleware/rateLimit";
+import { validateCsrfToken } from "./middleware/csrf";
 import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import { BadRequestError } from "./errors";
@@ -755,7 +756,7 @@ export async function registerRoutes(
   });
 
   // PUT /api/preferences
-  app.put("/api/preferences", preferencesLimiter, async (req: Request, res: Response, next: NextFunction) => {
+  app.put("/api/preferences", validateCsrfToken, preferencesLimiter, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = insertUserPreferencesSchema.parse(req.body);
       const saved = await storage.savePreferences(parsed);
@@ -766,6 +767,12 @@ export async function registerRoutes(
       }
       next(err);
     }
+  });
+
+  // GET /api/csrf-token - Get CSRF token for client
+  app.get("/api/csrf-token", generalApiLimiter, (req: Request, res: Response) => {
+    // The setCsrfToken middleware should have set the X-CSRF-Token header
+    res.json({ csrfToken: req.csrfToken?.() });
   });
 
   // GET /api/export.ics?series=f1,motogp
