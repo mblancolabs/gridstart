@@ -94,7 +94,7 @@ export function SeriesSidebar() {
                           className="w-2 h-2 rounded-full shrink-0"
                           style={{ backgroundColor: s.color }}
                         />
-                        <span className="text-sm">{s.shortName}</span>
+                        <span className="text-sm">{s.name}</span>
                       </div>
                       <Switch
                         checked={enabled}
