@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { fetchICSData, fetchF1Sessions, getDurationForSession } from "../routes";
+import { fetchICSData } from "../routes";
+import { getDurationForSession, jolpicaCache } from "../handlers/jolpica";
+import { JolpicaHandler } from "../handlers/jolpica";
 
 // Mock fetch globally
 const fetchMock = vi.fn();
@@ -8,6 +10,7 @@ global.fetch = fetchMock;
 describe("API logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    jolpicaCache.clear();
   });
 
   afterEach(() => {
@@ -116,16 +119,19 @@ describe("API logic", () => {
     });
   });
 
-  describe("fetchF1Sessions", () => {
+  describe("JolpicaHandler", () => {
     const mockSeries = {
       id: "f1",
       name: "Formula 1",
       shortName: "F1",
       color: "#e10600",
       category: "Formula",
-      icsUrl: "",
+      handler: "jolpica",
+      params: {},
       enabled: true,
     };
+
+    const handler = new JolpicaHandler();
 
     it("fetches and parses F1 race data", async () => {
       const mockApiResponse = {
@@ -160,7 +166,7 @@ describe("API logic", () => {
         json: () => Promise.resolve(mockApiResponse),
       }));
 
-      const result = await fetchF1Sessions(mockSeries, 2024);
+      const result = await handler.fetchEvents(mockSeries, {}, 2024);
 
       expect(result).toHaveLength(5); // FP1, FP2, FP3, Quali, Race
       expect(result[0]).toMatchObject({
@@ -205,7 +211,7 @@ describe("API logic", () => {
         json: vi.fn().mockResolvedValue(mockApiResponse),
       });
 
-      const result = await fetchF1Sessions(mockSeries, 2025);
+      const result = await handler.fetchEvents(mockSeries, {}, 2025);
 
       expect(result).toHaveLength(4); // FP1, Sprint Quali, Sprint, Race
       const sprintQuali = result.find(e => e.sessionType === "Sprint Qualifying");
@@ -242,7 +248,7 @@ describe("API logic", () => {
         json: () => Promise.resolve(mockApiResponse),
       }));
 
-      const result = await fetchF1Sessions(mockSeries, 2026);
+      const result = await handler.fetchEvents(mockSeries, {}, 2026);
 
       expect(result).toHaveLength(2);
       const fp1 = result.find(e => e.sessionType === "Practice 1");
@@ -266,9 +272,9 @@ describe("API logic", () => {
       }));
 
       // First call
-      await fetchF1Sessions(mockSeries, 2027);
+      await handler.fetchEvents(mockSeries, {}, 2027);
       // Second call should use cache
-      const result = await fetchF1Sessions(mockSeries, 2027);
+      const result = await handler.fetchEvents(mockSeries, {}, 2027);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
@@ -276,7 +282,7 @@ describe("API logic", () => {
     it("returns empty array when API fails and no cache", async () => {
       fetchMock.mockImplementation(() => Promise.reject(new Error("Network error")));
 
-      const result = await fetchF1Sessions(mockSeries, 2028);
+      const result = await handler.fetchEvents(mockSeries, {}, 2028);
 
       expect(result).toEqual([]);
     });

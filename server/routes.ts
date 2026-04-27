@@ -7,11 +7,15 @@ import { validateCsrfToken } from "./middleware/csrf";
 import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import { BadRequestError } from "./errors";
+import { safeLoadJsonFile } from "./utils";
 import * as logger from "./logger";
 import ICAL from "ical.js";
 import fs from "fs";
 import path from "path";
-import { safeLoadJsonFile } from "./utils";
+import { HandlerRegistry } from "./handlers/registry";
+import { ICSHandler } from "./handlers/ics";
+import { JolpicaHandler } from "./handlers/jolpica";
+import { MotoGPHandler } from "./handlers/motogp";
 
 // Load ICS feeds config with validation
 const feedsPath = path.resolve(process.cwd(), "ics-feeds.json");
@@ -33,7 +37,8 @@ function getAllSeries(): SeriesInfo[] {
         shortName: series.shortName,
         color: series.color,
         category: category.name,
-        icsUrl: series.icsUrl,
+        handler: series.handler,
+        params: series.params,
         enabled: series.enabled,
       });
     }
@@ -43,13 +48,11 @@ function getAllSeries(): SeriesInfo[] {
 
 const allSeries = getAllSeries();
 
-// Series that use dedicated APIs for session-level data with exact times
-const JOLPICA_SERIES = new Set(["f1"]);
-const MOTOGP_SERIES = new Set(["motogp"]);
-
-// MotoGP API constants
-const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
-const MOTOGP_CATEGORY_ID = "e8c110ad-64aa-4e8e-8a86-f2f152f6a942"; // MotoGP class
+// Initialize handler registry
+const handlerRegistry = new HandlerRegistry();
+handlerRegistry.register(new ICSHandler());
+handlerRegistry.register(new JolpicaHandler());
+handlerRegistry.register(new MotoGPHandler());
 
 // ---------- Caching ----------
 const icsCache = new Map<string, { data: string; fetchedAt: number }>();
@@ -117,463 +120,6 @@ interface JolpicaRace {
   SprintShootout?: JolpicaSession;
 }
 
-export async function fetchF1Sessions(
-  series: SeriesInfo,
-  year: number
-): Promise<CalendarEvent[]> {
-  const cacheKey = `f1-${year}`;
-  const cached = jolpicaCache.get(cacheKey);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-    return cached.data;
-  }
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
-
-    const json = await res.json();
-    const races: JolpicaRace[] = json?.MRData?.RaceTable?.Races || [];
-
-    const events: CalendarEvent[] = [];
-
-    for (const race of races) {
-      const round = parseInt(race.round, 10);
-      const location = `${race.Circuit.Location.locality}, ${race.Circuit.Location.country}`;
-      const circuitName = race.Circuit.circuitName;
-
-      // Determine if this is a sprint weekend
-      const isSprint = !!race.Sprint;
-
-      // Session type definitions with their data and labels
-      const sessions: { key: string; label: string; data?: JolpicaSession }[] =
-        isSprint
-          ? [
-              { key: "fp1", label: "Practice", data: race.FirstPractice },
-              {
-                key: "sprint-quali",
-                label: "Sprint Qualifying",
-                data: race.SprintQualifying || race.SprintShootout,
-              },
-              { key: "sprint", label: "Sprint", data: race.Sprint },
-              { key: "quali", label: "Qualifying", data: race.Qualifying },
-              {
-                key: "race",
-                label: "Race",
-                data: { date: race.date, time: race.time },
-              },
-            ]
-          : [
-              { key: "fp1", label: "Practice 1", data: race.FirstPractice },
-              {
-                key: "fp2",
-                label: "Practice 2",
-                data: race.SecondPractice,
-              },
-              {
-                key: "fp3",
-                label: "Practice 3",
-                data: race.ThirdPractice,
-              },
-              { key: "quali", label: "Qualifying", data: race.Qualifying },
-              {
-                key: "race",
-                label: "Race",
-                data: { date: race.date, time: race.time },
-              },
-            ];
-
-      for (const session of sessions) {
-        if (!session.data?.date) continue;
-
-        const hasTime = !!session.data.time;
-        let startDate: string;
-        let endDate: string;
-
-        if (hasTime) {
-          // Jolpica times are in UTC (e.g. "05:00:00Z")
-          const timeStr = session.data.time!.replace("Z", "");
-          startDate = `${session.data.date}T${timeStr}Z`;
-          // Estimate session duration
-          const durationMinutes = getDurationForSession(session.key);
-          const start = new Date(startDate);
-          endDate = new Date(
-            start.getTime() + durationMinutes * 60 * 1000
-          ).toISOString();
-        } else {
-          startDate = `${session.data.date}T00:00:00Z`;
-          endDate = `${session.data.date}T23:59:59Z`;
-        }
-
-        events.push({
-          id: `f1-${year}-r${round}-${session.key}`,
-          seriesId: series.id,
-          seriesName: series.name,
-          seriesShortName: series.shortName,
-          seriesColor: series.color,
-          title: `${race.raceName} — ${session.label}`,
-          startDate,
-          endDate,
-          location: `${circuitName}, ${location}`,
-          isAllDay: !hasTime,
-          sessionType: session.label,
-          round,
-          raceName: race.raceName,
-        });
-      }
-    }
-
-    jolpicaCache.set(cacheKey, { data: events, fetchedAt: Date.now() });
-    return events;
-  } catch (err) {
-    logger.error(err, "Failed to fetch Jolpica F1 data", { seriesId: series.id });
-    if (cached) return cached.data;
-    return [];
-  }
-}
-
-export function getDurationForSession(sessionKey: string): number {
-  switch (sessionKey) {
-    case "fp1":
-    case "fp2":
-    case "fp3":
-      return 60; // 60 minutes
-    case "quali":
-    case "sprint-quali":
-      return 70; // ~70 minutes
-    case "sprint":
-      return 45; // ~45 minutes
-    case "race":
-      return 120; // ~2 hours
-    default:
-      return 60;
-  }
-}
-
-// ---------- MotoGP Pulselive API ----------
-
-interface MotoGPSeason {
-  id: string;
-  year: number;
-}
-
-interface MotoGPEvent {
-  id: string;
-  name: string;
-  sponsored_name: string;
-  short_name: string;
-  date_start: string;
-  date_end: string;
-  test: boolean;
-  circuit: {
-    id: string;
-    name: string;
-    place: string;
-    nation: string;
-  };
-  country: {
-    iso: string;
-    name: string;
-  };
-}
-
-interface MotoGPSession {
-  id: string;
-  date: string; // ISO 8601 with timezone, often reported as +00:00 even when the time is local
-  number: number | null;
-  type: string; // "FP", "PR", "Q", "SPR", "WUP", "RAC"
-  status: string;
-}
-
-const MOTOGP_SESSION_LABELS: Record<string, string> = {
-  FP: "Practice",
-  PR: "Practice",
-  Q: "Qualifying",
-  SPR: "Sprint",
-  WUP: "Warm Up",
-  RAC: "Race",
-};
-
-function getMotoGPSessionDuration(type: string): number {
-  switch (type) {
-    case "FP": return 45;
-    case "PR": return 60;
-    case "Q": return 15;
-    case "SPR": return 30;
-    case "WUP": return 15;
-    case "RAC": return 105;
-    default: return 45;
-  }
-}
-
-const MOTOGP_TIMEZONE_OVERRIDES: Record<string, string> = {
-  Austin: "America/Chicago",
-  "Phillip Island": "Australia/Melbourne",
-  Lombok: "Asia/Makassar",
-  Sepang: "Asia/Kuala_Lumpur",
-  Doha: "Asia/Qatar",
-  Buriram: "Asia/Bangkok",
-  Goiania: "America/Sao_Paulo",
-  Motegi: "Asia/Tokyo",
-};
-
-const MOTOGP_COUNTRY_TIMEZONES: Record<string, string> = {
-  AT: "Europe/Vienna",
-  AU: "Australia/Melbourne",
-  BR: "America/Sao_Paulo",
-  CZ: "Europe/Prague",
-  DE: "Europe/Berlin",
-  ES: "Europe/Madrid",
-  FR: "Europe/Paris",
-  GB: "Europe/London",
-  HU: "Europe/Budapest",
-  ID: "Asia/Makassar",
-  IT: "Europe/Rome",
-  JP: "Asia/Tokyo",
-  MY: "Asia/Kuala_Lumpur",
-  NL: "Europe/Amsterdam",
-  PT: "Europe/Lisbon",
-  QA: "Asia/Qatar",
-  TH: "Asia/Bangkok",
-  US: "America/Chicago",
-  SM: "Europe/Rome",
-};
-
-function getMotoGPTimeZone(event: MotoGPEvent): string | undefined {
-  return (
-    MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] ||
-    MOTOGP_COUNTRY_TIMEZONES[event.country.iso]
-  );
-}
-
-function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    timeZoneName: "shortOffset",
-    hour12: false,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const parts = formatter.formatToParts(date);
-  const tzPart = parts.find((part) => part.type === "timeZoneName")?.value;
-  if (!tzPart) return 0;
-
-  const match = tzPart.match(/GMT([+-]\d{1,2})(?::?(\d{2}))?/);
-  if (!match) return 0;
-
-  const sign = match[1].startsWith("-") ? -1 : 1;
-  const hours = Math.abs(Number(match[1]));
-  const minutes = Number(match[2] || "0");
-  return sign * (hours * 60 + minutes) * 60 * 1000;
-}
-
-function parseMotoGPSessionDate(sessionDate: string, event: MotoGPEvent): string {
-  const localDate = sessionDate.replace(/([+-]\d{2}:?\d{2}|Z)$/, "");
-  const candidateUtc = new Date(`${localDate}Z`);
-  const timeZone = getMotoGPTimeZone(event);
-  if (!timeZone || Number.isNaN(candidateUtc.getTime())) {
-    return candidateUtc.toISOString();
-  }
-
-  const offsetMs = getTimeZoneOffsetMs(candidateUtc, timeZone);
-  return new Date(candidateUtc.getTime() - offsetMs).toISOString();
-}
-
-async function fetchMotoGPSessions(
-  series: SeriesInfo,
-  year: number
-): Promise<CalendarEvent[]> {
-  const cacheKey = `motogp-${year}`;
-  const cached = motogpCache.get(cacheKey);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-    return cached.data;
-  }
-
-  try {
-    // 1. Find the season UUID for the year
-    const seasonsRes = await fetch(`${MOTOGP_API_BASE}/results/seasons`);
-    if (!seasonsRes.ok) throw new Error(`Seasons HTTP ${seasonsRes.status}`);
-    const seasons: MotoGPSeason[] = await seasonsRes.json();
-    const season = seasons.find((s) => s.year === year);
-    if (!season) {
-      console.log(`No MotoGP season found for ${year}`);
-      return cached?.data || [];
-    }
-
-    // 2. Get all events (both finished and not-finished)
-    const [finishedRes, upcomingRes] = await Promise.all([
-      fetch(`${MOTOGP_API_BASE}/results/events?seasonUuid=${season.id}&isFinished=true`),
-      fetch(`${MOTOGP_API_BASE}/results/events?seasonUuid=${season.id}&isFinished=false`),
-    ]);
-
-    let allMotoGPEvents: MotoGPEvent[] = [];
-    if (finishedRes.ok) {
-      const finished: MotoGPEvent[] = await finishedRes.json();
-      allMotoGPEvents.push(...finished);
-    }
-    if (upcomingRes.ok) {
-      const upcoming: MotoGPEvent[] = await upcomingRes.json();
-      allMotoGPEvents.push(...upcoming);
-    }
-
-    // Filter out test events
-    allMotoGPEvents = allMotoGPEvents.filter((e) => !e.test);
-
-    const events: CalendarEvent[] = [];
-    let roundNum = 0;
-
-    // 3. For each event, get MotoGP sessions
-    for (const mgpEvent of allMotoGPEvents) {
-      roundNum++;
-
-      try {
-        const sessionsRes = await fetch(
-          `${MOTOGP_API_BASE}/results/sessions?eventUuid=${mgpEvent.id}&categoryUuid=${MOTOGP_CATEGORY_ID}`
-        );
-        if (!sessionsRes.ok) continue;
-
-        const sessions: MotoGPSession[] = await sessionsRes.json();
-        const raceName = mgpEvent.sponsored_name || mgpEvent.name;
-        const location = `${mgpEvent.circuit.name}, ${mgpEvent.circuit.place}, ${mgpEvent.country.name}`;
-
-        for (const session of sessions) {
-          if (!session.date) continue;
-
-          // Parse session label: combine type and number
-          let label = MOTOGP_SESSION_LABELS[session.type] || session.type;
-          if (session.number && session.type === "FP") {
-            label = `Practice ${session.number}`;
-          } else if (session.number && session.type === "Q") {
-            label = `Qualifying ${session.number}`;
-          }
-
-          // Parse the date — MotoGP API returns local session times labeled as UTC.
-          const startDate = parseMotoGPSessionDate(session.date, mgpEvent);
-          const durationMs = getMotoGPSessionDuration(session.type) * 60 * 1000;
-          const endDate = new Date(new Date(startDate).getTime() + durationMs).toISOString();
-
-          events.push({
-            id: `motogp-${year}-r${roundNum}-${session.type}${session.number || ""}`,
-            seriesId: series.id,
-            seriesName: series.name,
-            seriesShortName: series.shortName,
-            seriesColor: series.color,
-            title: `${raceName} — ${label}`,
-            startDate,
-            endDate,
-            location,
-            isAllDay: false,
-            sessionType: label,
-            round: roundNum,
-            raceName,
-          });
-        }
-      } catch (sessionErr) {
-        logger.warn(`Failed to fetch sessions for MotoGP event ${mgpEvent.name}`, {
-          seriesId: series.id,
-          eventName: mgpEvent.name,
-          error: sessionErr instanceof Error ? sessionErr.message : String(sessionErr),
-        });
-      }
-    }
-
-    motogpCache.set(cacheKey, { data: events, fetchedAt: Date.now() });
-    return events;
-  } catch (err) {
-    logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
-    if (cached) return cached.data;
-    return [];
-  }
-}
-
-// ---------- ICS parsing (other series) ----------
-
-function parseICSEvents(
-  icsData: string,
-  series: SeriesInfo,
-  fromDate?: Date,
-  toDate?: Date
-): CalendarEvent[] {
-  const events: CalendarEvent[] = [];
-
-  try {
-    const jcalData = ICAL.parse(icsData);
-    const comp = new ICAL.Component(jcalData);
-    const vevents = comp.getAllSubcomponents("vevent");
-
-    for (const vevent of vevents) {
-      const event = new ICAL.Event(vevent);
-
-      const dtstart = vevent.getFirstProperty("dtstart");
-      if (!dtstart) continue;
-
-      // Check if this is an all-day event (VALUE=DATE vs datetime)
-      const isAllDay = dtstart.type === "date";
-
-      const startDate = event.startDate?.toJSDate();
-      const endDate = event.endDate?.toJSDate() || startDate;
-
-      if (!startDate) continue;
-
-      // Filter by date range if provided
-      if (fromDate && endDate < fromDate) continue;
-      if (toDate && startDate > toDate) continue;
-
-      const location =
-        (vevent.getFirstPropertyValue("location") as string | null) || undefined;
-      const description =
-        (vevent.getFirstPropertyValue("description") as string | null) || undefined;
-
-      const summary = event.summary || "Untitled Event";
-
-      // Try to detect session type from the title
-      const sessionType = detectSessionType(summary);
-
-      events.push({
-        id: `${series.id}-${event.uid || Math.random().toString(36).substring(2)}`,
-        seriesId: series.id,
-        seriesName: series.name,
-        seriesShortName: series.shortName,
-        seriesColor: series.color,
-        title: summary,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        location,
-        description,
-        isAllDay,
-        sessionType,
-      });
-    }
-  } catch (err) {
-    logger.error(err, `Error parsing ICS for ${series.id}`);
-  }
-
-  return events;
-}
-
-function detectSessionType(title: string): string | undefined {
-  const lower = title.toLowerCase();
-  if (lower.includes("race") || lower.includes("grand prix") || lower.includes("gp")) return "Race";
-  if (lower.includes("sprint quali") || lower.includes("sprint shootout")) return "Sprint Qualifying";
-  if (lower.includes("sprint")) return "Sprint";
-  if (lower.includes("qualifying") || lower.includes("quali")) return "Qualifying";
-  if (lower.includes("practice 3") || lower.includes("fp3")) return "Practice 3";
-  if (lower.includes("practice 2") || lower.includes("fp2")) return "Practice 2";
-  if (lower.includes("practice 1") || lower.includes("fp1") || lower.includes("practice")) return "Practice";
-  if (lower.includes("test")) return "Test";
-  if (lower.includes("warm")) return "Warm Up";
-  return undefined;
-}
-
 // ---------- ICS export ----------
 
 function generateICS(events: CalendarEvent[]): string {
@@ -636,29 +182,18 @@ async function fetchEventsForSeries(
   if (fromDate) years.add(fromDate.getFullYear());
   if (toDate) years.add(toDate.getFullYear());
 
-  if (JOLPICA_SERIES.has(series.id)) {
-    // Use Jolpica API for F1 session-level data
-    let allEvents: CalendarEvent[] = [];
-    for (const year of Array.from(years)) {
-      const events = await fetchF1Sessions(series, year);
-      allEvents.push(...events);
-    }
-    return filterByDateRange(allEvents, fromDate, toDate);
+  const handler = handlerRegistry.get(series.handler);
+  if (!handler) {
+    throw new Error(`Unknown handler: ${series.handler}`);
   }
 
-  if (MOTOGP_SERIES.has(series.id)) {
-    // Use MotoGP Pulselive API for session-level data
-    let allEvents: CalendarEvent[] = [];
-    for (const year of Array.from(years)) {
-      const events = await fetchMotoGPSessions(series, year);
-      allEvents.push(...events);
-    }
-    return filterByDateRange(allEvents, fromDate, toDate);
+  let allEvents: CalendarEvent[] = [];
+  for (const year of Array.from(years)) {
+    const events = await handler.fetchEvents(series, series.params, year);
+    allEvents.push(...events);
   }
 
-  // Default: use ICS feed
-  const icsData = await fetchICSData(series.id, series.icsUrl);
-  return parseICSEvents(icsData, series, fromDate, toDate);
+  return filterByDateRange(allEvents, fromDate, toDate);
 }
 
 function filterByDateRange(

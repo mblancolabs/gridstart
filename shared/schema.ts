@@ -49,6 +49,7 @@ export interface SeriesInfo {
   shortName: string;
   color: string;
   category: string;
-  icsUrl: string;
+  handler: string;
+  params: Record<string, any>;
   enabled: boolean;
 }

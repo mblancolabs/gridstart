@@ -3,51 +3,51 @@
     {
       "name": "Open Wheel",
       "series": [
-        {"id": "f1", "name": "Formula 1", "shortName": "F1", "color": "#E10600", "icsUrl": "https://calendar.google.com/calendar/ical/fa9bjl6tu13dd10b066stoo5do%40group.calendar.google.com/public/basic.ics", "enabled": true},
-        {"id": "fe", "name": "Formula E", "shortName": "FE", "color": "#14B8A6", "icsUrl": "https://calendar.google.com/calendar/ical/vno0ntshopq0nmob26db2pcen8%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "indycar", "name": "IndyCar Series", "shortName": "INDY", "color": "#0057B8", "icsUrl": "https://calendar.google.com/calendar/ical/hlskhf7l8ce7btind39bb9kf1o%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "f2", "name": "Formula 2", "shortName": "F2", "color": "#0090D0", "icsUrl": "https://calendar.google.com/calendar/ical/rttoqh7u6m247f2ub6c05m4pe4%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "f3", "name": "Formula 3", "shortName": "F3", "color": "#00875F", "icsUrl": "https://calendar.google.com/calendar/ical/sorhedtr7q5qmea6f0hvf20864%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "f1", "name": "Formula 1", "shortName": "F1", "color": "#E10600", "handler": "jolpica", "params": {}, "enabled": true},
+        {"id": "fe", "name": "Formula E", "shortName": "FE", "color": "#14B8A6", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/vno0ntshopq0nmob26db2pcen8%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "indycar", "name": "IndyCar Series", "shortName": "INDY", "color": "#0057B8", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/hlskhf7l8ce7btind39bb9kf1o%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "f2", "name": "Formula 2", "shortName": "F2", "color": "#0090D0", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/rttoqh7u6m247f2ub6c05m4pe4%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "f3", "name": "Formula 3", "shortName": "F3", "color": "#00875F", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/sorhedtr7q5qmea6f0hvf20864%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
     {
       "name": "Motorcycles",
       "series": [
-        {"id": "motogp", "name": "MotoGP", "shortName": "MGPT", "color": "#BE0A18", "icsUrl": "https://calendar.google.com/calendar/ical/832vbii8pmrvma356b4vn3v42c%40group.calendar.google.com/public/basic.ics", "enabled": true},
-        {"id": "wsbk", "name": "World Superbikes", "shortName": "WSBK", "color": "#FF6B00", "icsUrl": "https://calendar.google.com/calendar/ical/0rts2iu5gd88eis52c084ltlhc%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "mxgp", "name": "MXGP", "shortName": "MXGP", "color": "#8B4513", "icsUrl": "https://calendar.google.com/calendar/ical/coufmu1k3fncfish6dpakqla0g%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "motogp", "name": "MotoGP", "shortName": "MGPT", "color": "#BE0A18", "handler": "motogp", "params": {"class": "MotoGP"}, "enabled": true},
+        {"id": "wsbk", "name": "World Superbikes", "shortName": "WSBK", "color": "#FF6B00", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/0rts2iu5gd88eis52c084ltlhc%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "mxgp", "name": "MXGP", "shortName": "MXGP", "color": "#8B4513", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/coufmu1k3fncfish6dpakqla0g%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
     {
       "name": "Endurance",
       "series": [
-        {"id": "wec", "name": "WEC / Le Mans", "shortName": "WEC", "color": "#003DA5", "icsUrl": "https://calendar.google.com/calendar/ical/61jccgg4rshh1temqk0dj4lens%40group.calendar.google.com/public/basic.ics", "enabled": true},
-        {"id": "imsa", "name": "IMSA SportsCar", "shortName": "IMSA", "color": "#C8102E", "icsUrl": "https://calendar.google.com/calendar/ical/njulhksvo83qeoruc3nhend9js%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "elms", "name": "European Le Mans", "shortName": "ELMS", "color": "#1E3A5F", "icsUrl": "https://calendar.google.com/calendar/ical/ur7thj1o6ctignecm0uia024js%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "wec", "name": "WEC / Le Mans", "shortName": "WEC", "color": "#003DA5", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/61jccgg4rshh1temqk0dj4lens%40group.calendar.google.com/public/basic.ics"}, "enabled": true},
+        {"id": "imsa", "name": "IMSA SportsCar", "shortName": "IMSA", "color": "#C8102E", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/njulhksvo83qeoruc3nhend9js%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "elms", "name": "European Le Mans", "shortName": "ELMS", "color": "#1E3A5F", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/ur7thj1o6ctignecm0uia024js%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
     {
       "name": "NASCAR",
       "series": [
-        {"id": "nascar", "name": "NASCAR Cup Series", "shortName": "CUP", "color": "#FFC72C", "icsUrl": "https://calendar.google.com/calendar/ical/db8c47ne2bt9qbld2mhdabm0u8%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "nascar-xfin", "name": "NASCAR Xfinity", "shortName": "XFIN", "color": "#E87722", "icsUrl": "https://calendar.google.com/calendar/ical/po54lfbfrvlkrrhirlame40a6c%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "nascar", "name": "NASCAR Cup Series", "shortName": "CUP", "color": "#FFC72C", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/db8c47ne2bt9qbld2mhdabm0u8%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "nascar-xfin", "name": "NASCAR Xfinity", "shortName": "XFIN", "color": "#E87722", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/po54lfbfrvlkrrhirlame40a6c%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
     {
       "name": "GT & Touring",
       "series": [
-        {"id": "dtm", "name": "DTM", "shortName": "DTM", "color": "#D50032", "icsUrl": "https://calendar.google.com/calendar/ical/0urnjij5qqj3ijoht52fdsqk18%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "gtwce", "name": "GT World Challenge Europe", "shortName": "GTWC", "color": "#4A90D9", "icsUrl": "https://calendar.google.com/calendar/ical/drne83rrmn7m9baje25qh2248s%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "supercars", "name": "Supercars", "shortName": "V8SC", "color": "#00A651", "icsUrl": "https://calendar.google.com/calendar/ical/sd36enn936vc7dv35ucgulbjng%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "btcc", "name": "BTCC", "shortName": "BTCC", "color": "#1B3668", "icsUrl": "https://calendar.google.com/calendar/ical/9onbjrejbcstdm524hi0ush2t8%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "igtc", "name": "Intercontinental GT Challenge", "shortName": "IGTC", "color": "#FF4500", "icsUrl": "https://calendar.google.com/calendar/ical/kcelko7ictk6okcf4peougahlo%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "dtm", "name": "DTM", "shortName": "DTM", "color": "#D50032", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/0urnjij5qqj3ijoht52fdsqk18%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "gtwce", "name": "GT World Challenge Europe", "shortName": "GTWC", "color": "#4A90D9", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/drne83rrmn7m9baje25qh2248s%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "supercars", "name": "Supercars", "shortName": "V8SC", "color": "#00A651", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/sd36enn936vc7dv35ucgulbjng%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "btcc", "name": "BTCC", "shortName": "BTCC", "color": "#1B3668", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/9onbjrejbcstdm524hi0ush2t8%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "igtc", "name": "Intercontinental GT Challenge", "shortName": "IGTC", "color": "#FF4500", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/kcelko7ictk6okcf4peougahlo%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
     {
       "name": "Rally & Off-Road",
       "series": [
-        {"id": "wrc", "name": "World Rally Championship", "shortName": "WRC", "color": "#00529B", "icsUrl": "https://calendar.google.com/calendar/ical/fei68gpe16c85ed3jjdtvrn8ns%40group.calendar.google.com/public/basic.ics", "enabled": false},
-        {"id": "dakar", "name": "Dakar / Rally-Raid", "shortName": "DKAR", "color": "#C4A265", "icsUrl": "https://calendar.google.com/calendar/ical/b772288cc7a8498d8b158e88d00b8667960ebef65f28468a85736f8648400676%40group.calendar.google.com/public/basic.ics", "enabled": false}
+        {"id": "wrc", "name": "World Rally Championship", "shortName": "WRC", "color": "#00529B", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/fei68gpe16c85ed3jjdtvrn8ns%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "dakar", "name": "Dakar / Rally-Raid", "shortName": "DKAR", "color": "#C4A265", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/b772288cc7a8498d8b158e88d00b8667960ebef65f28468a85736f8648400676%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     }
   ]
