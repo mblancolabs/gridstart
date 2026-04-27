@@ -14,6 +14,8 @@
       "name": "Motorcycles",
       "series": [
         {"id": "motogp", "name": "MotoGP", "shortName": "MGPT", "color": "#BE0A18", "handler": "motogp", "params": {"class": "MotoGP"}, "enabled": true},
+        {"id": "moto2", "name": "Moto2", "shortName": "MOT2", "color": "#1E3A8A", "handler": "motogp", "params": {"class": "Moto2"}, "enabled": false},
+        {"id": "moto3", "name": "Moto3", "shortName": "MOT3", "color": "#DC2626", "handler": "motogp", "params": {"class": "Moto3"}, "enabled": false},
         {"id": "wsbk", "name": "World Superbikes", "shortName": "WSBK", "color": "#FF6B00", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/0rts2iu5gd88eis52c084ltlhc%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
         {"id": "mxgp", "name": "MXGP", "shortName": "MXGP", "color": "#8B4513", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/coufmu1k3fncfish6dpakqla0g%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]

@@ -38,8 +38,8 @@ interface MotoGPSession {
 const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
 const MOTOGP_CATEGORY_IDS: Record<string, string> = {
   "MotoGP": "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
-  "Moto2": "1d2c0b48-4cfa-47ad-8fc6-4dcfe97f4a22",
-  "Moto3": "96c6dffd-7c24-4e3e-8d9b-583e9ee61b15",
+  "Moto2": "549640b8-fd9c-4245-acfd-60e4bc38b25c",
+  "Moto3": "954f7e65-2ef2-4423-b949-4961cc603e45",
 };
 
 const MOTOGP_SESSION_LABELS: Record<string, string> = {
