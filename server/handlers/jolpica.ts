@@ -1,6 +1,7 @@
 import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
+import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 
 interface JolpicaSession {
   date: string;
@@ -125,7 +126,8 @@ export class JolpicaHandler implements FeedHandler {
               ];
 
         for (const session of sessions) {
-          if (!session.data?.date) continue;
+          const sessionLabel = normalizeSessionName(session.label);
+          if (!sessionLabel || !session.data?.date) continue;
 
           const hasTime = !!session.data.time;
           let startDate: string;
@@ -152,20 +154,25 @@ export class JolpicaHandler implements FeedHandler {
             seriesName: series.name,
             seriesShortName: series.shortName,
             seriesColor: series.color,
-            title: `${race.raceName} — ${session.label}`,
+            title: `${race.raceName} — ${sessionLabel}`,
             startDate,
             endDate,
             location: `${circuitName}, ${location}`,
             isAllDay: !hasTime,
-            sessionType: session.label,
+            sessionType: sessionLabel,
             round,
             raceName: race.raceName,
           });
         }
       }
 
-      jolpicaCache.set(cacheKey, { data: events, fetchedAt: Date.now() });
-      return events;
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+      const finalEvents = requestedSessionNames
+        ? filterEventsBySessionNames(events, requestedSessionNames)
+        : events;
+
+      jolpicaCache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
+      return finalEvents;
     } catch (err) {
       logger.error(err, "Failed to fetch Jolpica data", { seriesId: series.id });
       if (cached) return cached.data;

@@ -2,8 +2,9 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import ICAL from "ical.js";
 import { fetchICSData } from "../routes"; // We'll keep this function in routes for now, or move it
+import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 
-function parseICSEvents(
+export function parseICSEvents(
   icsData: string,
   series: SeriesInfo,
   fromDate?: Date,
@@ -41,8 +42,8 @@ function parseICSEvents(
 
       const summary = event.summary || "Untitled Event";
 
-      // Try to detect session type from the title
-      const sessionType = detectSessionType(summary);
+      // Try to detect session type from the title and normalize it to the shared registry
+      const sessionType = normalizeSessionName(detectSessionType(summary));
 
       events.push({
         id: `${series.id}-${event.uid || Math.random().toString(36).substring(2)}`,
@@ -91,6 +92,10 @@ export class ICSHandler implements FeedHandler {
 
     // For now, fetch current year only. Could be enhanced to fetch multiple years
     const icsData = await fetchICSData(series.id, url);
-    return parseICSEvents(icsData, series);
+    const events = parseICSEvents(icsData, series);
+    const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+    return requestedSessionNames
+      ? filterEventsBySessionNames(events, requestedSessionNames)
+      : events;
   }
 }

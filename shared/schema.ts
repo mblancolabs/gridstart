@@ -52,4 +52,5 @@ export interface SeriesInfo {
   handler: string;
   params: Record<string, any>;
   enabled: boolean;
+  sessionNames?: string[];
 }

@@ -16,6 +16,7 @@ import { HandlerRegistry } from "./handlers/registry";
 import { ICSHandler } from "./handlers/ics";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
+import { normalizeSessionNames } from "./handlers/sessionLabels";
 
 // Load ICS feeds config with validation
 const feedsPath = path.resolve(process.cwd(), "ics-feeds.json");
@@ -31,6 +32,27 @@ function getAllSeries(): SeriesInfo[] {
   const result: SeriesInfo[] = [];
   for (const category of feedsConfig.categories) {
     for (const series of category.series) {
+      const rawSessionNames = series.params?.sessionNames;
+      const normalizedSessionNames =
+        rawSessionNames === undefined
+          ? undefined
+          : Array.isArray(rawSessionNames)
+          ? normalizeSessionNames(rawSessionNames)
+          : undefined;
+
+      if (rawSessionNames !== undefined && !Array.isArray(rawSessionNames)) {
+        throw new Error(`Invalid sessionNames for ${series.id}: must be an array`);
+      }
+
+      if (
+        Array.isArray(rawSessionNames) &&
+        (!normalizedSessionNames || normalizedSessionNames.length !== rawSessionNames.length)
+      ) {
+        throw new Error(
+          `Invalid sessionNames for ${series.id}: unsupported session names`
+        );
+      }
+
       result.push({
         id: series.id,
         name: series.name,
@@ -40,6 +62,7 @@ function getAllSeries(): SeriesInfo[] {
         handler: series.handler,
         params: series.params,
         enabled: series.enabled,
+        sessionNames: normalizedSessionNames,
       });
     }
   }

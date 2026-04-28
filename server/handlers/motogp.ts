@@ -1,6 +1,7 @@
 import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
+import { filterEventsBySessionNames, normalizeSessionNames } from "./sessionLabels";
 
 interface MotoGPSeason {
   id: string;
@@ -235,7 +236,10 @@ export class MotoGPHandler implements FeedHandler {
         }
       }
 
-      return events;
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+      return requestedSessionNames
+        ? filterEventsBySessionNames(events, requestedSessionNames)
+        : events;
     } catch (err) {
       logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
       return [];

@@ -191,8 +191,12 @@ Series data is configured in ics-feeds.json. Each series includes:
 - `name`: Full series name
 - `shortName`: Display abbreviation
 - `color`: Hex color for UI theming
-- `icsUrl`: Google Calendar ICS feed URL
+- `handler`: Feed handler name
+- `params`: Handler-specific parameters, such as `url` for ICS feeds or `class` for MotoGP
 - `enabled`: Default enabled state
+- `sessionNames`: Optional array of standard session names to expose for that series
+
+Standard session names include: `Practice`, `Practice 1`, `Practice 2`, `Practice 3`, `Qualifying`, `Sprint Qualifying`, `Sprint`, `Warm Up`, `Race`, and `Test`.
 
 ### Special Series
 - **F1**: Uses Jolpica API for detailed session timing instead of ICS feeds

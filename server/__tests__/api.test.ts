@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { fetchICSData } from "../routes";
 import { getDurationForSession, jolpicaCache } from "../handlers/jolpica";
 import { JolpicaHandler } from "../handlers/jolpica";
+import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "../handlers/sessionLabels";
+import { parseICSEvents } from "../handlers/ics";
 
 // Mock fetch globally
 const fetchMock = vi.fn();
@@ -116,6 +118,65 @@ describe("API logic", () => {
 
     it("returns default duration for unknown session", () => {
       expect(getDurationForSession("unknown")).toBe(60);
+    });
+  });
+
+  describe("session label normalization", () => {
+    it("normalizes practice and qualifying aliases", () => {
+      expect(normalizeSessionName("FP1")).toBe("Practice 1");
+      expect(normalizeSessionName("practice 2")).toBe("Practice 2");
+      expect(normalizeSessionName("Qualifying 1")).toBe("Qualifying");
+      expect(normalizeSessionName("sprint shootout")).toBe("Sprint Qualifying");
+      expect(normalizeSessionName("warm up")).toBe("Warm Up");
+    });
+
+    it("matches numbered session types against canonical filters", () => {
+      const allowed = normalizeSessionNames(["Practice", "Qualifying"]);
+      expect(allowed).toEqual(["Practice", "Qualifying"]);
+      expect(filterEventsBySessionNames(
+        [{ id: "1", seriesId: "test", seriesName: "Test", seriesShortName: "T", seriesColor: "#000", title: "Test", startDate: "2026-01-01T00:00:00Z", endDate: "2026-01-01T01:00:00Z", isAllDay: false, sessionType: "Practice 1" }],
+        allowed || []
+      )).toHaveLength(1);
+      expect(filterEventsBySessionNames(
+        [{ id: "2", seriesId: "test", seriesName: "Test", seriesShortName: "T", seriesColor: "#000", title: "Test", startDate: "2026-01-01T00:00:00Z", endDate: "2026-01-01T01:00:00Z", isAllDay: false, sessionType: "Qualifying 2" }],
+        allowed || []
+      )).toHaveLength(1);
+    });
+  });
+
+  describe("ICS session filtering", () => {
+    it("filters ICS events by configured sessionNames", () => {
+      const events = parseICSEvents(
+        `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20240601T120000Z
+DTEND:20240601T130000Z
+SUMMARY:Free Practice 1
+END:VEVENT
+BEGIN:VEVENT
+UID:2
+DTSTART:20240601T140000Z
+DTEND:20240601T150000Z
+SUMMARY:Qualifying 1
+END:VEVENT
+END:VCALENDAR`,
+        {
+          id: "test",
+          name: "Test Series",
+          shortName: "TST",
+          color: "#000000",
+          category: "Test",
+          handler: "ics",
+          params: {},
+          enabled: true,
+        }
+      );
+
+      const filtered = filterEventsBySessionNames(events, ["Practice"]);
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0]?.sessionType).toBe("Practice");
     });
   });
 
