@@ -15,10 +15,12 @@ import { csrfProtection, setCsrfToken, handleCsrfError } from "./middleware/csrf
 const app = express();
 const httpServer = createServer(app);
 const isProduction = process.env.NODE_ENV === "production";
+const devCspOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const devCspWsOrigin = process.env.DEV_CSP_WS_ORIGIN || devCspOrigin.replace(/^https?:/, 'ws:');
 
 // Enable CORS with specific configuration
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: devCspOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
@@ -58,9 +60,9 @@ app.use(setCsrfToken);
 
 app.use(
   helmet({
-    contentSecurityPolicy: isProduction
-      ? {
-          directives: {
+    contentSecurityPolicy: {
+      directives: isProduction
+        ? {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
             styleSrc: ["'self'", "https://api.fontshare.com"],
@@ -70,9 +72,19 @@ app.use(
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
+          }
+        : {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", devCspOrigin],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://api.fontshare.com"],
+            fontSrc: ["'self'", "https://api.fontshare.com"],
+            imgSrc: ["'self'", "data:"],
+            connectSrc: ["'self'", devCspOrigin, devCspWsOrigin],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
           },
-        }
-      : false,
+    },
   }),
 );
 

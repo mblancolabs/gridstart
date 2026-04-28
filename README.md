@@ -116,6 +116,7 @@ The application supports the following environment variables:
 - `PORT`: Server port (default: 5000)
 - `NODE_ENV`: Environment mode (`development` or `production`)
 - `CORS_ORIGIN`: CORS origin for development (default: `http://localhost:5173`)
+- `DEV_CSP_WS_ORIGIN`: WebSocket origin for development CSP (defaults to `CORS_ORIGIN` converted to `ws:`)
 - `SQLITE_FILE_PATH`: Path to the SQLite database file (default: `data.db` in the current directory)
 - `RATE_LIMIT_WINDOW_MS`: General API rate limit window in milliseconds (default: 900000 / 15 minutes)
 - `RATE_LIMIT_MAX`: General API max requests per IP per window (default: 100)
