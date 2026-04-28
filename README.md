@@ -123,6 +123,8 @@ The application supports the following environment variables:
 - `EXPORT_RATE_LIMIT_MAX`: Export endpoint max requests per IP per window (default: 10)
 - `PREFERENCES_RATE_LIMIT_WINDOW_MS`: Preferences update rate limit window in milliseconds (default: 300000 / 5 minutes)
 - `PREFERENCES_RATE_LIMIT_MAX`: Preferences update max requests per IP per window (default: 20)
+- `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes)
+- `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 

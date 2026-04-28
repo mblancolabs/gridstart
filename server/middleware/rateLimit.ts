@@ -41,6 +41,8 @@ const exportWindowMs = parseEnvNumber("EXPORT_RATE_LIMIT_WINDOW_MS", 60 * 60 * 1
 const exportMax = parseEnvNumber("EXPORT_RATE_LIMIT_MAX", 10);
 const preferencesWindowMs = parseEnvNumber("PREFERENCES_RATE_LIMIT_WINDOW_MS", 5 * 60 * 1000);
 const preferencesMax = parseEnvNumber("PREFERENCES_RATE_LIMIT_MAX", 20);
+const staticWindowMs = parseEnvNumber("STATIC_RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000);
+const staticMax = parseEnvNumber("STATIC_RATE_LIMIT_MAX", 1000);
 
 export const generalApiLimiter = createLimiter({
   windowMs: generalWindowMs,
@@ -58,4 +60,10 @@ export const exportLimiter = createLimiter({
   windowMs: exportWindowMs,
   max: exportMax,
   name: "export-api",
+});
+
+export const staticLimiter = createLimiter({
+  windowMs: staticWindowMs,
+  max: staticMax,
+  name: "static",
 });
