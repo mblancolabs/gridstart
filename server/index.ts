@@ -52,6 +52,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(cookieParser());
 
+// CSRF protection middleware
+app.use(csrfProtection);
+app.use(setCsrfToken);
+
 app.use(
   helmet({
     contentSecurityPolicy: isProduction
@@ -71,10 +75,6 @@ app.use(
       : false,
   }),
 );
-
-// CSRF protection middleware
-app.use(csrfProtection);
-app.use(setCsrfToken);
 
 app.use((req, res, next) => {
   req.requestId = randomUUID();
