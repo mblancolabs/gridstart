@@ -6,17 +6,38 @@ import { randomUUID } from "crypto";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import lusca from "lusca";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { errorHandler } from "./errorHandler";
 import { requestComplete } from "./logger";
-import { csrfProtection, setCsrfToken, handleCsrfError } from "./middleware/csrf";
 
 const app = express();
 const httpServer = createServer(app);
 const isProduction = process.env.NODE_ENV === "production";
 const devCspOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 const devCspWsOrigin = process.env.DEV_CSP_WS_ORIGIN || devCspOrigin.replace(/^https?:/, 'ws:');
+
+// Lusca security configuration
+const luscaConfig = {
+  csrf: {
+    cookie: 'csrf-token',
+    header: 'x-csrf-token',
+    secret: process.env.CSRF_SECRET || 'default-secret-change-in-prod'
+  },
+  xframe: 'SAMEORIGIN',
+  ...(isProduction && {
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
+  }),
+  xssProtection: true,
+  nosniff: true,
+  referrerPolicy: isProduction ? 'strict-origin-when-cross-origin' : 'no-referrer-when-downgrade'
+};
 
 // Enable CORS with specific configuration
 app.use(cors({
@@ -37,7 +58,6 @@ declare global {
   namespace Express {
     interface Request {
       requestId?: string;
-      csrfToken?: () => string;
     }
   }
 }
@@ -54,9 +74,29 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(cookieParser());
 
-// CSRF protection middleware
-app.use(csrfProtection);
-app.use(setCsrfToken);
+// Session middleware for Lusca
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default-session-secret-change-in-prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction,
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Lusca security middleware
+app.use(lusca(luscaConfig));
+
+// Set CSRF token in header for client access
+app.use((req, res, next) => {
+  if ((res as any).locals._csrf) {
+    res.set('X-CSRF-Token', (res as any).locals._csrf);
+  }
+  next();
+});
 
 app.use(
   helmet({
@@ -129,8 +169,6 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
-  // CSRF error handler should be before general error handler
-  app.use(handleCsrfError);
   app.use(errorHandler);
 
   // importantly only setup vite in development and after

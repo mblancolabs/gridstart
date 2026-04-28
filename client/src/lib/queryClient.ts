@@ -3,16 +3,13 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 const API_BASE = ".";
 
 async function getCsrfToken(): Promise<string | null> {
-  try {
-    const res = await fetch(`${API_BASE}/api/csrf-token`, {
-      method: "GET",
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.csrfToken;
+  // Read CSRF token from cookie
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'csrf-token') {
+      return decodeURIComponent(value);
     }
-  } catch (error) {
-    console.warn("Failed to fetch CSRF token:", error);
   }
   return null;
 }
