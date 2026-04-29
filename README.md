@@ -1,6 +1,15 @@
 # GridStart
 
+[![License: MIT](https://img.shields.io/github/license/mblancolabs/gridstart?style=flat-square)](./LICENSE.txt)
+![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![React 18](https://img.shields.io/badge/react-18-20232a?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/express-4.x-000000?style=flat-square&logo=express&logoColor=white)
+[![GitHub stars](https://img.shields.io/github/stars/mblancolabs/gridstart?style=flat-square)](https://github.com/mblancolabs/gridstart/stargazers)
+
 A modern, full-stack motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
+
+![GridStart](./gridstart.png)
 
 ## Features
 
@@ -11,6 +20,8 @@ A modern, full-stack motorsport calendar application that aggregates racing sche
 - **Dark/Light Theme**: Toggle between themes for comfortable viewing
 - **Series Filtering**: Enable/disable series based on your interests
 - **Session-Level Detail**: View practice, qualifying, sprint, and race sessions with exact timing
+
+![GridStart Screenshot](./gridstart-screenshot.png)
 
 ## Supported Series
 
@@ -211,14 +222,6 @@ The application uses SQLite with a simple schema:
 - `user_preferences` table stores enabled series as JSON
 
 Database operations are handled by Drizzle ORM with automatic migrations.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
 
 ## License
 
