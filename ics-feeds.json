@@ -13,9 +13,9 @@
     {
       "name": "Motorcycles",
       "series": [
-        {"id": "motogp", "name": "MotoGP", "shortName": "MGPT", "color": "#BE0A18", "handler": "motogp", "params": {"class": "MotoGP"}, "enabled": true},
-        {"id": "moto2", "name": "Moto2", "shortName": "MOT2", "color": "#1E3A8A", "handler": "motogp", "params": {"class": "Moto2"}, "enabled": false},
-        {"id": "moto3", "name": "Moto3", "shortName": "MOT3", "color": "#DC2626", "handler": "motogp", "params": {"class": "Moto3"}, "enabled": false},
+        {"id": "motogp", "name": "MotoGP", "shortName": "MotoGP", "color": "#BE0A18", "handler": "motogp", "params": {"class": "MotoGP"}, "enabled": true},
+        {"id": "moto2", "name": "Moto2", "shortName": "Moto2", "color": "#1E3A8A", "handler": "motogp", "params": {"class": "Moto2"}, "enabled": false},
+        {"id": "moto3", "name": "Moto3", "shortName": "Moto3", "color": "#DC2626", "handler": "motogp", "params": {"class": "Moto3"}, "enabled": false},
         {"id": "wsbk", "name": "World Superbikes", "shortName": "WSBK", "color": "#FF6B00", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/0rts2iu5gd88eis52c084ltlhc%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
         {"id": "mxgp", "name": "MXGP", "shortName": "MXGP", "color": "#8B4513", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/coufmu1k3fncfish6dpakqla0g%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
@@ -31,7 +31,7 @@
     {
       "name": "NASCAR",
       "series": [
-        {"id": "nascar", "name": "NASCAR Cup Series", "shortName": "CUP", "color": "#FFC72C", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/db8c47ne2bt9qbld2mhdabm0u8%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
+        {"id": "nascar", "name": "NASCAR Cup Series", "shortName": "NASCAR", "color": "#FFC72C", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/db8c47ne2bt9qbld2mhdabm0u8%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
         {"id": "nascar-xfin", "name": "NASCAR Xfinity", "shortName": "XFIN", "color": "#E87722", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/po54lfbfrvlkrrhirlame40a6c%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     },
@@ -49,7 +49,7 @@
       "name": "Rally & Off-Road",
       "series": [
         {"id": "wrc", "name": "World Rally Championship", "shortName": "WRC", "color": "#00529B", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/fei68gpe16c85ed3jjdtvrn8ns%40group.calendar.google.com/public/basic.ics"}, "enabled": false},
-        {"id": "dakar", "name": "Dakar / Rally-Raid", "shortName": "DKAR", "color": "#C4A265", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/b772288cc7a8498d8b158e88d00b8667960ebef65f28468a85736f8648400676%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
+        {"id": "dakar", "name": "Dakar / Rally-Raid", "shortName": "DAKAR", "color": "#C4A265", "handler": "ics", "params": {"url": "https://calendar.google.com/calendar/ical/b772288cc7a8498d8b158e88d00b8667960ebef65f28468a85736f8648400676%40group.calendar.google.com/public/basic.ics"}, "enabled": false}
       ]
     }
   ]

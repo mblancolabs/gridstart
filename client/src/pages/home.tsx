@@ -393,9 +393,7 @@ export default function Home() {
                             color: isDark ? lightenColor(e.seriesColor, 65) : e.seriesColor,
                           }}
                         >
-                          {e.isAllDay
-                            ? e.seriesShortName
-                            : `${formatLocalTime(e.startDate)} ${e.sessionType || e.seriesShortName}`}
+                          {`[${e.seriesShortName}] ${e.sessionType || ''}`.trim()}
                         </div>
                       ))}
                       {dayEvents.length > 2 && (

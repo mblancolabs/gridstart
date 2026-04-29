@@ -157,7 +157,7 @@ function generateICS(events: CalendarEvent[]): string {
     vevent.updatePropertyWithValue("uid", event.id);
     vevent.updatePropertyWithValue(
       "summary",
-      `[${event.seriesShortName}] ${event.title}`
+      `[${event.seriesShortName}] ${event.sessionType || event.title}`
     );
 
     if (event.isAllDay) {

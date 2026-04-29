@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.0] - 2026-04-29
+
+### Changed
+- Updated event display format in calendar view and ICS export to show "[shortName] [sessionLabel]" for improved consistency and readability across different calendar applications.
+
 ## [0.4.0] - 2026-04-28
 
 ### Added
