@@ -6,6 +6,14 @@ function parseEnvNumber(key: string, fallback: number): number {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+function sanitizeLogValue(value: string): string {
+  return value.replace(/[\r\n]+/g, " ").replace(/[\u0000-\u001F\u007F]/g, " ");
+}
+
+function encodeLogValue(value: string): string {
+  return JSON.stringify(sanitizeLogValue(value));
+}
+
 function createLimiter({
   windowMs,
   max,
@@ -22,8 +30,13 @@ function createLimiter({
     legacyHeaders: false,
     handler: (req: Request, res: Response) => {
       const retryAfterSeconds = Math.ceil(windowMs / 1000);
+      const ip = encodeLogValue(req.ip ?? "-");
+      const method = encodeLogValue(req.method);
+      const originalUrl = encodeLogValue(req.originalUrl);
+      const limiterName = encodeLogValue(name);
+
       console.warn(
-        `[rate-limit] ${req.ip} ${req.method} ${req.originalUrl} exceeded ${max} requests in ${windowMs / 1000}s (${name})`,
+        `[rate-limit] ${ip} ${method} ${originalUrl} exceeded ${max} requests in ${windowMs / 1000}s (${limiterName})`,
       );
       res.setHeader("Retry-After", String(retryAfterSeconds));
       res.status(429).json({
