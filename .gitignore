@@ -6,9 +6,6 @@
 /build/
 /server/public/
 
-# Vite config files
-vite.config.ts.*
-
 # Environment variables
 .env
 
@@ -21,4 +18,4 @@ vite.config.ts.*
 /backlog/
 
 # IDE configurations
-/.vscode/
+.vscode/
