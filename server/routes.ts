@@ -16,7 +16,6 @@ import { ICSHandler } from "./handlers/ics";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
-import { fetchICSData } from "./icsFetcher";
 export { fetchICSData } from "./icsFetcher";
 
 // Load ICS feeds config with validation
