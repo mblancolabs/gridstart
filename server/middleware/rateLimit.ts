@@ -10,6 +10,10 @@ function sanitizeLogValue(value: string): string {
   return value.replace(/[\r\n]+/g, " ").replace(/[\u0000-\u001F\u007F]/g, " ");
 }
 
+function encodeLogValue(value: string): string {
+  return JSON.stringify(sanitizeLogValue(value));
+}
+
 function createLimiter({
   windowMs,
   max,
@@ -26,10 +30,10 @@ function createLimiter({
     legacyHeaders: false,
     handler: (req: Request, res: Response) => {
       const retryAfterSeconds = Math.ceil(windowMs / 1000);
-      const ip = sanitizeLogValue(req.ip ?? "-");
-      const method = sanitizeLogValue(req.method);
-      const originalUrl = sanitizeLogValue(req.originalUrl);
-      const limiterName = sanitizeLogValue(name);
+      const ip = encodeLogValue(req.ip ?? "-");
+      const method = encodeLogValue(req.method);
+      const originalUrl = encodeLogValue(req.originalUrl);
+      const limiterName = encodeLogValue(name);
 
       console.warn(
         `[rate-limit] ${ip} ${method} ${originalUrl} exceeded ${max} requests in ${windowMs / 1000}s (${limiterName})`,
