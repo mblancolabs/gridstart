@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { errorHandler } from "../errorHandler";
 import { BadRequestError } from "../errors";
 

@@ -335,7 +335,7 @@ END:VCALENDAR`,
       // First call
       await handler.fetchEvents(mockSeries, {}, 2027);
       // Second call should use cache
-      const result = await handler.fetchEvents(mockSeries, {}, 2027);
+      await handler.fetchEvents(mockSeries, {}, 2027);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });

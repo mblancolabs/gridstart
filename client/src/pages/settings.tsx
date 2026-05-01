@@ -81,7 +81,6 @@ export default function Settings() {
         {!isLoading &&
           categories.map((cat) => {
             const allEnabled = cat.items.every((s) => enabledSeries.includes(s.id));
-            const someEnabled = cat.items.some((s) => enabledSeries.includes(s.id));
 
             return (
               <div key={cat.name} className="space-y-2">

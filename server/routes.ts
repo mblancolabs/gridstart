@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Express, Request, Response, NextFunction } from "express";
-import { createServer, type Server } from "http";
+import { type Server } from "http";
 import { storage } from "./storage";
 import { generalApiLimiter, exportLimiter, preferencesLimiter } from "./middleware/rateLimit";
 import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
@@ -9,7 +9,6 @@ import { BadRequestError } from "./errors";
 import { safeLoadJsonFile } from "./utils";
 import * as logger from "./logger";
 import ICAL from "ical.js";
-import fs from "fs";
 import path from "path";
 import { HandlerRegistry } from "./handlers/registry";
 import { ICSHandler } from "./handlers/ics";
@@ -78,8 +77,8 @@ handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
 
 // ---------- Caching ----------
-const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
-const motogpCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
+//const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
+//const motogpCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
 
 // ---------- Jolpica API (F1 session times) ----------
 
@@ -135,7 +134,7 @@ function generateICS(events: CalendarEvent[]): string {
       // All-day event — use VALUE=DATE
       const d = new Date(event.startDate);
       const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
-      const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
+      //const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
       
       const dEnd = new Date(event.endDate);
       const endDateStr = `${dEnd.getUTCFullYear()}${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}${String(dEnd.getUTCDate()).padStart(2, "0")}`;
