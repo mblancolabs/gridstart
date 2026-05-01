@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
 import { createServer } from "http";
 import { randomUUID } from "crypto";
 import helmet from "helmet";

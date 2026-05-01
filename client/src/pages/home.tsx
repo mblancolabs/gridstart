@@ -11,7 +11,6 @@ import {
   isSameDay,
   isToday,
   addDays,
-  parseISO,
 } from "date-fns";
 import {
   ChevronLeft,
@@ -19,7 +18,6 @@ import {
   MapPin,
   Calendar as CalendarIcon,
   Clock,
-  Flag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +50,7 @@ function formatLocalDate(isoString: string): string {
   });
 }
 
+/*
 function formatLocalDay(isoString: string): string {
   const d = new Date(isoString);
   return d.toLocaleDateString([], {
@@ -60,6 +59,7 @@ function formatLocalDay(isoString: string): string {
     day: "numeric",
   });
 }
+*/
 
 // ---------- Color helpers ----------
 
@@ -133,7 +133,7 @@ interface RaceWeekend {
 
 function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeekend)[] {
   // Group F1 (or other Jolpica-sourced) events by race name, keep others as singles
-  const result: (CalendarEvent | RaceWeekend)[] = [];
+  //const result: (CalendarEvent | RaceWeekend)[] = [];
   const raceGroupMap = new Map<string, CalendarEvent[]>();
   const singleEvents: CalendarEvent[] = [];
 
@@ -203,7 +203,7 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-  const { data: series } = useSeries();
+  //const { data: series } = useSeries();
   const { data: prefs } = usePreferences();
 
   const enabledSeries = useMemo(() => {
