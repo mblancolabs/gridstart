@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEvents, usePreferences, useSeries } from "@/lib/hooks";
+import { useEvents, usePreferences } from "@/lib/hooks";
 import type { CalendarEvent } from "@shared/schema";
 
 // ---------- Timezone helpers ----------

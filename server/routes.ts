@@ -133,7 +133,7 @@ function generateICS(events: CalendarEvent[]): string {
     if (event.isAllDay) {
       // All-day event — use VALUE=DATE
       const d = new Date(event.startDate);
-      const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
+      //const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
       //const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
       
       const dEnd = new Date(event.endDate);
