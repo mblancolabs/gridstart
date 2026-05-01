@@ -217,7 +217,7 @@ export class MotoGPHandler implements FeedHandler {
               seriesName: series.name,
               seriesShortName: series.shortName,
               seriesColor: series.color,
-              title: `${raceName} — ${label}`,
+              title: `${series.shortName} | ${raceName.split(' of ').pop()} ${label}`,
               startDate,
               endDate,
               location,

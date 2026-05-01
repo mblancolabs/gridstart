@@ -154,7 +154,7 @@ export class JolpicaHandler implements FeedHandler {
             seriesName: series.name,
             seriesShortName: series.shortName,
             seriesColor: series.color,
-            title: `${race.raceName} — ${sessionLabel}`,
+            title: `${series.shortName} | ${race.raceName.replace(/Grand Prix/g, 'GP')} ${sessionLabel}`,
             startDate,
             endDate,
             location: `${circuitName}, ${location}`,

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.1] - 2026-05-01
+
+### Changed
+- Revent display format to event title. Shorten F1 and MotoGp display titles for calendar application and ICS export.
+
 ## [0.5.0] - 2026-04-29
 
 ### Changed

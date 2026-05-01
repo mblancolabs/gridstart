@@ -393,7 +393,7 @@ export default function Home() {
                             color: isDark ? lightenColor(e.seriesColor, 65) : e.seriesColor,
                           }}
                         >
-                          {`[${e.seriesShortName}] ${e.sessionType || ''}`.trim()}
+                          {`${e.title}`.trim()}
                         </div>
                       ))}
                       {dayEvents.length > 2 && (
