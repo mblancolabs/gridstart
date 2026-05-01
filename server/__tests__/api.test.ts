@@ -174,9 +174,9 @@ END:VCALENDAR`,
         }
       );
 
-      const filtered = filterEventsBySessionNames(events, ["Practice"]);
+      const filtered = filterEventsBySessionNames(events, ["Practice 1"]);
       expect(filtered).toHaveLength(1);
-      expect(filtered[0]?.sessionType).toBe("Practice");
+      expect(filtered[0]?.sessionType).toBe("Practice 1");
     });
   });
 
@@ -232,7 +232,7 @@ END:VCALENDAR`,
       expect(result).toHaveLength(5); // FP1, FP2, FP3, Quali, Race
       expect(result[0]).toMatchObject({
         seriesId: "f1",
-        title: "Bahrain Grand Prix — Practice 1",
+        title: "F1 | Bahrain GP Practice 1",
         sessionType: "Practice 1",
         round: 1,
         raceName: "Bahrain Grand Prix",

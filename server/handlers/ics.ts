@@ -1,7 +1,7 @@
 import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import ICAL from "ical.js";
-import { fetchICSData } from "../routes"; // We'll keep this function in routes for now, or move it
+import { fetchICSData } from "../icsFetcher";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 
 export function parseICSEvents(
@@ -75,7 +75,8 @@ function detectSessionType(title: string): string | undefined {
   if (lower.includes("qualifying") || lower.includes("quali")) return "Qualifying";
   if (lower.includes("practice 3") || lower.includes("fp3")) return "Practice 3";
   if (lower.includes("practice 2") || lower.includes("fp2")) return "Practice 2";
-  if (lower.includes("practice 1") || lower.includes("fp1") || lower.includes("practice")) return "Practice";
+  if (lower.includes("practice 1") || lower.includes("fp1")) return "Practice 1";
+  if (lower.includes("practice")) return "Practice";
   if (lower.includes("test")) return "Test";
   if (lower.includes("warm")) return "Warm Up";
   return undefined;
