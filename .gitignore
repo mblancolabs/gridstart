@@ -19,3 +19,6 @@ vite.config.ts.*
 
 # Project documentation
 /backlog/
+
+# IDE configurations
+/.vscode/

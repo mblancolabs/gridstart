@@ -1,13 +1,15 @@
 {
   "name": "gridstart",
-  "version": "1.0.0",
+  "version": "0.5.1",
   "type": "module",
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
+    "lint": "npm run check",
     "check": "tsc",
+    "typecheck": "npm run check",
     "test": "vitest run",
     "db:push": "drizzle-kit push"
   },
@@ -92,6 +94,7 @@
     "@types/node": "20.19.27",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
+    "@types/supertest": "^7.2.0",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
