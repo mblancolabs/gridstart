@@ -7,17 +7,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  id-token: write
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    environment: npm
 
     steps:
       - name: Checkout
@@ -27,7 +25,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -40,8 +37,28 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Verify package contents
-        run: npm pack --dry-run
+      - name: Prepare release assets directory
+        run: mkdir -p release
 
-#      - name: Publish to npm
-#        run: npm publish --provenance --access public
+      - name: Create package tarball
+        run: npm pack --pack-destination release
+
+      - name: Archive dist output
+        run: |
+          if [ -d dist ]; then
+            zip -r "release/gridstart-dist-${GITHUB_REF_NAME}.zip" dist
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" release/* --clobber
