@@ -110,13 +110,13 @@ function getSessionIcon(sessionType?: string): string {
 
 function getSessionBadgeVariant(
   sessionType?: string
-): "default" | "secondary" | "outline" | "destructive" {
-  if (!sessionType) return "outline";
+): "default" | "secondary" | "outline-solid" | "destructive" {
+  if (!sessionType) return "outline-solid";
   const lower = sessionType.toLowerCase();
   if (lower.includes("race")) return "default";
   if (lower.includes("sprint") && !lower.includes("quali")) return "default";
   if (lower.includes("quali")) return "secondary";
-  return "outline";
+  return "outline-solid";
 }
 
 // ---------- Race weekend grouping ----------
