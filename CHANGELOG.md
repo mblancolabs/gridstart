@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.2] - 2026-05-02
+
+### Changed
+- Bump dependencies versions and clean up.
+
 ## [0.5.1] - 2026-05-01
 
 ### Changed
