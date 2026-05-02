@@ -85,19 +85,26 @@ jobs:
             zip -r "release/gridstart-dist-${{ steps.meta.outputs.tag }}.zip" dist
           fi
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          CMD=(gh release create "${{ steps.meta.outputs.tag }}"
-            --title "${{ steps.meta.outputs.tag }}"
-            --generate-notes)
+          TAG="${{ steps.meta.outputs.tag }}"
 
-          if [ "${{ steps.meta.outputs.prerelease }}" = "true" ]; then
-            CMD+=(--prerelease)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping creation."
+          else
+            CMD=(gh release create "$TAG"
+              --title "$TAG"
+              --generate-notes)
+
+            if [ "${{ steps.meta.outputs.prerelease }}" = "true" ]; then
+              CMD+=(--prerelease)
+            fi
+
+            "${CMD[@]}"
           fi
-
-          "${CMD[@]}"
 
       - name: Upload release assets
         env:
