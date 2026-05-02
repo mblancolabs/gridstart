@@ -84,6 +84,7 @@
     "zod-validation-error": "^5.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.2.4",
     "@types/better-sqlite3": "^7.6.12",
@@ -97,12 +98,11 @@
     "@types/supertest": "^7.2.0",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^6.0.1",
-    "autoprefixer": "^10.5.0",
     "drizzle-kit": "^0.31.8",
     "esbuild": "^0.28.0",
     "postcss": "^8.5.13",
     "supertest": "^7.2.2",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.2.4",
     "tsx": "^4.20.5",
     "typescript": "6.0.3",
     "vite": "^8.0.10",
