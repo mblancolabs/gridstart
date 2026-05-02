@@ -13,7 +13,7 @@ describe("eventsQuerySchema", () => {
     const invalidQuery = { from: "2024-01-01" };
     const result = eventsQuerySchema.safeParse(invalidQuery);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe("Required");
+    expect(result.error?.issues[0].message).toBe("Invalid input: expected string, received undefined");
   });
 
   it("validates date format for from parameter", () => {
@@ -50,7 +50,7 @@ describe("exportIcsQuerySchema", () => {
     const invalidQuery = {};
     const result = exportIcsQuerySchema.safeParse(invalidQuery);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe("Required");
+    expect(result.error?.issues[0].message).toBe("Invalid input: expected string, received undefined");
   });
 });
 
@@ -66,6 +66,6 @@ describe("insertUserPreferencesSchema", () => {
     const invalidPrefs = {};
     const result = insertUserPreferencesSchema.safeParse(invalidPrefs);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe("Required");
+    expect(result.error?.issues[0].message).toBe("Invalid input: expected string, received undefined");
   });
 });
