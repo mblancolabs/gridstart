@@ -3,6 +3,12 @@
   "version": "0.5.2",
   "type": "module",
   "license": "MIT",
+  "main": "./dist/index.cjs",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "tsx script/build.ts",
@@ -11,7 +17,9 @@
     "check": "tsc",
     "typecheck": "npm run check",
     "test": "vitest run",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "release:check": "npm pack --dry-run",
+    "release:pack": "npm pack --pack-destination release"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.4",

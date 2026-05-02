@@ -5,6 +5,7 @@
 /dist/
 /build/
 /server/public/
+/release/
 
 # Environment variables
 .env
