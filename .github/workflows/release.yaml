@@ -79,12 +79,6 @@ jobs:
       - name: Create package tarball
         run: npm pack --pack-destination release
 
-      - name: Archive dist output
-        run: |
-          if [ -d dist ]; then
-            zip -r "release/gridstart-dist-${{ steps.meta.outputs.tag }}.zip" dist
-          fi
-
       - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
