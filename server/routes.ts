@@ -10,21 +10,67 @@ import { safeLoadJsonFile } from "./utils";
 import * as logger from "./logger";
 import ICAL from "ical.js";
 import path from "path";
+import fs from "fs";
 import { HandlerRegistry } from "./handlers/registry";
 import { ICSHandler } from "./handlers/ics";
+import { ECALHandler } from "./handlers/ecal";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
 export { fetchICSData } from "./icsFetcher";
 
-// Load ICS feeds config with validation
-const feedsPath = path.resolve(process.cwd(), "ics-feeds.json");
-const feedsConfig = safeLoadJsonFile(feedsPath, process.cwd());
+// Load calendar feeds config with validation and merging
+function loadFeedsConfig() {
+  const feedsDir = process.cwd();
+  const baseFile = "calendar-feeds.json";
 
-// Basic structure validation
-if (!feedsConfig.categories || !Array.isArray(feedsConfig.categories)) {
-  throw new Error("Invalid feeds configuration: missing or invalid categories array");
+  // Find all calendar-feeds.*.json files except the base one
+  const patternFiles = fs.readdirSync(feedsDir)
+    .filter(f => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
+    .sort(); // alphabetical order
+
+  console.log("Pattern files:", patternFiles);
+
+  const allFiles = [baseFile, ...patternFiles];
+
+  // Initialize merged config
+  const mergedConfig: any = { categories: [] };
+  const categoryMap = new Map<string, any>();
+  const seriesMap = new Map<string, Map<string, any>>();
+
+  for (const file of allFiles) {
+    const filePath = path.resolve(feedsDir, file);
+    const config = safeLoadJsonFile(filePath, feedsDir);
+
+    if (!config.categories || !Array.isArray(config.categories)) {
+      throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
+    }
+
+    for (const category of config.categories) {
+      if (!categoryMap.has(category.name)) {
+        categoryMap.set(category.name, { name: category.name, series: [] });
+        seriesMap.set(category.name, new Map());
+        mergedConfig.categories.push(categoryMap.get(category.name));
+      }
+
+      const catSeriesMap = seriesMap.get(category.name)!;
+
+      for (const series of category.series) {
+        catSeriesMap.set(series.id, series);
+      }
+    }
+  }
+
+  // Build the final categories with merged series
+  for (const category of mergedConfig.categories) {
+    const catSeriesMap = seriesMap.get(category.name)!;
+    category.series = Array.from(catSeriesMap.values());
+  }
+
+  return mergedConfig;
 }
+
+const feedsConfig = loadFeedsConfig();
 
 // Build flat series list from categories
 function getAllSeries(): SeriesInfo[] {
@@ -73,6 +119,7 @@ const allSeries = getAllSeries();
 // Initialize handler registry
 const handlerRegistry = new HandlerRegistry();
 handlerRegistry.register(new ICSHandler());
+handlerRegistry.register(new ECALHandler());
 handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
 
