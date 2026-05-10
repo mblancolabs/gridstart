@@ -23,7 +23,6 @@ export { fetchICSData } from "./icsFetcher";
 function loadFeedsConfig() {
   const feedsDir = process.cwd();
   const baseFile = "calendar-feeds.json";
-  const basePath = path.resolve(feedsDir, baseFile);
 
   // Find all calendar-feeds.*.json files except the base one
   const patternFiles = fs.readdirSync(feedsDir)
