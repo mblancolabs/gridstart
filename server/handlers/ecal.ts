@@ -99,7 +99,7 @@ export function parseICSEvents(
 
       // For IndyCar, use the final title as raceName for grouping
       if (series.shortName === "INDY") {
-        raceName = `${series.name} - ${location}`
+        raceName = `${series.name} - ${location}`;
       }
 
       events.push({
