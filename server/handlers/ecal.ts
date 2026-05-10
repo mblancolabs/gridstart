@@ -44,8 +44,6 @@ export function parseICSEvents(
 
       let location =
         (vevent.getFirstPropertyValue("location") as string | null) || undefined;
-      const description =
-        (vevent.getFirstPropertyValue("description") as string | null) || undefined;
 
       const summary = event.summary || "Untitled Event";
 
