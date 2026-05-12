@@ -46,7 +46,7 @@ export function SeriesSidebar() {
   const isLoading = seriesLoading || prefsLoading;
 
   return (
-    <aside className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block">
+    <aside className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block" data-testid="series-sidebar">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
