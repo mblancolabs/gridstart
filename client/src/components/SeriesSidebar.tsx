@@ -53,7 +53,13 @@ export function SeriesSidebar() {
             Racing Series
           </h3>
           <Link href="/settings">
-            <Button variant="ghost" size="icon" className="h-7 w-7" data-testid="button-settings-link">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              data-testid="button-settings-link"
+              aria-label="Settings"
+            >
               <Settings className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -101,6 +107,7 @@ export function SeriesSidebar() {
                         onCheckedChange={() => toggleSeries(s.id)}
                         className="scale-75"
                         data-testid={`sidebar-switch-${s.id}`}
+                        aria-label={`Toggle ${s.name}`}
                       />
                     </div>
                   );
