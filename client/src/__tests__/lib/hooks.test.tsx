@@ -39,8 +39,6 @@ vi.mock("@tanstack/react-query", () => ({
   QueryClientProvider: ({ children }: any) => children,
 }));
 
-import { useQuery, useMutation } from "@tanstack/react-query";
-
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => children;
 };
