@@ -95,7 +95,7 @@ describe("ThemeProvider and useTheme", () => {
 
   describe("Document class synchronization", () => {
     it("should add dark class when theme is dark", async () => {
-      const { result } = renderHook(() => useTheme(), {
+      renderHook(() => useTheme(), {
         wrapper: ThemeProvider,
       });
 
