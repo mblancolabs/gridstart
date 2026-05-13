@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderWithProviders, screen } from "../utils/test-utils";
+import { renderWithProviders } from "../utils/test-utils";
 import { GridStartLogo } from "../../components/GridStartLogo";
 
 describe("GridStartLogo Component", () => {
