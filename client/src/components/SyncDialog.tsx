@@ -61,7 +61,7 @@ export function SyncDialog() {
           <span className="sm:hidden">Sync</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="sync-dialog">
         <DialogHeader>
           <DialogTitle className="font-display">Sync with Calendar</DialogTitle>
           <DialogDescription>

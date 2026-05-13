@@ -47,11 +47,11 @@ export function MobileSeriesSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="lg:hidden" data-testid="button-mobile-series">
+        <Button variant="outline" size="icon" className="lg:hidden" data-testid="mobile-series-trigger">
           <SlidersHorizontal className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-80 overflow-y-auto">
+      <SheetContent side="left" className="w-80 overflow-y-auto" data-testid="mobile-series-sheet">
         <SheetHeader>
           <SheetTitle className="font-display">Racing Series</SheetTitle>
           <SheetDescription>Toggle series to show in your calendar.</SheetDescription>

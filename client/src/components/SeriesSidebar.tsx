@@ -46,14 +46,20 @@ export function SeriesSidebar() {
   const isLoading = seriesLoading || prefsLoading;
 
   return (
-    <aside className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block">
+    <aside className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block" data-testid="series-sidebar">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Racing Series
           </h3>
           <Link href="/settings">
-            <Button variant="ghost" size="icon" className="h-7 w-7" data-testid="button-settings-link">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              data-testid="button-settings-link"
+              aria-label="Settings"
+            >
               <Settings className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -101,6 +107,7 @@ export function SeriesSidebar() {
                         onCheckedChange={() => toggleSeries(s.id)}
                         className="scale-75"
                         data-testid={`sidebar-switch-${s.id}`}
+                        aria-label={`Toggle ${s.name}`}
                       />
                     </div>
                   );
