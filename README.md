@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/github/license/mblancolabs/gridstart?style=flat-square)](./LICENSE.txt)
 ![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=nodedotjs&logoColor=white)
-![React 18](https://img.shields.io/badge/react-18-20232a?style=flat-square&logo=react)
+![React 19](https://img.shields.io/badge/react-19-20232a?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Express](https://img.shields.io/badge/express-4.x-000000?style=flat-square&logo=express&logoColor=white)
 [![GitHub stars](https://img.shields.io/github/stars/mblancolabs/gridstart?style=flat-square)](https://github.com/mblancolabs/gridstart/stargazers)
@@ -101,9 +101,9 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 ## Tech Stack
 
 ### Frontend
-- **React 18** with TypeScript
+- **React 19** with TypeScript
 - **Vite** for build tooling
-- **Tailwind CSS** for styling
+- **Tailwind CSS v4** for styling
 - **Radix UI** components
 - **Wouter** for routing
 - **TanStack Query** for data fetching
@@ -200,7 +200,12 @@ Rate-limited requests return HTTP `429 Too Many Requests` with a JSON payload an
 ## Configuration
 
 ### ICS Feeds
-Series data is configured in ics-feeds.json. Each series includes:
+Series data is configured using one or more feed definition files.
+
+By default, GridStart loads the main feed configuration and can support additional feed files for custom or private overrides. This makes it possible to extend or override upstream feed definitions without modifying the default configuration directly.
+
+The primary feed configuration file is `calendar-feeds.json`. Each series includes:
+
 - `id`: Unique identifier
 - `name`: Full series name
 - `shortName`: Display abbreviation
@@ -209,6 +214,8 @@ Series data is configured in ics-feeds.json. Each series includes:
 - `params`: Handler-specific parameters, such as `url` for ICS feeds or `class` for MotoGP
 - `enabled`: Default enabled state
 - `sessionNames`: Optional array of standard session names to expose for that series
+
+When multiple feed files are present, custom definitions and overrides can be layered on top of the default set.
 
 Standard session names include: `Practice`, `Practice 1`, `Practice 2`, `Practice 3`, `Qualifying`, `Sprint Qualifying`, `Sprint`, `Warm Up`, `Race`, and `Test`.
 

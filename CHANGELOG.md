@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5] - 2026-05-10
+
+### Changed
+- Multiple feeds files support.
+- New ECAL feed handler.
+- Colour refactor.
+
 ## [0.5.2] - 2026-05-02
 
 ### Changed
