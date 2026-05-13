@@ -42,16 +42,31 @@ export function createMockSeries(overrides = {}) {
 }
 
 // Factory function for creating mock events
-export function createMockEvent(overrides = {}) {
+export function createMockEvent<T extends object = {}>(overrides: T = {} as T) {
   return {
     id: "evt-1",
     title: "Monaco Grand Prix",
-    start: new Date("2024-05-26T14:00:00Z"),
-    end: new Date("2024-05-26T16:00:00Z"),
-    series: "F1",
+    seriesId: "f1",
+    seriesName: "Formula 1",
+    seriesShortName: "F1",
+    seriesColor: "#FF0000",
+    startDate: "2024-05-26T14:00:00Z",
+    endDate: "2024-05-26T16:00:00Z",
+    isAllDay: false,
     description: "Test event",
     ...overrides,
-  };
+  } as {
+    id: string;
+    title: string;
+    seriesId: string;
+    seriesName: string;
+    seriesShortName: string;
+    seriesColor: string;
+    startDate: string;
+    endDate: string;
+    isAllDay: boolean;
+    description: string;
+  } & T;
 }
 
 // Factory function for creating mock preferences

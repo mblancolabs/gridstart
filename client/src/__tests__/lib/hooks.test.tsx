@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSeries, usePreferences, useSavePreferences, useEvents } from "../../lib/hooks";
@@ -83,10 +83,11 @@ describe("hooks", () => {
         }
       );
 
-      expect(result.current.data).toEqual([]);
-      expect(result.current.isFetching).toBe(false);
+      const current = result.current as any;
+      expect(current.data).toEqual([]);
+      expect(current.isFetching).toBe(false);
       // The query should not be enabled when seriesIds is empty
-      expect(result.current.queryKey).toEqual(["/api/events", "", "2024-01-01", "2024-01-31"]);
+      expect(current.queryKey).toEqual(["/api/events", "", "2024-01-01", "2024-01-31"]);
     });
 
     it("returns expected query key when seriesIds provided", () => {
@@ -97,7 +98,7 @@ describe("hooks", () => {
         }
       );
 
-      expect(result.current.queryKey).toEqual(["/api/events", "f1,motogp", "2024-01-01", "2024-01-31"]);
+      expect((result.current as any).queryKey).toEqual(["/api/events", "f1,motogp", "2024-01-01", "2024-01-31"]);
     });
   });
 

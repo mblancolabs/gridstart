@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithProviders, screen, waitFor, userEvent } from "../utils/test-utils";
+import { act, renderWithProviders, screen, waitFor, userEvent } from "../utils/test-utils";
 import Home, * as home from "../../pages/home";
 import { createMockEvent, createMockPreferences } from "../utils/mocks";
 import * as hooks from "../../lib/hooks";
@@ -461,7 +461,7 @@ describe("Home Page", () => {
     expect(buttonsWithDots.length).toBeGreaterThan(0);
   });
 
-  it("should handle dark mode color adjustments", () => {
+  it("should handle dark mode color adjustments", async () => {
     // Mock dark mode
     document.documentElement.classList.add('dark');
 
@@ -470,8 +470,10 @@ describe("Home Page", () => {
     // Should render without crashing in dark mode
     expect(screen.getByTestId("text-month-title")).toBeInTheDocument();
 
-    // Clean up
-    document.documentElement.classList.remove('dark');
+    // Clean up in act so the MutationObserver update is handled correctly.
+    await act(async () => {
+      document.documentElement.classList.remove('dark');
+    });
   });
 
   it("should handle invalid preferences JSON gracefully", () => {

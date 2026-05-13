@@ -337,7 +337,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-7">
-            {calendarDays.map((d, i) => {
+            {calendarDays.map((d, index) => {
               const dateKey = format(d, "yyyy-MM-dd");
               const dayEvents = eventsByDate.get(dateKey) || [];
               const inMonth = isSameMonth(d, currentMonth);
@@ -350,7 +350,7 @@ export default function Home() {
 
               return (
                 <button
-                  key={i}
+                  key={dateKey}
                   onClick={() => handleDayClick(d)}
                   data-testid={`button-day-${dateKey}`}
                   className={`
@@ -358,7 +358,7 @@ export default function Home() {
                     transition-colors duration-100
                     ${!inMonth ? "opacity-30" : ""}
                     ${isSelected ? "bg-accent" : "hover:bg-accent/50"}
-                    ${i % 7 === 6 ? "border-r-0" : ""}
+                    ${index % 7 === 6 ? "border-r-0" : ""}
                   `}
                 >
                   <span
@@ -372,11 +372,11 @@ export default function Home() {
 
                   {uniqueColors.length > 0 && (
                     <div className="flex gap-0.5 mt-1 flex-wrap">
-                      {uniqueColors.map((color) => (
+                      {uniqueColors.map((color, idx) => (
                         <span
-                          key={color}
+                          key={color ?? `color-${idx}`}
                           className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: color }}
+                          style={{ backgroundColor: color ?? "transparent" }}
                         />
                       ))}
                     </div>
@@ -456,7 +456,11 @@ export default function Home() {
           {!isLoading &&
             upcomingItems.map((item, idx) =>
               isRaceWeekend(item) ? (
-                <RaceWeekendCard key={`weekend-${idx}`} weekend={item} selectedDay={selectedDay} />
+                <RaceWeekendCard
+                  key={`weekend-${item.seriesId}-${item.round ?? 0}-${item.sessions[0]?.id ?? idx}`}
+                  weekend={item}
+                  selectedDay={selectedDay}
+                />
               ) : (
                 <SingleEventCard key={item.id} event={item} selectedDay={selectedDay} />
               )
