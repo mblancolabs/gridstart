@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { act, renderWithProviders, screen, fireEvent, waitFor, userEvent } from "../utils/test-utils";
+import { act, renderWithProviders, screen, waitFor, userEvent } from "../utils/test-utils";
 import { SyncDialog } from "../../components/SyncDialog";
 import { createMockPreferences } from "../utils/mocks";
 import * as hooks from "../../lib/hooks";
