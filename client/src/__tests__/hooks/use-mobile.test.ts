@@ -191,4 +191,88 @@ describe("useIsMobile Hook", () => {
       expect(result.current).toBe(true);
     });
   });
+
+  it("should use matchMedia addEventListener when available", async () => {
+    const mockMatchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: mockMatchMedia,
+    });
+
+    renderHook(() => useIsMobile());
+
+    expect(mockMatchMedia).toHaveBeenCalledWith("(max-width: 767px)");
+  });
+
+  it("should use matchMedia addListener as fallback", async () => {
+    const mockMatchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: undefined, // Not available
+    });
+
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: mockMatchMedia,
+    });
+
+    renderHook(() => useIsMobile());
+
+    expect(mockMatchMedia).toHaveBeenCalledWith("(max-width: 767px)");
+  });
+
+  it("should register and cleanup matchMedia listeners", async () => {
+    const addEventListenerSpy = vi.fn();
+    const removeEventListenerSpy = vi.fn();
+
+    const mockMatchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: addEventListenerSpy,
+      removeEventListener: removeEventListenerSpy,
+    });
+
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: mockMatchMedia,
+    });
+
+    const { unmount } = renderHook(() => useIsMobile());
+
+    expect(addEventListenerSpy).toHaveBeenCalledWith("change", expect.any(Function));
+
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith("change", expect.any(Function));
+  });
+
+  it("should register and cleanup fallback matchMedia listeners", async () => {
+    const addListenerSpy = vi.fn();
+    const removeListenerSpy = vi.fn();
+
+    const mockMatchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addListener: addListenerSpy,
+      removeListener: removeListenerSpy,
+      addEventListener: undefined, // Not available
+    });
+
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: mockMatchMedia,
+    });
+
+    const { unmount } = renderHook(() => useIsMobile());
+
+    expect(addListenerSpy).toHaveBeenCalledWith(expect.any(Function));
+
+    unmount();
+
+    expect(removeListenerSpy).toHaveBeenCalledWith(expect.any(Function));
+  });
 });

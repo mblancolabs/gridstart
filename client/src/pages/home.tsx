@@ -32,7 +32,7 @@ const shortTzName = new Intl.DateTimeFormat("en", {
   timeZoneName: "short",
 }).formatToParts(new Date()).find((p) => p.type === "timeZoneName")?.value || userTz;
 
-function formatLocalTime(isoString: string): string {
+export function formatLocalTime(isoString: string): string {
   const d = new Date(isoString);
   return d.toLocaleTimeString([], {
     hour: "2-digit",
@@ -41,7 +41,7 @@ function formatLocalTime(isoString: string): string {
   });
 }
 
-function formatLocalDate(isoString: string): string {
+export function formatLocalDate(isoString: string): string {
   const d = new Date(isoString);
   return d.toLocaleDateString([], {
     weekday: "short",
@@ -63,7 +63,7 @@ function formatLocalDay(isoString: string): string {
 
 // ---------- Color helpers ----------
 
-function lightenColor(hex: string, minLightness: number = 55): string {
+export function lightenColor(hex: string, minLightness: number = 55): string {
   // Ensure calendar cell event text is readable on dark backgrounds
   // Parse hex -> hsl, boost lightness if too dark
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -97,24 +97,24 @@ function lightenColor(hex: string, minLightness: number = 55): string {
 
 // ---------- Session type styling ----------
 
-function getSessionIcon(sessionType?: string): string {
+export function getSessionIcon(sessionType?: string): string {
   if (!sessionType) return "";
   const lower = sessionType.toLowerCase();
   if (lower.includes("race")) return "🏁";
-  if (lower.includes("sprint") && !lower.includes("quali")) return "⚡";
+  if (lower.includes("sprint")) return "⚡";
   if (lower.includes("quali")) return "🔴";
   if (lower.includes("practice") || lower.includes("fp")) return "🔧";
   if (lower.includes("test")) return "🧪";
   return "";
 }
 
-function getSessionBadgeVariant(
+export function getSessionBadgeVariant(
   sessionType?: string
 ): "default" | "secondary" | "outline-solid" | "destructive" {
   if (!sessionType) return "outline-solid";
   const lower = sessionType.toLowerCase();
   if (lower.includes("race")) return "default";
-  if (lower.includes("sprint") && !lower.includes("quali")) return "default";
+  if (lower.includes("sprint")) return "default";
   if (lower.includes("quali")) return "secondary";
   return "outline-solid";
 }
@@ -131,7 +131,7 @@ interface RaceWeekend {
   sessions: CalendarEvent[];
 }
 
-function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeekend)[] {
+export function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeekend)[] {
   // Group F1 (or other Jolpica-sourced) events by race name, keep others as singles
   //const result: (CalendarEvent | RaceWeekend)[] = [];
   const raceGroupMap = new Map<string, CalendarEvent[]>();

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { renderWithProviders, screen, fireEvent, waitFor, userEvent } from "../utils/test-utils";
+import { act, renderWithProviders, screen, fireEvent, waitFor, userEvent } from "../utils/test-utils";
 import { SyncDialog } from "../../components/SyncDialog";
 import { createMockPreferences } from "../utils/mocks";
 import * as hooks from "../../lib/hooks";
@@ -184,4 +184,135 @@ describe("SyncDialog Component", () => {
       expect(screen.getByText("Open in Google Calendar")).toBeInTheDocument();
     });
   });
+
+  it("should copy URL successfully with clipboard API", async () => {
+    const user = userEvent.setup();
+    
+    // Mock clipboard API
+    const mockClipboard = {
+      writeText: vi.fn().mockResolvedValue(undefined),
+    };
+    Object.defineProperty(navigator, "clipboard", {
+      value: mockClipboard,
+      writable: true,
+    });
+
+    renderWithProviders(<SyncDialog />);
+    
+    const syncButton = screen.getByTestId("button-sync-calendar");
+    await user.click(syncButton);
+
+    await waitFor(() => {
+      const copyButton = screen.getByTestId("button-copy-url");
+      expect(copyButton).toBeInTheDocument();
+    });
+
+    const copyButton = screen.getByTestId("button-copy-url");
+    await user.click(copyButton);
+
+    // Should call clipboard API
+    expect(mockClipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("/api/export.ics?series=f1,f2")
+    );
+
+    // Should show check icon
+    await waitFor(() => {
+      expect(screen.getByTestId("button-copy-url")).toBeInTheDocument();
+    });
+  });
+
+  it("should fallback to DOM copy when clipboard API fails", async () => {
+    const user = userEvent.setup();
+    
+    // Mock clipboard API to fail
+    const mockClipboard = {
+      writeText: vi.fn().mockRejectedValue(new Error("Clipboard not supported")),
+    };
+    Object.defineProperty(navigator, "clipboard", {
+      value: mockClipboard,
+      writable: true,
+    });
+
+    // Mock document.execCommand
+    const mockExecCommand = vi.fn().mockReturnValue(true);
+    Object.defineProperty(document, "execCommand", {
+      value: mockExecCommand,
+      writable: true,
+    });
+
+    renderWithProviders(<SyncDialog />);
+    
+    const syncButton = screen.getByTestId("button-sync-calendar");
+    await user.click(syncButton);
+
+    await waitFor(() => {
+      const copyButton = screen.getByTestId("button-copy-url");
+      expect(copyButton).toBeInTheDocument();
+    });
+
+    const copyButton = screen.getByTestId("button-copy-url");
+    await user.click(copyButton);
+
+    // Should create and remove input element
+    expect(mockExecCommand).toHaveBeenCalledWith("copy");
+
+    // Should show check icon
+    await waitFor(() => {
+      expect(screen.getByTestId("button-copy-url")).toBeInTheDocument();
+    });
+  });
+
+  it("should reset copied state after timeout", async () => {
+    const user = userEvent.setup();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+
+    // Mock clipboard API
+    const mockClipboard = {
+      writeText: vi.fn().mockResolvedValue(undefined),
+    };
+    Object.defineProperty(navigator, "clipboard", {
+      value: mockClipboard,
+      writable: true,
+    });
+
+    renderWithProviders(<SyncDialog />);
+    
+    const syncButton = screen.getByTestId("button-sync-calendar");
+    await user.click(syncButton);
+
+    await waitFor(() => {
+      const copyButton = screen.getByTestId("button-copy-url");
+      expect(copyButton).toBeInTheDocument();
+    });
+
+    const copyButton = screen.getByTestId("button-copy-url");
+    await user.click(copyButton);
+
+    // Should call setTimeout for copied reset
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+
+    // Should show check icon initially
+    await waitFor(() => {
+      const checkIcon = document.querySelector(".text-green-500");
+      expect(checkIcon).toBeInTheDocument();
+    });
+
+    // Invoke the component timeout callback directly
+    const timeoutCall = setTimeoutSpy.mock.calls.find((call) => call[1] === 2000);
+    expect(timeoutCall).toBeDefined();
+    const timeoutCallback = timeoutCall?.[0] as () => void;
+
+    await act(() => {
+      timeoutCallback();
+    });
+
+    // Should reset to copy icon
+    await waitFor(() => {
+      const checkIcon = document.querySelector(".text-green-500");
+      expect(checkIcon).not.toBeInTheDocument();
+    });
+
+    setTimeoutSpy.mockRestore();
+  });
 });
+
