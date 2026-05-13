@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { act, renderWithProviders, screen, waitFor, userEvent } from "../utils/test-utils";
+import { act, renderWithProviders, screen, userEvent } from "../utils/test-utils";
 import Home, * as home from "../../pages/home";
 import { createMockEvent, createMockPreferences } from "../utils/mocks";
 import * as hooks from "../../lib/hooks";
