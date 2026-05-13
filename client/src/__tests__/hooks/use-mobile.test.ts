@@ -3,8 +3,6 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useIsMobile } from "../../hooks/use-mobile";
 
 describe("useIsMobile Hook", () => {
-  const MOBILE_BREAKPOINT = 768;
-
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset window.innerWidth
