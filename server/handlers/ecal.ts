@@ -8,7 +8,7 @@ import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames
 const IGNORED_TITLE_WORDS = ["calendar", "Welcome"];
 
 function removeEmojis(text: string): string {
-  return text.replace(/[\p{Emoji}\p{Emoji_Component}\uFE0F\u200D]/gu, '').trim();
+  return text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D\u20E3]/gu, '').trim();
 }
 
 export function parseICSEvents(
@@ -135,7 +135,7 @@ function detectSessionType(title: string): string | undefined {
   if (lower.includes("practice")) return "Practice";
   if (lower.includes("test")) return "Test";
   if (lower.includes("warm")) return "Warm Up";
-  return undefined;
+  return "Race"; // Default
 }
 
 export class ECALHandler implements FeedHandler {
