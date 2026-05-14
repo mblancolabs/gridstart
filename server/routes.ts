@@ -21,7 +21,7 @@ export { fetchICSData } from "./icsFetcher";
 
 // Load calendar feeds config with validation and merging
 function loadFeedsConfig() {
-  const feedsDir = process.cwd();
+  const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
 
   // Find all calendar-feeds.*.json files except the base one
