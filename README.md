@@ -9,7 +9,7 @@
 
 A modern, full-stack motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
 
-![GridStart](./gridstart.png)
+![GridStart](./docs/assets/gridstart.png)
 
 ## Features
 
@@ -21,7 +21,7 @@ A modern, full-stack motorsport calendar application that aggregates racing sche
 - **Series Filtering**: Enable/disable series based on your interests
 - **Session-Level Detail**: View practice, qualifying, sprint, and race sessions with exact timing
 
-![GridStart Screenshot](./gridstart-screenshot.png)
+![GridStart Screenshot](./docs/assets/gridstart-screenshot.png)
 
 ## Supported Series
 
