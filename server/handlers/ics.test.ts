@@ -120,6 +120,7 @@ END:VCALENDAR`;
   });
 
   it("handles malformed ICS data gracefully", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const events = parseICSEvents("not valid ics data", {
       id: "test-ics",
       name: "Test Series",

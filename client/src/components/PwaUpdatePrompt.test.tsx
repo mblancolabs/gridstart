@@ -1,6 +1,7 @@
 import React from "react";
+import { act } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderWithProviders, screen, waitFor } from "../test/utils/test-utils";
+import { renderWithProviders, screen, waitFor, userEvent } from "../test/utils/test-utils";
 import { Toaster } from "@/components/ui/toaster";
 import { PwaUpdatePrompt, PwaInstallButton, captureInstallPrompt, resetInstallPrompt } from "./PwaUpdatePrompt";
 
@@ -55,7 +56,9 @@ describe("PwaInstallButton", () => {
 
     const event = new Event("beforeinstallprompt");
     Object.assign(event, { preventDefault: vi.fn(), prompt: vi.fn(), userChoice: Promise.resolve({ outcome: "dismissed" }) });
-    window.dispatchEvent(event);
+    await act(() => {
+      window.dispatchEvent(event);
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /install app/i })).toBeInTheDocument();
@@ -63,6 +66,7 @@ describe("PwaInstallButton", () => {
   });
 
   it("should call prompt when clicked", async () => {
+    const user = userEvent.setup();
     const promptFn = vi.fn();
     const userChoice = Promise.resolve({ outcome: "accepted" });
 
@@ -70,30 +74,35 @@ describe("PwaInstallButton", () => {
 
     const event = new Event("beforeinstallprompt");
     Object.assign(event, { preventDefault: vi.fn(), prompt: promptFn, userChoice });
-    window.dispatchEvent(event);
+    await act(() => {
+      window.dispatchEvent(event);
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /install app/i })).toBeInTheDocument();
     });
 
-    screen.getByRole("button", { name: /install app/i }).click();
+    await user.click(screen.getByRole("button", { name: /install app/i }));
     expect(promptFn).toHaveBeenCalled();
   });
 
   it("should hide button after user accepts", async () => {
+    const user = userEvent.setup();
     const userChoice = Promise.resolve({ outcome: "accepted" });
 
     renderWithProviders(<PwaInstallButton />);
 
     const event = new Event("beforeinstallprompt");
     Object.assign(event, { preventDefault: vi.fn(), prompt: vi.fn(), userChoice });
-    window.dispatchEvent(event);
+    await act(() => {
+      window.dispatchEvent(event);
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /install app/i })).toBeInTheDocument();
     });
 
-    screen.getByRole("button", { name: /install app/i }).click();
+    await user.click(screen.getByRole("button", { name: /install app/i }));
 
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: /install app/i })).not.toBeInTheDocument();

@@ -29,6 +29,7 @@ describe("errorHandler", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {

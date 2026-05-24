@@ -12,6 +12,7 @@ export default defineConfig({
       devOptions: {
         enabled: true,
         type: "module",
+        webManifestUrl: '/manifest.webmanifest',
       },
       manifest: {
         name: "GridStart — Motorsport Calendar",
@@ -41,6 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        navigateFallback: '/app.html',
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         runtimeCaching: [
           {
