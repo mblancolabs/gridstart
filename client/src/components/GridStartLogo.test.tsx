@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { renderWithProviders } from "../utils/test-utils";
-import { GridStartLogo } from "../../components/GridStartLogo";
+import { renderWithProviders } from "../test/utils/test-utils";
+import { GridStartLogo } from "./GridStartLogo";
 
 describe("GridStartLogo Component", () => {
   it("should render without crashing", () => {

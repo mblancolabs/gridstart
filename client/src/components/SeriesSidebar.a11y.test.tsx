@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithProviders } from "../utils/test-utils";
+import { renderWithProviders } from "../test/utils/test-utils";
 import { run } from "axe-core";
-import { SeriesSidebar } from "../../components/SeriesSidebar";
-import { createMockSeries, createMockPreferences } from "../utils/mocks";
-import * as hooks from "../../lib/hooks";
+import { SeriesSidebar } from "./SeriesSidebar";
+import { createMockSeries, createMockPreferences } from "../test/utils/mocks";
+import * as hooks from "../lib/hooks";
 
 // Mock the hooks module used by SeriesSidebar
-vi.mock("../../lib/hooks", async () => {
-  const actual = await vi.importActual("../../lib/hooks");
+vi.mock("../lib/hooks", async () => {
+  const actual = await vi.importActual("../lib/hooks");
   return {
     ...actual,
     useSeries: vi.fn(),

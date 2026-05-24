@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
 import express from "express";
 import request from "supertest";
 import { createServer } from "http";
-import { registerRoutes } from "../routes";
-import { storage } from "../storage";
-import { errorHandler } from "../errorHandler";
-import { jolpicaCache } from "../handlers/jolpica";
+import { registerRoutes } from "./routes";
+import { storage } from "./storage";
+import { errorHandler } from "./errorHandler";
+import { jolpicaCache } from "./handlers/jolpica";
 
 const originalFetch = global.fetch;
 

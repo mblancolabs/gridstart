@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseICSEvents } from "../handlers/ecal";
+import { parseICSEvents } from "./ecal";
 
 describe("ECAL handler", () => {
   it("preserves numeric series suffixes when stripping emojis", () => {

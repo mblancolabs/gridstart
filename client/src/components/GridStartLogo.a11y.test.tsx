@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { renderWithProviders } from "../utils/test-utils";
+import { renderWithProviders } from "../test/utils/test-utils";
 import { run } from "axe-core";
-import { GridStartLogo } from "../../components/GridStartLogo";
+import { GridStartLogo } from "./GridStartLogo";
 
 describe("GridStartLogo Accessibility", () => {
   it("should have no accessibility violations", async () => {

@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useSeries, usePreferences, useSavePreferences, useEvents } from "../../lib/hooks";
+import { useSeries, usePreferences, useSavePreferences, useEvents } from "./hooks";
 
 // Mock the queryClient module
-vi.mock("../../lib/queryClient", () => ({
+vi.mock("./queryClient", () => ({
   apiRequest: vi.fn(),
   queryClient: {
     invalidateQueries: vi.fn(),
   },
 }));
 
-import { apiRequest, queryClient } from "../../lib/queryClient";
+import { apiRequest, queryClient } from "./queryClient";
 
 // Mock React Query hooks
 vi.mock("@tanstack/react-query", () => ({

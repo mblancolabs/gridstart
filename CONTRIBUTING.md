@@ -157,6 +157,65 @@ If your change affects persisted data or schema:
 
 Avoid schema changes that are unnecessary for the feature.
 
+## Testing Conventions
+
+GridStart uses a mixed test layout:
+
+- Put tests that cover a single module next to that module.
+- Put tests that cover multiple modules or a user journey in the root `tests/` directory.
+
+Examples:
+
+```text
+client/src/components/CalendarView.tsx
+client/src/components/CalendarView.test.tsx
+
+server/services/feed-normalizer.ts
+server/services/feed-normalizer.test.ts
+
+shared/calendar.ts
+shared/calendar.test.ts
+
+tests/e2e/calendar-navigation.spec.ts
+tests/integration/events-api.test.ts
+```
+
+### Client tests
+
+For frontend code, prefer colocated test files over feature-level `__tests__` folders.
+
+Preferred:
+
+```text
+client/src/components/EventCard.tsx
+client/src/components/EventCard.test.tsx
+```
+
+Avoid:
+
+```text
+client/src/components/__tests__/EventCard.test.tsx
+```
+
+Use `*.test.ts` or `*.test.tsx` consistently for new client tests.
+
+Keep shared client test helpers in a stable location such as:
+
+```text
+client/src/__tests__/setup.ts
+client/src/test-utils/
+```
+
+The `client/src/__tests__/` directory is reserved for shared test setup and utilities, not for ordinary component or hook tests.
+
+### Root tests directory
+
+Use the root `tests/` directory only for tests that do not belong to one source module:
+
+- `tests/e2e/` for Playwright end-to-end tests
+- `tests/integration/` for cross-layer tests such as API + persistence or feed + cache flows
+- `tests/fixtures/` for shared fixtures when they are used across layers
+
 ## Testing Checklist
 
 Before opening a pull request, please verify:
