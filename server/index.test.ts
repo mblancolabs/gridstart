@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import request from "supertest";
 import * as logger from "./logger";
 
