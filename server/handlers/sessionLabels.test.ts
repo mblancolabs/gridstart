@@ -18,6 +18,36 @@ describe("normalizeSessionName", () => {
   it("returns undefined for unsupported labels", () => {
     expect(normalizeSessionName("undefined session")).toBeUndefined();
   });
+
+  it("returns Practice for practice number > 3 via regex fallthrough", () => {
+    expect(normalizeSessionName("practice 4")).toBe("Practice");
+  });
+
+  it("returns Practice via includes fallback", () => {
+    expect(normalizeSessionName("practice session")).toBe("Practice");
+  });
+
+  it("returns Test via includes fallback", () => {
+    expect(normalizeSessionName("testing session")).toBe("Test");
+  });
+
+  it("returns Warm Up via includes fallback", () => {
+    expect(normalizeSessionName("warmup phase")).toBe("Warm Up");
+  });
+
+  it("returns Sprint Qualifying via includes fallback", () => {
+    expect(normalizeSessionName("sprint qualifier")).toBe("Sprint Qualifying");
+  });
+
+  it("returns Qualifying via includes fallback", () => {
+    expect(normalizeSessionName("quali results")).toBe("Qualifying");
+  });
+
+  it("returns Race via includes fallback", () => {
+    expect(normalizeSessionName("race day")).toBe("Race");
+    expect(normalizeSessionName("gp weekend")).toBe("Race");
+    expect(normalizeSessionName("grand prix weekend")).toBe("Race");
+  });
 });
 
 describe("normalizeSessionNames", () => {

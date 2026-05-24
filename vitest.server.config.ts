@@ -20,6 +20,12 @@ export default defineConfig({
       exclude: [
         "server/test",
       ],
+      thresholds: {
+        statements: 80,
+        branches: 60,
+        functions: 85,
+        lines: 85,
+      },
     }
   }
 });

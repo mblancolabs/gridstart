@@ -169,4 +169,69 @@ describe("API routes", () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toContain("Invalid series IDs");
   });
+
+  it("returns events filtered by date range", async () => {
+    const year = new Date().getFullYear();
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes(`/ergast/f1/${year}.json`)) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            MRData: {
+              RaceTable: {
+                Races: [{
+                  season: `${year}`,
+                  round: "1",
+                  raceName: "Test Grand Prix",
+                  Circuit: {
+                    circuitName: "Test Circuit",
+                    Location: { locality: "City", country: "Country" },
+                  },
+                  date: `${year}-03-01`,
+                  time: "15:00:00Z",
+                  FirstPractice: { date: `${year}-02-28`, time: "11:30:00Z" },
+                }],
+              },
+            },
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => [] });
+    });
+
+    const res = await request(app).get("/api/events?series=f1&from=2026-01-01&to=2026-12-31");
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it("handles fetch failure gracefully in events endpoint", async () => {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockRejectedValue(new Error("Network error"));
+
+    const res = await request(app).get("/api/events?series=f1");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it("returns minimal ICS for empty series export", async () => {
+    const res = await request(app).get("/api/export.ics?series=f1");
+    expect(res.status).toBe(200);
+    expect(res.text).toContain("BEGIN:VCALENDAR");
+  });
+
+  it("returns validation error for non-existent series in export", async () => {
+    const res = await request(app).get("/api/export.ics?series=nonexistent");
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain("Invalid series IDs");
+  });
+
+  it("returns preferences when stored in database", async () => {
+    const prefs = { id: 1, enabledSeries: JSON.stringify(["f1", "motogp"]) };
+    vi.spyOn(storage, "getPreferences").mockResolvedValue(prefs as any);
+
+    const res = await request(app).get("/api/preferences");
+    expect(res.status).toBe(200);
+    expect(res.body.enabledSeries).toBe(JSON.stringify(["f1", "motogp"]));
+  });
 });

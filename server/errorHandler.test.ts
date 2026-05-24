@@ -1,12 +1,12 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { errorHandler } from "./errorHandler";
 import { BadRequestError } from "./errors";
 
-function createMockResponse() {
+function createMockResponse(headersSent = false) {
   let statusCode = 200;
   let jsonBody: any = null;
   return {
-    headersSent: false,
+    headersSent,
     status(code: number) {
       statusCode = code;
       return this;
@@ -26,6 +26,10 @@ function createMockResponse() {
 
 describe("errorHandler", () => {
   const originalNodeEnv = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
@@ -70,5 +74,31 @@ describe("errorHandler", () => {
     );
     expect(res.body.errorId).toBeUndefined();
     expect(res.body.stack).toEqual(expect.any(String));
+  });
+
+  it("handles non-AppError client errors in else branch", () => {
+    process.env.NODE_ENV = "development";
+    const req: any = { requestId: "req-789" };
+    const res: any = createMockResponse();
+    const next = () => { throw new Error("next should not be called"); };
+
+    const error = new Error("Not found");
+    (error as any).status = 404;
+
+    errorHandler(error, req, res, next);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe("Not found");
+  });
+
+  it("passes to next middleware when headers already sent", () => {
+    const next = vi.fn();
+    const req: any = { requestId: "req-101" };
+    const res: any = createMockResponse(true);
+
+    errorHandler(new Error("late error"), req, res, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
   });
 });
