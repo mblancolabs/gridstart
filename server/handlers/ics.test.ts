@@ -65,6 +65,74 @@ END:VCALENDAR`;
     ).rejects.toThrow("ICS handler requires 'url' parameter");
   });
 
+  it("detects various session types from event summaries", () => {
+    const calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20240601T120000Z
+DTEND:20240601T130000Z
+SUMMARY:Grand Prix
+END:VEVENT
+BEGIN:VEVENT
+UID:2
+DTSTART:20240601T140000Z
+DTEND:20240601T150000Z
+SUMMARY:Sprint
+END:VEVENT
+BEGIN:VEVENT
+UID:3
+DTSTART:20240601T160000Z
+DTEND:20240601T170000Z
+SUMMARY:Practice 3
+END:VEVENT
+BEGIN:VEVENT
+UID:4
+DTSTART:20240601T180000Z
+DTEND:20240601T190000Z
+SUMMARY:Warm Up
+END:VEVENT
+BEGIN:VEVENT
+UID:5
+DTSTART:20240601T200000Z
+DTEND:20240601T210000Z
+SUMMARY:Test Session
+END:VEVENT
+END:VCALENDAR`;
+
+    const events = parseICSEvents(calendar, {
+      id: "test-ics",
+      name: "Test Series",
+      shortName: "TST",
+      color: "#000000",
+      category: "Test",
+      handler: "ics",
+      params: {},
+      enabled: true,
+    });
+
+    expect(events).toHaveLength(5);
+    expect(events[0].sessionType).toBe("Race");
+    expect(events[1].sessionType).toBe("Sprint");
+    expect(events[2].sessionType).toBe("Practice 3");
+    expect(events[3].sessionType).toBe("Warm Up");
+    expect(events[4].sessionType).toBe("Test");
+  });
+
+  it("handles malformed ICS data gracefully", () => {
+    const events = parseICSEvents("not valid ics data", {
+      id: "test-ics",
+      name: "Test Series",
+      shortName: "TST",
+      color: "#000000",
+      category: "Test",
+      handler: "ics",
+      params: {},
+      enabled: true,
+    });
+    expect(events).toEqual([]);
+  });
+
   it("filters events by session names when params.sessionNames is provided", async () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as any;
