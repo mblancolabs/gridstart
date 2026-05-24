@@ -3,7 +3,6 @@ import express from "express";
 import request from "supertest";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
-import { storage } from "./storage";
 import { errorHandler } from "./errorHandler";
 import { jolpicaCache } from "./handlers/jolpica";
 
@@ -36,36 +35,6 @@ describe("API routes", () => {
         expect.objectContaining({ id: "motogp", name: "MotoGP" }),
       ]),
     );
-  });
-
-  it("returns default preferences when none are stored", async () => {
-    vi.spyOn(storage, "getPreferences").mockResolvedValue(undefined);
-
-    const res = await request(app).get("/api/preferences");
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("enabledSeries");
-    expect(typeof res.body.enabledSeries).toBe("string");
-  });
-
-  it("saves preferences with PUT /api/preferences", async () => {
-    const saved = { id: 1, enabledSeries: JSON.stringify(["f1"]) };
-    vi.spyOn(storage, "savePreferences").mockResolvedValue(saved as any);
-
-    const res = await request(app)
-      .put("/api/preferences")
-      .send({ enabledSeries: JSON.stringify(["f1"]) });
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(saved);
-  });
-
-  it("returns validation error for invalid preferences payload", async () => {
-    const res = await request(app)
-      .put("/api/preferences")
-      .send({ invalidField: true });
-
-    expect(res.status).toBe(400);
-    expect(res.body.message).toContain("Invalid preferences data");
   });
 
   it("returns ICS content for a valid export request", async () => {
@@ -233,12 +202,22 @@ describe("API routes", () => {
     expect(res.body.message).toContain("Invalid series IDs");
   });
 
-  it("returns preferences when stored in database", async () => {
-    const prefs = { id: 1, enabledSeries: JSON.stringify(["f1", "motogp"]) };
-    vi.spyOn(storage, "getPreferences").mockResolvedValue(prefs as any);
-
-    const res = await request(app).get("/api/preferences");
+  it("returns empty array for events with only commas in series parameter", async () => {
+    const res = await request(app).get("/api/events?series=,,");
     expect(res.status).toBe(200);
-    expect(res.body.enabledSeries).toBe(JSON.stringify(["f1", "motogp"]));
+    expect(res.body).toEqual([]);
+  });
+
+  it("returns bad request for invalid date format in events query", async () => {
+    const res = await request(app).get("/api/events?series=f1&from=01-01-2024");
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain("Invalid query parameters");
+  });
+
+  it("returns minimal ICS for only commas in export", async () => {
+    const res = await request(app).get("/api/export.ics?series=,,");
+    expect(res.status).toBe(200);
+    expect(res.header["content-type"]).toContain("text/calendar");
+    expect(res.text).toContain("BEGIN:VCALENDAR");
   });
 });

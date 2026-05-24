@@ -35,6 +35,34 @@ describe("MotoGPHandler", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("throws for unknown MotoGP class", async () => {
+    const fetchMock = vi.fn();
+    global.fetch = fetchMock as any;
+
+    await expect(
+      handler.fetchEvents(
+        testSeries,
+        { class: "MotoE" },
+        year,
+      ),
+    ).rejects.toThrow("Unknown MotoGP class: MotoE");
+  });
+
+  it("returns empty array when seasons API fails", async () => {
+    const fetchMock = vi.fn();
+    global.fetch = fetchMock as any;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: "Server Error",
+    });
+
+    const result = await handler.fetchEvents(testSeries, {}, year);
+    expect(result).toEqual([]);
+  });
+
   it("fetches MotoGP events and maps sessions correctly", async () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as any;

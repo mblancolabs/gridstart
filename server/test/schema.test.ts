@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { eventsQuerySchema, exportIcsQuerySchema, insertUserPreferencesSchema } from "@shared/schema";
+import { eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 
 describe("eventsQuerySchema", () => {
   it("validates correct query parameters", () => {
@@ -49,22 +49,6 @@ describe("exportIcsQuerySchema", () => {
   it("requires series parameter", () => {
     const invalidQuery = {};
     const result = exportIcsQuerySchema.safeParse(invalidQuery);
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe("Invalid input: expected string, received undefined");
-  });
-});
-
-describe("insertUserPreferencesSchema", () => {
-  it("validates correct preferences data", () => {
-    const validPrefs = { enabledSeries: '["f1", "motogp"]' };
-    const result = insertUserPreferencesSchema.safeParse(validPrefs);
-    expect(result.success).toBe(true);
-    expect(result.data).toEqual(validPrefs);
-  });
-
-  it("requires enabledSeries field", () => {
-    const invalidPrefs = {};
-    const result = insertUserPreferencesSchema.safeParse(invalidPrefs);
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe("Invalid input: expected string, received undefined");
   });

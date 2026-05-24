@@ -134,6 +134,32 @@ END:VCALENDAR`;
     expect(events).toEqual([]);
   });
 
+  it("returns undefined sessionType for unrecognizable event summary", () => {
+    const calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20240601T120000Z
+DTEND:20240601T130000Z
+SUMMARY:Driver Presentation
+END:VEVENT
+END:VCALENDAR`;
+
+    const events = parseICSEvents(calendar, {
+      id: "test-ics",
+      name: "Test Series",
+      shortName: "TST",
+      color: "#000000",
+      category: "Test",
+      handler: "ics",
+      params: {},
+      enabled: true,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].sessionType).toBeUndefined();
+  });
+
   it("filters events by session names when params.sessionNames is provided", async () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as any;

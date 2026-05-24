@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "./queryClient";
 import type { CalendarEvent, SeriesInfo, UserPreferences } from "@shared/schema";
+import { getEnabledSeriesFromCookie, setEnabledSeriesCookie } from "./preferencesCookie";
 
 export function useSeries() {
   return useQuery<SeriesInfo[]>({
@@ -11,16 +12,20 @@ export function useSeries() {
 export function usePreferences() {
   return useQuery<UserPreferences>({
     queryKey: ["/api/preferences"],
+    queryFn: () => {
+      const fromCookie = getEnabledSeriesFromCookie();
+      const enabledSeries = fromCookie ?? [];
+      return { id: 0, enabledSeries: JSON.stringify(enabledSeries) };
+    },
+    staleTime: Infinity,
   });
 }
 
 export function useSavePreferences() {
   return useMutation({
     mutationFn: async (enabledSeries: string[]) => {
-      const res = await apiRequest("PUT", "/api/preferences", {
-        enabledSeries: JSON.stringify(enabledSeries),
-      });
-      return res.json();
+      setEnabledSeriesCookie(enabledSeries);
+      return { id: 0, enabledSeries: JSON.stringify(enabledSeries) };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferences"] });
