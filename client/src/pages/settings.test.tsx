@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithProviders, screen, fireEvent, waitFor } from "../utils/test-utils";
-import Settings from "../../pages/settings";
-import { createMockSeries, createMockPreferences } from "../utils/mocks";
-import * as hooks from "../../lib/hooks";
+import { renderWithProviders, screen, fireEvent, waitFor } from "../test/utils/test-utils";
+import Settings from "./settings";
+import { createMockSeries, createMockPreferences } from "../test/utils/mocks";
+import * as hooks from "../lib/hooks";
 
-vi.mock("../../lib/hooks", async () => {
-  const actual = await vi.importActual("../../lib/hooks");
+vi.mock("../lib/hooks", async () => {
+  const actual = await vi.importActual("../lib/hooks");
   return {
     ...actual,
     useSeries: vi.fn(),

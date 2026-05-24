@@ -15,14 +15,14 @@ export default defineConfig({
     root: path.resolve(import.meta.dirname, "."),
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./client/src/__tests__/setup.ts"],
+    setupFiles: ["./client/src/test/setup.ts"],
     include: ["client/src/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
       exclude: [
         "node_modules/",
-        "client/src/__tests__",
+        "client/src/test",
       ],
     },
   },

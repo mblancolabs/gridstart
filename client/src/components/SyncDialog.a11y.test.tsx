@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithProviders, screen, userEvent } from "../utils/test-utils";
+import { renderWithProviders, screen, userEvent } from "../test/utils/test-utils";
 import { run } from "axe-core";
-import { SyncDialog } from "../../components/SyncDialog";
-import * as hooks from "../../lib/hooks";
+import { SyncDialog } from "./SyncDialog";
+import * as hooks from "../lib/hooks";
 
 // Mock the hooks module used by SyncDialog
-vi.mock("../../lib/hooks", async () => {
-  const actual = await vi.importActual("../../lib/hooks");
+vi.mock("../lib/hooks", async () => {
+  const actual = await vi.importActual("../lib/hooks");
   return {
     ...actual,
     useSyncEvents: vi.fn(),

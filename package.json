@@ -19,7 +19,7 @@
     "test": "npm run test:server && npm run test:client",
     "test:server": "vitest run",
     "test:client": "vitest run --config vitest.client.config.ts",
-    "test:client:a11y": "vitest run --config vitest.client.config.ts client/src/__tests__/components/**/*.a11y.test.tsx",
+    "test:client:a11y": "vitest run --config vitest.client.config.ts client/src/components/**/*.a11y.test.tsx",
     "test:client:watch": "vitest --config vitest.client.config.ts",
     "test:client:coverage": "vitest run --coverage --config vitest.client.config.ts",
     "test:e2e": "playwright test",

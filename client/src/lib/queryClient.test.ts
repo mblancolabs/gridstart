@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { apiRequest, getQueryFn } from "../../lib/queryClient";
+import { apiRequest, getQueryFn } from "./queryClient";
 
 // Mock fetch globally
 const fetchMock = vi.fn();

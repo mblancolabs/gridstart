@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useIsMobile } from "../../hooks/use-mobile";
+import { useIsMobile } from "./use-mobile";
 
 describe("useIsMobile Hook", () => {
   beforeEach(() => {

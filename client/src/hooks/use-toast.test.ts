@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useToast, toast, reducer } from "../../hooks/use-toast";
+import { useToast, toast, reducer } from "./use-toast";
 
 describe("useToast Hook", () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cn } from "../../lib/utils";
+import { cn } from "./utils";
 
 describe("cn - Tailwind class merger", () => {
   it("should merge simple class names", () => {
