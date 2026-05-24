@@ -3,6 +3,7 @@
 
 # Build outputs
 /dist/
+/client/dev-dist/
 /build/
 /server/public/
 /release/
