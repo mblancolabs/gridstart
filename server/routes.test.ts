@@ -206,6 +206,7 @@ describe("API routes", () => {
   });
 
   it("handles fetch failure gracefully in events endpoint", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockRejectedValue(new Error("Network error"));
 
@@ -215,6 +216,12 @@ describe("API routes", () => {
   });
 
   it("returns minimal ICS for empty series export", async () => {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ MRData: { RaceTable: { Races: [] } } }),
+    });
+
     const res = await request(app).get("/api/export.ics?series=f1");
     expect(res.status).toBe(200);
     expect(res.text).toContain("BEGIN:VCALENDAR");

@@ -10,6 +10,7 @@ vi.mock("../lib/hooks", async () => {
   return {
     ...actual,
     useSyncEvents: vi.fn(),
+    usePreferences: vi.fn(),
   };
 });
 
@@ -21,6 +22,12 @@ describe("SyncDialog Accessibility", () => {
       mutate: vi.fn(),
       isPending: false,
       isError: false,
+      error: null,
+    });
+    // @ts-ignore
+    hooks.usePreferences.mockReturnValue({
+      data: { id: 1, enabledSeries: JSON.stringify(["f1", "motogp"]) },
+      isLoading: false,
       error: null,
     });
   });

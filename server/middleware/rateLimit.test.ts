@@ -90,7 +90,12 @@ describe("parseEnvNumber", () => {
 describe("rate limit handler", () => {
   const originalEnv = { ...process.env };
 
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
   afterEach(() => {
+    vi.restoreAllMocks();
     process.env = { ...originalEnv };
   });
 

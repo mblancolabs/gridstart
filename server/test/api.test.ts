@@ -341,6 +341,7 @@ END:VCALENDAR`,
     });
 
     it("returns empty array when API fails and no cache", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
       fetchMock.mockImplementation(() => Promise.reject(new Error("Network error")));
 
       const result = await handler.fetchEvents(mockSeries, {}, 2028);

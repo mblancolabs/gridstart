@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parseICSEvents, ECALHandler } from "./ecal";
 
 const testSeries = {
@@ -124,6 +124,7 @@ END:VCALENDAR`;
   });
 
   it("handles malformed ICS data gracefully", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const events = parseICSEvents("not valid ics data", testSeries);
     expect(events).toEqual([]);
   });
