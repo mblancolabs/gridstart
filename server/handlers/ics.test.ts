@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
-import { ICSHandler, parseICSEvents } from "../handlers/ics";
+import { ICSHandler, parseICSEvents } from "./ics";
 
 describe("ICS handler", () => {
   const originalFetch = global.fetch;

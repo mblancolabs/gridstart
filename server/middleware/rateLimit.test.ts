@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import express from "express";
 import request from "supertest";
-import { generalApiLimiter, preferencesLimiter, exportLimiter } from "../middleware/rateLimit";
+import { generalApiLimiter, preferencesLimiter, exportLimiter } from "./rateLimit";
 
 describe("Rate limiting middleware", () => {
   let app: express.Application;

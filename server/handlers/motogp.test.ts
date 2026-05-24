@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MotoGPHandler } from "../handlers/motogp";
+import { MotoGPHandler } from "./motogp";
 
 const year = new Date().getFullYear();
 const testSeries = {

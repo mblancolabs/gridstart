@@ -4,7 +4,7 @@ import {
   normalizeSessionName,
   normalizeSessionNames,
   sessionNameMatches,
-} from "../handlers/sessionLabels";
+} from "./sessionLabels";
 
 describe("normalizeSessionName", () => {
   it("maps common aliases to canonical session names", () => {
