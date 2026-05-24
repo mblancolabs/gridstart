@@ -3,6 +3,24 @@
 ## Overview
 This document outlines the changes needed to deploy GridStart on Vercel with dev/staging/production environment configurations, and documents what would be required for true multi-node scaling.
 
+## Phase 1 — Completed 2026-05-24
+
+| Change | Files |
+|---|---|
+| Stateless HMAC-based double-submit CSRF (replaced Lusca + express-session) | `server/csrf.ts` (created), `server/index.ts` (modified) |
+| Serverless entry point | `server/vercel.ts` (created) |
+| Vercel routing, headers, function config | `vercel.json` (created) |
+| `startServer()` extracted from `createApp()` | `server/index.ts` (modified) |
+| Removed `express-session`, `lusca` dependencies | `package.json`, `script/build.ts` |
+| Added `vercel-build` script | `package.json` |
+| Updated `.env.example`, `.gitignore` | `.env.example`, `.gitignore` |
+| CSRF test updated for stateless double-submit pattern | `server/index.test.ts` |
+
+### Remaining for Phase 1
+- Set environment variables in Vercel Dashboard (requires Vercel project creation)
+- Create `.env.development`, `.env.staging`, `.env.production` template files
+- Deploy and verify
+
 ## Architecture Context
 GridStart is a **custom Express 5 + React 19 SPA** (not Next.js). Vercel expects serverless functions — short-lived stateless handlers — not long-running HTTP servers. The current app design has several mismatches that this plan addresses.
 
@@ -38,7 +56,6 @@ Create template files for each environment (all gitignored):
 | `CSRF_SECRET` | dev-secret | staging-secret | <random-prod-secret> |
 | `RATE_LIMIT_WINDOW_MS` | 900000 | 900000 | 900000 |
 | `RATE_LIMIT_MAX` | 1000 | 5000 | 100 |
-| `DAST_BYPASS_KEY` | — | `<random>` | — |
 
 On Vercel, env vars are set per-environment in the Vercel Dashboard. The `VERCEL_ENV` variable is auto-injected (`production`, `preview`, `development`).
 
@@ -122,9 +139,9 @@ POST/PUT/DELETE /api/preferences
 }
 ```
 
-### Create `api/index.ts` — serverless entry point
+### Create `server/vercel.ts` — serverless entry point
 ```ts
-import { createApp } from "../server/index";
+import { createApp } from "./index";
 import { registerRoutes } from "../server/routes";
 import { errorHandler } from "../server/errorHandler";
 
@@ -209,19 +226,19 @@ Optionally add a `vercel-build` script to `package.json`:
 | File | Purpose |
 |---|---|---|
 | `vercel.json` | Vercel deployment configuration |
-| `api/index.ts` | Serverless adapter entry point |
+| `server/vercel.ts` | Serverless adapter entry point |
 | `server/csrf.ts` | Stateless double-submit CSRF middleware |
 | `.env.development` | Dev environment defaults |
 | `.env.staging` | Staging environment defaults |
 | `.env.production` | Production environment defaults |
-| `.github/workflows/dast.yml` | DAST workflow (baseline + weekly full scan) |
+| `.github/workflows/dast.yml` | DAST workflow (Phase 2) |
 
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `server/index.ts` | Gate dotenv, extract `startServer()`, replace Lusca CSRF with stateless CSRF |
-| `server/middleware/rateLimit.ts` | Add DAST bypass header check |
+| `server/middleware/rateLimit.ts` | Add DAST bypass header check (Phase 2) |
 | `package.json` | Add `vercel-build` script |
 | `.env.example` | Add Vercel env vars and per-environment documentation |
 | `.gitignore` | Add `.env.*` except `.env.example` |
@@ -253,156 +270,24 @@ The app is **not ready** for true multi-node horizontal scaling. The following c
 2. Redis rate limiter → consistent rate enforcement
 3. Redis sessions → only if user auth is added
 
-## Staging Environment for DAST
+## [Phase 2] Staging & DAST
 
-### Branch Strategy
-- Permanent `staging` branch
-- Vercel Hobby auto-deploys it → `gridstart-git-staging.vercel.app`
-- DAST scans run against this stable preview URL
-- Same Vercel project, separate Preview environment scope in Dashboard
-
-### Environment Variables (Staging / Preview scope)
-
-| Variable | Staging Value | Purpose |
-|---|---|---|
-| `CSRF_SECRET` | `<random>` | Isolated from prod |
-| `CORS_ORIGIN` | `https://gridstart-git-staging.vercel.app` | Only allow staging origin |
-| `RATE_LIMIT_MAX` | `5000` | High enough for DAST, low enough for basic abuse |
-| `DAST_BYPASS_KEY` | `<random>` | Shared secret for ZAP to bypass rate limiting |
-| `RATE_LIMIT_WINDOW_MS` | `900000` | 15 min (same as prod) |
-
-`DAST_BYPASS_KEY` is **never** set in the Production environment scope.
-
-### Rate Limiter Bypass
-
-Add to `server/middleware/rateLimit.ts`:
-
-```ts
-const bypassKey = process.env.DAST_BYPASS_KEY;
-// Before rate limiter middleware
-app.use((req, res, next) => {
-  if (bypassKey && req.headers['x-dast-bypass'] === bypassKey) {
-    return next();
-  }
-  rateLimiter(req, res, next);
-});
-```
-
-The bypass key is only present in staging; on production the environment variable is absent and the clause short-circuits.
-
-### WAF Configuration
-
-Vercel Hobby allows 1 rate limit rule. Configure in Vercel Dashboard → Firewall for the staging environment:
-
-| Setting | Value |
-|---|---|
-| Pattern | `IP` burst > 100 requests in 10s |
-| Action | **Challenge** (CAPTCHA) — stops real abuse, ZAP traffic stays under burst or uses bypass header |
-| Scope | `environment = preview` (staging only) |
-
-## DAST GitHub Actions Workflow
-
-Create `.github/workflows/dast.yml`:
-
-```yaml
-name: DAST
-on:
-  push:
-    branches: [staging]
-  schedule:
-    - cron: "0 6 * * 0"   # weekly full scan every Sunday 06:00 UTC
-
-jobs:
-  baseline:
-    name: ZAP Baseline
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        id: vercel
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: ${{ steps.vercel.outputs.preview-url }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          cmd_options: >
-            -config globalexclusionurl.url=${{ steps.vercel.outputs.preview-url }}/health
-            -config "replacer.full_list(0).description=dast-bypass"
-            -config 'replacer.full_list(0).enabled=true'
-            -config 'replacer.full_list(0).matchtype=REQ_HEADER'
-            -config 'replacer.full_list(0).matchstr=x-dast-bypass'
-            -config 'replacer.full_list(0).regex=false'
-            -config 'replacer.full_list(0).replacement=${{ secrets.DAST_BYPASS_KEY }}'
-
-  full-scan:
-    name: ZAP Full Scan
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        id: vercel
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.12.0
-        with:
-          target: ${{ steps.vercel.outputs.preview-url }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          cmd_options: >
-            -config globalexclusionurl.url=${{ steps.vercel.outputs.preview-url }}/health
-            -config "replacer.full_list(0).description=dast-bypass"
-            -config 'replacer.full_list(0).enabled=true'
-            -config 'replacer.full_list(0).matchtype=REQ_HEADER'
-            -config 'replacer.full_list(0).matchstr=x-dast-bypass'
-            -config 'replacer.full_list(0).regex=false'
-            -config 'replacer.full_list(0).replacement=${{ secrets.DAST_BYPASS_KEY }}'
-
-### ZAP Alert Exclusions
-
-False positives to suppress in the ZAP context file or via `-config`:
-
-| Alert ID | Reason |
-|---|---|
-| `10021` (X-Content-Type-Options) | Already set in `vercel.json` headers — ZAP may double-count |
-| `10096` (Timestamp Disclosure) | ICS dates and calendar timestamps trigger many false positives |
-| `100000` (Script Name Hash) | Vite hashed bundles change on every deploy |
-
-These can be set via ZAP CLI or the ZAP API after initial scan review.
+See [`backlog/dast.md`](dast.md) for the full DAST plan — staging branch, ZAP workflow, rate limiter bypass, WAF config.
 
 ## Vercel Deployment Checklist
 
 - [ ] Create Vercel project and link to Git repository
 - [ ] Set environment variables in Vercel Dashboard for each environment:
   - Production: `CSRF_SECRET`, `CORS_ORIGIN`, `RATE_LIMIT_MAX`, etc.
-  - Preview (staging): same vars + `DAST_BYPASS_KEY` with staging values
+  - Preview (staging): same vars with staging-appropriate values
   - Development: auto-linked to PR branches
+- [ ] Create `.env.development`, `.env.staging`, `.env.production` template files
 - [ ] Verify `vercel.json` routes and headers
 - [ ] Test `vercel dev` locally
 - [ ] Deploy preview deployment and verify API + static assets
 - [ ] Configure custom domain (if applicable)
-- [ ] Enable Vercel Firewall rate limit rule on staging (burst > 100/10s → challenge, scope = preview)
 - [ ] Verify CSRF token exchange works across cold starts
 - [ ] Run `npm test` before production deploy
-- [ ] Create `staging` branch and push — verify auto-deploy to `gridstart-git-staging.vercel.app`
-- [ ] Set `DAST_BYPASS_KEY`, `CSRF_SECRET`, `CORS_ORIGIN` in Preview environment scope
-- [ ] Register `DAST_BYPASS_KEY` as a GitHub Actions secret
-- [ ] Create `.github/workflows/dast.yml`
-- [ ] Verify ZAP baseline passes against staging (push a trivial change to `staging`)
-- [ ] Verify `x-dast-bypass` header is NOT effective on production (DAST_BYPASS_KEY absent)
-- [ ] Review first full-scan report and fine-tune alert exclusions
 
 ## Verification Steps
 

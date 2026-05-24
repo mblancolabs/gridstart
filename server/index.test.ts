@@ -53,31 +53,44 @@ describe("createApp", () => {
     expect(res.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
   });
 
-  it("parses JSON request bodies", async () => {
+  it("parses JSON request bodies with CSRF protection", async () => {
     const { app } = createApp();
 
     app.post("/test-json", (req: any, res: any) => {
       res.json({ received: req.body });
     });
 
-    // First request to get CSRF and session cookies
+    // First request to get CSRF token cookie and response header
     const getRes = await request(app).get("/test-json");
-    const csrfToken = getRes.headers["x-csrf-token"];
+    const csrfToken = getRes.headers["x-csrf-token"] as string;
     const cookies = getRes.headers["set-cookie"];
 
-    // POST with both session cookie and CSRF token
-    let reqBuilder = request(app)
+    // POST with CSRF token cookie echoed back in the header
+    const res = await request(app)
       .post("/test-json")
       .send({ foo: "bar" })
       .set("Content-Type", "application/json")
-      .set("x-csrf-token", csrfToken as string);
-    if (cookies) {
-      reqBuilder = reqBuilder.set("Cookie", Array.isArray(cookies) ? cookies.join("; ") : cookies);
-    }
+      .set("Cookie", Array.isArray(cookies) ? cookies.join("; ") : cookies!)
+      .set("x-csrf-token", csrfToken);
 
-    const res = await reqBuilder;
     expect(res.status).toBe(200);
     expect(res.body.received).toEqual({ foo: "bar" });
+  });
+
+  it("rejects POST without CSRF token", async () => {
+    const { app } = createApp();
+
+    app.post("/test-csrf", (_req: any, res: any) => {
+      res.json({ ok: true });
+    });
+
+    const res = await request(app)
+      .post("/test-csrf")
+      .send({ foo: "bar" })
+      .set("Content-Type", "application/json");
+
+    expect(res.status).toBe(403);
+    expect(res.body).toHaveProperty("error");
   });
 
   it("uses production CSP directives when NODE_ENV=production", async () => {

@@ -4,7 +4,7 @@
 ![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=nodedotjs&logoColor=white)
 ![React 19](https://img.shields.io/badge/react-19-20232a?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Express](https://img.shields.io/badge/express-4.x-000000?style=flat-square&logo=express&logoColor=white)
+![Express](https://img.shields.io/badge/express-5.x-000000?style=flat-square&logo=express&logoColor=white)
 [![GitHub stars](https://img.shields.io/github/stars/mblancolabs/gridstart?style=flat-square)](https://github.com/mblancolabs/gridstart/stargazers)
 
 A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
@@ -130,6 +130,7 @@ The application supports the following environment variables:
 - `NODE_ENV`: Environment mode (`development` or `production`)
 - `CORS_ORIGIN`: CORS origin for development (default: `http://localhost:5173`)
 - `DEV_CSP_WS_ORIGIN`: WebSocket origin for development CSP (defaults to `CORS_ORIGIN` converted to `ws:`)
+- `CSRF_SECRET`: Secret key for stateless double-submit cookie CSRF protection
 - `RATE_LIMIT_WINDOW_MS`: General API rate limit window in milliseconds (default: 900000 / 15 minutes)
 - `RATE_LIMIT_MAX`: General API max requests per IP per window (default: 100)
 - `EXPORT_RATE_LIMIT_WINDOW_MS`: Export endpoint rate limit window in milliseconds (default: 3600000 / 1 hour)
@@ -140,6 +141,10 @@ The application supports the following environment variables:
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
+
+### Vercel Deployment
+
+GridStart supports deployment on Vercel. See [`backlog/vercel.md`](backlog/vercel.md) for the implementation plan.
 
 ## Installation
 
@@ -179,16 +184,13 @@ The application will be available at `http://localhost:5000` (or the port specif
 
 - `GET /api/series` - List all available series
 - `GET /api/events?series=f1,motogp&from=2026-01-01&to=2026-12-31` - Fetch events for specified series and date range
-- `GET /api/preferences` - Get user preferences (enabled series)
-- `PUT /api/preferences` - Update user preferences
 - `GET /api/export.ics?series=f1,motogp` - Export calendar as ICS file
 
 ### Rate limiting
 
 The backend applies rate limiting to protect the API and preserve service availability:
 
-- `GET /api/series`, `GET /api/events`, `GET /api/preferences`: 100 requests per IP every 15 minutes
-- `PUT /api/preferences`: 20 requests per IP every 5 minutes
+- `GET /api/series`, `GET /api/events`: 100 requests per IP every 15 minutes
 - `GET /api/export.ics`: 10 requests per IP every 1 hour
 
 Rate-limited requests return HTTP `429 Too Many Requests` with a JSON payload and `Retry-After` header.
