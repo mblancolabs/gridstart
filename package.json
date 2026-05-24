@@ -120,6 +120,9 @@
   "overrides": {
     "drizzle-kit": {
       "@esbuild-kit/esm-loader": "^4.20.4"
+    },
+    "workbox-build": {
+      "glob": "^13.0.6"
     }
   },
   "optionalDependencies": {
