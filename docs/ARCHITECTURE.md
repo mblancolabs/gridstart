@@ -31,7 +31,7 @@ The top-level repository includes `client/`, `server/`, `shared/`, and `script/`
 
 ## Runtime components
 
-The frontend is React 18 with TypeScript, Vite, Tailwind CSS, Radix UI, Wouter, TanStack Query, and date-fns. The backend is Express with TypeScript and ICAL.js, which makes the system a compact full-stack TypeScript application with no external infrastructure requirements.
+The frontend is React 19 with TypeScript, Vite, Tailwind CSS, Radix UI, Wouter, TanStack Query, and date-fns. The backend is Express 5 with TypeScript and ICAL.js, which makes the system a compact full-stack TypeScript application with no external infrastructure requirements.
 
 ### Client
 
@@ -48,6 +48,10 @@ The `shared/` directory is a strong indicator that core contracts are reused acr
 ### Persistence (Free Edition)
 
 User preferences are stored entirely client-side in a browser cookie (`gridstart_enabled_series`) with a one-year expiry. The server is stateless — no database is needed. The `IStorage` interface and SQLite-backed `DatabaseStorage` implementation are preserved in the `phase2/database` branch for the upcoming Premium Edition.
+
+### Security
+
+CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (readable by client JS) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the cookie value in the `x-csrf-token` request header; the server validates that both values match and that the HMAC-SHA256 signature is valid. This design works across serverless instances with no shared state.
 
 ## Data sources and handlers
 
@@ -103,7 +107,7 @@ sequenceDiagram
 
 ## API surface
 
-The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`. Backend is oriented around discovery, event retrieval, and export generation rather than broad CRUD operations. Preferences are managed entirely client-side via browser cookies.
+The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`. Backend is oriented around discovery, event retrieval, and export generation rather than broad CRUD operations. Preferences are managed entirely client-side via browser cookies. The `/api/preferences` endpoints were removed in 0.7.0.
 
 | Endpoint | Responsibility |
 |---|---|
