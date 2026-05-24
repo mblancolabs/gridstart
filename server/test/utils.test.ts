@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { validateFilePath, safeLoadJsonFile } from "../utils";
 
 describe("validateFilePath", () => {
@@ -38,18 +39,20 @@ describe("validateFilePath", () => {
 });
 
 describe("safeLoadJsonFile", () => {
-  const testDir = "/tmp/test-json";
-  const allowedDir = testDir;
-  const validFile = path.join(testDir, "valid.json");
-  const invalidFile = path.join(testDir, "invalid.json");
-  const missingFile = path.join(testDir, "missing.json");
-  const outsideFile = "/tmp/outside.json";
+  let testDir: string;
+  let allowedDir: string;
+  let validFile: string;
+  let invalidFile: string;
+  let missingFile: string;
+  let outsideFile: string;
 
   beforeEach(() => {
-    // Create test directory
-    if (!fs.existsSync(testDir)) {
-      fs.mkdirSync(testDir, { recursive: true });
-    }
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), "test-json-"));
+    allowedDir = testDir;
+    validFile = path.join(testDir, "valid.json");
+    invalidFile = path.join(testDir, "invalid.json");
+    missingFile = path.join(testDir, "missing.json");
+    outsideFile = path.join(os.tmpdir(), "outside.json");
 
     // Create valid JSON file
     fs.writeFileSync(validFile, '{"test": "data", "number": 42}');
