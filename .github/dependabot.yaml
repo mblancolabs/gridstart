@@ -14,9 +14,6 @@ updates:
         dependency-type: "production"
       development-dependencies:
         dependency-type: "development"
-    labels:
-      - "dependencies"
-      - "npm"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -27,5 +24,4 @@ updates:
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
       - "github-actions"
