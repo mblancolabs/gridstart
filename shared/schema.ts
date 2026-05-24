@@ -1,15 +1,10 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const userPreferences = sqliteTable("user_preferences", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  enabledSeries: text("enabled_series").notNull(), // JSON array of series IDs
-});
-
-export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true });
-export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
-export type UserPreferences = typeof userPreferences.$inferSelect;
+// User preferences type (stored in browser cookie, not database)
+export interface UserPreferences {
+  id: number;
+  enabledSeries: string; // JSON array of series IDs
+}
 
 // API Query Schemas
 export const eventsQuerySchema = z.object({

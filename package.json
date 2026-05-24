@@ -1,6 +1,6 @@
 {
   "name": "gridstart",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "type": "module",
   "license": "MIT",
   "main": "./dist/index.cjs",
@@ -27,7 +27,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:performance": "playwright test tests/e2e/performance.spec.ts",
-    "db:push": "drizzle-kit push",
     "release:check": "npm pack --dry-run",
     "release:pack": "npm pack --pack-destination release"
   },
@@ -61,7 +60,6 @@
     "@radix-ui/react-tooltip": "^1.2.0",
     "@tanstack/react-query": "^5.100.14",
     "@types/cors": "^2.8.19",
-    "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -69,8 +67,6 @@
     "cors": "^2.8.6",
     "date-fns": "^4.3.0",
     "dotenv": "^17.4.2",
-    "drizzle-orm": "^0.45.2",
-    "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "^8.6.0",
     "express": "^5.0.1",
     "express-rate-limit": "^8.5.2",
@@ -100,7 +96,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.19.0",
@@ -112,7 +107,6 @@
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.7",
     "axe-core": "^4.11.4",
-    "drizzle-kit": "^0.31.8",
     "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
     "sharp": "^0.34.5",
@@ -126,6 +120,9 @@
   "overrides": {
     "drizzle-kit": {
       "@esbuild-kit/esm-loader": "^4.20.4"
+    },
+    "workbox-build": {
+      "glob": "^13.0.6"
     }
   },
   "optionalDependencies": {

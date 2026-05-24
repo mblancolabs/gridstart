@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0] - 2026-05-24
+
+### Added
+- Free Edition (Phase 1): no database required, fully self-contained.
+- User preferences are now stored in a browser cookie (`gridstart_enabled_series`) with one-year expiry.
+- New `client/src/lib/preferencesCookie.ts` helper for reading and writing preference cookies.
+- Increased client `lib/` test coverage to 100% statements and server coverage to 90%.
+
+### Removed
+- SQLite database support: removed `better-sqlite3`, `drizzle-orm`, `drizzle-zod`, and `drizzle-kit` dependencies.
+- Server-side `GET /api/preferences` and `PUT /api/preferences` endpoints — preferences are now client-only.
+- `server/storage.ts`, `drizzle.config.ts`, and database initialization scripts.
+- `SQLITE_FILE_PATH` environment variable.
+
+### Changed
+- `usePreferences` and `useSavePreferences` hooks read/write cookies instead of calling the API.
+- Server is now fully stateless.
+- The database-backed codebase is preserved in the `phase2/database` branch for the upcoming Premium Edition.
+
 ## [0.6.1] - 2026-05-24
 
 ### Added

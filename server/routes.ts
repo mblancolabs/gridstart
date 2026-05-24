@@ -1,9 +1,8 @@
 import { z } from "zod";
 import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
-import { storage } from "./storage";
-import { generalApiLimiter, exportLimiter, preferencesLimiter } from "./middleware/rateLimit";
-import { insertUserPreferencesSchema, eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
+import { generalApiLimiter, exportLimiter } from "./middleware/rateLimit";
+import { eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import { BadRequestError } from "./errors";
 import { safeLoadJsonFile } from "./utils";
@@ -310,34 +309,6 @@ export async function registerRoutes(
     } catch (err) {
       if (err instanceof z.ZodError) {
         return next(new BadRequestError("Invalid query parameters"));
-      }
-      next(err);
-    }
-  });
-
-  // GET /api/preferences
-  app.get("/api/preferences", generalApiLimiter, async (_req: Request, res: Response) => {
-    const prefs = await storage.getPreferences();
-    if (prefs) {
-      res.json(prefs);
-    } else {
-      // Return default preferences
-      const defaultEnabled = allSeries
-        .filter((s) => s.enabled)
-        .map((s) => s.id);
-      res.json({ id: 0, enabledSeries: JSON.stringify(defaultEnabled) });
-    }
-  });
-
-  // PUT /api/preferences
-  app.put("/api/preferences", preferencesLimiter, async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const parsed = insertUserPreferencesSchema.parse(req.body);
-      const saved = await storage.savePreferences(parsed);
-      res.json(saved);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        return next(new BadRequestError("Invalid preferences data"));
       }
       next(err);
     }

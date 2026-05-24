@@ -7,7 +7,11 @@
 ![Express](https://img.shields.io/badge/express-4.x-000000?style=flat-square&logo=express&logoColor=white)
 [![GitHub stars](https://img.shields.io/github/stars/mblancolabs/gridstart?style=flat-square)](https://github.com/mblancolabs/gridstart/stargazers)
 
-A modern, full-stack motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
+A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
+
+GridStart is available in two editions:
+- **Free Edition** (current) — No database required. User preferences are stored in a browser cookie. Fully self-contained.
+- **Premium Edition** (planned) — Adds persistent storage with SQLite, user accounts, and per-user preferences.
 
 ![GridStart](./docs/assets/gridstart.png)
 
@@ -111,8 +115,6 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 
 ### Backend
 - **Express.js** with TypeScript
-- **SQLite** with Drizzle ORM
-- **Better SQLite3** for database operations
 - **ICAL.js** for calendar parsing/export
 
 ## Prerequisites
@@ -128,7 +130,6 @@ The application supports the following environment variables:
 - `NODE_ENV`: Environment mode (`development` or `production`)
 - `CORS_ORIGIN`: CORS origin for development (default: `http://localhost:5173`)
 - `DEV_CSP_WS_ORIGIN`: WebSocket origin for development CSP (defaults to `CORS_ORIGIN` converted to `ws:`)
-- `SQLITE_FILE_PATH`: Path to the SQLite database file (default: `data.db` in the current directory)
 - `RATE_LIMIT_WINDOW_MS`: General API rate limit window in milliseconds (default: 900000 / 15 minutes)
 - `RATE_LIMIT_MAX`: General API max requests per IP per window (default: 100)
 - `EXPORT_RATE_LIMIT_WINDOW_MS`: Export endpoint rate limit window in milliseconds (default: 3600000 / 1 hour)
@@ -151,11 +152,6 @@ Create a `.env` file in the root directory to override these defaults. See `.env
 2. Install dependencies:
    ```bash
    npm install
-   ```
-
-3. Initialize the database:
-   ```bash
-   npm run db:push
    ```
 
 ## Development
@@ -223,12 +219,9 @@ Standard session names include: `Practice`, `Practice 1`, `Practice 2`, `Practic
 - **F1**: Uses Jolpica API for detailed session timing instead of ICS feeds
 - **MotoGP**: Uses PulseLive API for session-level data
 
-## Database
+## Preferences Storage
 
-The application uses SQLite with a simple schema:
-- `user_preferences` table stores enabled series as JSON
-
-Database operations are handled by Drizzle ORM with automatic migrations.
+User preferences (which series are enabled) are stored in a browser cookie (`gridstart_enabled_series`) with a one-year expiry. No server-side database is required.
 
 ## License
 

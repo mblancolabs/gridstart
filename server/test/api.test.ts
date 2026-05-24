@@ -348,5 +348,111 @@ END:VCALENDAR`,
 
       expect(result).toEqual([]);
     });
+
+    it("throws on non-ok HTTP response from Jolpica API", async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+      });
+
+      const result = await handler.fetchEvents(mockSeries, {}, 2029);
+
+      expect(result).toEqual([]);
+    });
+
+    it("handles malformed JSON from Jolpica API", async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ MRData: {} }),
+      });
+
+      const result = await handler.fetchEvents(mockSeries, {}, 2030);
+
+      expect(result).toEqual([]);
+    });
+
+    it("returns stale cached data when re-fetch fails", async () => {
+      const mockApiResponse = {
+        MRData: {
+          RaceTable: {
+            Races: [
+              {
+                season: "2031",
+                round: "1",
+                raceName: "Cache Test Grand Prix",
+                Circuit: {
+                  circuitName: "Cache Circuit",
+                  Location: { locality: "Cache City", country: "Cacheland" },
+                },
+                date: "2031-03-01",
+                time: "15:00:00Z",
+                FirstPractice: { date: "2031-02-28", time: "11:30:00Z" },
+                SecondPractice: { date: "2031-02-28", time: "15:00:00Z" },
+                ThirdPractice: { date: "2031-03-01", time: "12:30:00Z" },
+                Qualifying: { date: "2031-03-01", time: "16:00:00Z" },
+              },
+            ],
+          },
+        },
+      };
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockApiResponse),
+      });
+
+      // First call populates cache
+      const firstResult = await handler.fetchEvents(mockSeries, {}, 2031);
+      expect(firstResult.length).toBeGreaterThan(0);
+
+      // Second call fails, should return stale cache
+      fetchMock.mockRejectedValueOnce(new Error("Network error"));
+      const secondResult = await handler.fetchEvents(mockSeries, {}, 2031);
+
+      expect(secondResult).toEqual(firstResult);
+    });
+
+    it("filters events by session names when params.sessionNames is provided", async () => {
+      // Reset fetchMock to avoid interference from one-time implementations in previous tests
+      fetchMock.mockReset();
+
+      const mockApiResponse = {
+        MRData: {
+          RaceTable: {
+            Races: [
+              {
+                season: "2032",
+                round: "1",
+                raceName: "Filter Test Grand Prix",
+                Circuit: {
+                  circuitName: "Filter Circuit",
+                  Location: { locality: "Filter City", country: "Filterland" },
+                },
+                date: "2032-03-01",
+                time: "15:00:00Z",
+                FirstPractice: { date: "2032-02-28", time: "11:30:00Z" },
+                Qualifying: { date: "2032-03-01", time: "16:00:00Z" },
+              },
+            ],
+          },
+        },
+      };
+
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockApiResponse),
+      });
+
+      // Only request "Practice" sessions — should filter out Qualifying and Race
+      const result = await handler.fetchEvents(
+        mockSeries,
+        { sessionNames: ["Practice"] },
+        2032,
+      );
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((e) => e.sessionType?.includes("Practice"))).toBe(true);
+    });
   });
 });

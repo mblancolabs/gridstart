@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseICSEvents, ECALHandler } from "./ecal";
 
 const testSeries = {
@@ -158,11 +158,114 @@ END:VCALENDAR`;
   });
 });
 
+describe("ECAL parseICSEvents (additional edge cases)", () => {
+  it("detects Warm Up from title containing 'warm'", () => {
+    const calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20260601T100000Z
+DTEND:20260601T110000Z
+SUMMARY:Morning Warm Up
+LOCATION:Circuit
+END:VEVENT
+END:VCALENDAR`;
+
+    const events = parseICSEvents(calendar, testSeries);
+    expect(events).toHaveLength(1);
+    expect(events[0].sessionType).toBe("Warm Up");
+  });
+
+  it("defaults to Race for unrecognizable session title", () => {
+    const calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20260601T100000Z
+DTEND:20260601T110000Z
+SUMMARY:Driver Parade
+LOCATION:Circuit
+END:VEVENT
+END:VCALENDAR`;
+
+    const events = parseICSEvents(calendar, testSeries);
+    expect(events).toHaveLength(1);
+    expect(events[0].sessionType).toBe("Race");
+  });
+
+  it("detects GP in title and returns Race", () => {
+    const calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20260601T100000Z
+DTEND:20260601T110000Z
+SUMMARY:Australian GP
+LOCATION:Melbourne
+END:VEVENT
+END:VCALENDAR`;
+
+    const events = parseICSEvents(calendar, testSeries);
+    expect(events).toHaveLength(1);
+    expect(events[0].sessionType).toBe("Race");
+  });
+});
+
 describe("ECALHandler", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   it("throws when url param is missing", async () => {
     const handler = new ECALHandler();
     await expect(
       handler.fetchEvents(testSeries, {}, 2026),
     ).rejects.toThrow("ECAL handler requires 'url' parameter");
+  });
+
+  it("filters events by session names when params.sessionNames is provided", async () => {
+    const handler = new ECALHandler();
+    const fetchMock = vi.fn();
+    global.fetch = fetchMock as any;
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: vi.fn().mockResolvedValue(`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1
+DTSTART:20260601T100000Z
+DTEND:20260601T110000Z
+SUMMARY:Free Practice 1
+LOCATION:Circuit
+END:VEVENT
+BEGIN:VEVENT
+UID:2
+DTSTART:20260601T120000Z
+DTEND:20260601T130000Z
+SUMMARY:Qualifying
+LOCATION:Circuit
+END:VEVENT
+END:VCALENDAR`),
+    });
+
+    const result = await handler.fetchEvents(
+      {
+        id: "test-ecal",
+        name: "Test ECAL",
+        shortName: "TEC",
+        color: "#000",
+        category: "Test",
+        handler: "ecal",
+        params: {},
+        enabled: true,
+      },
+      { url: "https://example.com/test.ics", sessionNames: ["Practice"] },
+      2026,
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0].sessionType).toBe("Practice 1");
   });
 });
