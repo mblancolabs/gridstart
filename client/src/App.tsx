@@ -11,6 +11,7 @@ import { GridStartLogo } from "@/components/GridStartLogo";
 import { SeriesSidebar } from "@/components/SeriesSidebar";
 import { SyncDialog } from "@/components/SyncDialog";
 import { MobileSeriesSheet } from "@/components/MobileSeriesSheet";
+import { PwaUpdatePrompt, PwaInstallButton } from "@/components/PwaUpdatePrompt";
 import Home from "@/pages/home";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
@@ -32,6 +33,7 @@ function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <PwaInstallButton />
         <SyncDialog />
         <Button
           variant="ghost"
@@ -78,6 +80,7 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <Toaster />
+          <PwaUpdatePrompt />
           <Router hook={useHashLocation}>
             <AppRouter />
           </Router>

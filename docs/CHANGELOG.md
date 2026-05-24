@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0] - 2026-05-24
+
+### Added
+- PWA support: app is now installable on-device with offline capabilities.
+- Web app manifest with standalone display mode, PWA icons, and theme colour.
+- Service worker with Workbox: precaches all static assets and caches API responses for offline resilience.
+- `PwaInstallButton` that listens for `beforeinstallprompt` and shows an "Install App" button in the header.
+- `PwaUpdatePrompt` component that notifies users when a new version is available.
+- PWA unit and E2E tests covering manifest, install prompt, service worker registration, offline loading, and icon serving.
+
+### Changed
+- Added `worker-src` CSP directive to allow service worker execution.
+- Added PWA meta tags (`theme-color`, `apple-mobile-web-app-capable`).
+- Reordered `<Toaster />` before `<PwaUpdatePrompt />` so update toasts render correctly.
+
 ## [0.5.5] - 2026-05-10
 
 ### Changed

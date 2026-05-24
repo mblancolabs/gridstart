@@ -111,6 +111,7 @@ export function createApp() {
               fontSrc: ["'self'", "https://api.fontshare.com", "https://cdn.fontshare.com"],
               imgSrc: ["'self'", "data:"],
               connectSrc: ["'self'"],
+              workerSrc: ["'self'"],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],
               formAction: ["'self'"],
