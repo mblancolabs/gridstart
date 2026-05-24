@@ -16,7 +16,8 @@ describe("serveStatic", () => {
 
   beforeAll(() => {
     fs.mkdirSync(publicDir, { recursive: true });
-    fs.writeFileSync(path.join(publicDir, "index.html"), "<html><body>GridStart</body></html>");
+    fs.writeFileSync(path.join(publicDir, "app.html"), "<html><body>GridStart</body></html>");
+    fs.writeFileSync(path.join(publicDir, "index.html"), "<html><body>Landing</body></html>");
   });
 
   afterAll(() => {
@@ -38,7 +39,7 @@ describe("serveStatic", () => {
     expect(() => serveStatic(app)).toThrow("Could not find the build directory");
   });
 
-  it("serves index.html for unknown paths (SPA fallback)", async () => {
+  it("serves app.html for unknown paths (SPA fallback)", async () => {
     const { serveStatic } = await import("./static");
     const app = express();
     serveStatic(app);

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1] - 2026-05-24
+
+### Added
+- Landing page at `/` with series overview, feature highlights, ICS preview, and "Open Calendar" CTA linking to the app.
+
+### Changed
+- The SPA entry point moved from `index.html` to `app.html` and now lives at the `/app` path.
+- Fixed Express 5 dev server routing so `app.use` middleware correctly serves the landing page at `/` and the SPA at `/app`.
+
 ## [0.6.0] - 2026-05-24
 
 ### Added

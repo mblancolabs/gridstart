@@ -34,15 +34,33 @@ export async function setupVite(server: Server, app: Express) {
   app.use(staticLimiter);
   app.use(vite.middlewares);
 
+  // Catch-all: serve landing page at /, SPA at all other paths
   app.use("/{*path}", async (req, res, next) => {
     const url = (req.originalUrl ?? "/").replace(/\0/g, "");
+
+    if (url === "/" || url === "/index.html") {
+      try {
+        const landingPath = path.resolve(
+          import.meta.dirname, "..", "client", "index.html",
+        );
+        if (!validateFilePath(landingPath, path.resolve(import.meta.dirname, ".."))) {
+          throw new Error("Invalid template file path");
+        }
+        const page = await fs.promises.readFile(landingPath, "utf-8");
+        res.status(200).set({ "Content-Type": "text/html" }).end(page);
+        return;
+      } catch (e) {
+        next(e);
+        return;
+      }
+    }
 
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "..",
         "client",
-        "index.html",
+        "app.html",
       );
 
       // Validate template path for security
@@ -50,7 +68,7 @@ export async function setupVite(server: Server, app: Express) {
         throw new Error("Invalid template file path");
       }
 
-      // always reload the index.html file from disk incase it changes
+      // always reload the app.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,

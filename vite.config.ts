@@ -17,7 +17,7 @@ export default defineConfig({
         name: "GridStart — Motorsport Calendar",
         short_name: "GridStart",
         description: "Track every motorsport series in one calendar",
-        start_url: "/",
+        start_url: "/app",
         display: "standalone",
         background_color: "#09090b",
         theme_color: "#09090b",
@@ -83,6 +83,9 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     cssMinify: 'esbuild',
+    rollupOptions: {
+      input: path.resolve(import.meta.dirname, "client", "app.html"),
+    },
   },
   server: {
     fs: {

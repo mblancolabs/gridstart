@@ -14,7 +14,7 @@ export function serveStatic(app: Express) {
   // Apply rate limiting to static file requests
   app.use(staticLimiter);
 
-  // Serve static files with security headers
+  // Serve static files with security headers (includes landing page at /)
   app.use(express.static(distPath, {
     setHeaders: (res, path) => {
       // Prevent MIME type sniffing
@@ -26,8 +26,13 @@ export function serveStatic(app: Express) {
     }
   }));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("/{*path}", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // Catch-all: serve landing page at /, SPA at all other paths
+  app.use("/{*path}", (req, res) => {
+    const url = (req.originalUrl ?? "/");
+    if (url === "/" || url === "/index.html") {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    } else {
+      res.sendFile(path.resolve(distPath, "app.html"));
+    }
   });
 }

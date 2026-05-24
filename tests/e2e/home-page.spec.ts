@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('home page loads and displays the sidebar', async ({ page, isMobile }) => {
   test.skip(isMobile, 'This test is only for desktop viewports');
 
-  await page.goto('/');
+  await page.goto('/app');
 
   // Check that the page title is correct
   await expect(page).toHaveTitle(/GridStart/);
@@ -27,7 +27,7 @@ test('home page loads and displays the sidebar', async ({ page, isMobile }) => {
 });
 
 test('home page sync functionality works', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app');
 
   // Find and click the sync button
   const syncButton = page.getByRole('button', { name: /sync/i });
@@ -54,7 +54,7 @@ test('home page sync functionality works', async ({ page }) => {
 test('mobile series sheet works on small screens', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'This test is only for mobile viewports');
 
-  await page.goto('/');
+  await page.goto('/app');
 
   // On mobile, the sidebar should be hidden by default
   const sidebar = page.locator('[data-testid="series-sidebar"]');
