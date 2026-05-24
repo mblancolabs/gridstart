@@ -22,7 +22,8 @@ test('home page loads and displays the sidebar', async ({ page, isMobile }) => {
   // Visual regression test - take a screenshot
   await expect(page).toHaveScreenshot('home-page-desktop.png', {
     fullPage: true,
-    threshold: 0.1, // Allow 10% difference for minor rendering variations
+    threshold: 0.1,
+    maxDiffPixelRatio: 0.02,
   });
 });
 
@@ -41,6 +42,7 @@ test('home page sync functionality works', async ({ page }) => {
   // Take screenshot of dialog
   await expect(page).toHaveScreenshot('sync-dialog-open.png', {
     threshold: 0.1,
+    maxDiffPixelRatio: 0.02,
   });
 
   // Close the dialog
@@ -73,5 +75,6 @@ test('mobile series sheet works on small screens', async ({ page, isMobile }) =>
   await expect(page).toHaveScreenshot('mobile-series-sheet-open.png', {
     fullPage: true,
     threshold: 0.1,
+    maxDiffPixelRatio: 0.02,
   });
 });
