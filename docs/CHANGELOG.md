@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.1] - 2026-05-24
+
+### Changed
+- Added cookie disclosure notice to landing page and SPA shell (`client/index.html`, `client/app.html`).
+
 ## [0.7.0] - 2026-05-24
 
 ### Added
