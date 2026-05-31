@@ -4,7 +4,7 @@ import request from "supertest";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { errorHandler } from "./errorHandler";
-import { jolpicaCache } from "./handlers/jolpica";
+import { clearCacheInstance } from "./cache";
 
 const originalFetch = global.fetch;
 
@@ -14,7 +14,7 @@ describe("API routes", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     global.fetch = vi.fn() as any;
-    jolpicaCache.clear();
+    clearCacheInstance();
     app = express();
     app.use(express.json());
     await registerRoutes(createServer(), app);

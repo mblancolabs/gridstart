@@ -2,6 +2,7 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
+import { getCache } from "../cache";
 
 interface JolpicaSession {
   date: string;
@@ -49,17 +50,15 @@ function getDurationForSession(sessionKey: string): number {
 
 export { getDurationForSession };
 
-const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
-export { jolpicaCache };
 
 export class JolpicaHandler implements FeedHandler {
   name = "jolpica";
 
   async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
+    const cache = getCache();
     const cacheKey = `jolpica-${series.id}-${year}`;
-    const cached = jolpicaCache.get(cacheKey);
+    const cached = await cache.get<CalendarEvent[]>(cacheKey);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
       return cached.data;
     }
@@ -171,7 +170,7 @@ export class JolpicaHandler implements FeedHandler {
         ? filterEventsBySessionNames(events, requestedSessionNames)
         : events;
 
-      jolpicaCache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
+      await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
       return finalEvents;
     } catch (err) {
       logger.error(err, "Failed to fetch Jolpica data", { seriesId: series.id });

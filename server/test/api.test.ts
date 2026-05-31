@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { fetchICSData } from "../routes";
-import { getDurationForSession, jolpicaCache } from "../handlers/jolpica";
+import { getDurationForSession } from "../handlers/jolpica";
 import { JolpicaHandler } from "../handlers/jolpica";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "../handlers/sessionLabels";
 import { parseICSEvents } from "../handlers/ics";
+import { clearCacheInstance } from "../cache";
 
 // Mock fetch globally
 const fetchMock = vi.fn();
@@ -12,12 +13,11 @@ global.fetch = fetchMock;
 describe("API logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    jolpicaCache.clear();
+    clearCacheInstance();
   });
 
   afterEach(() => {
     // Clear caches between tests
-    // Note: In a real implementation, we'd need to expose cache clearing methods
   });
 
   describe("fetchICSData", () => {

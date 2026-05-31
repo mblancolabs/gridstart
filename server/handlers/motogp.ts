@@ -2,6 +2,7 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionNames } from "./sessionLabels";
+import { getCache } from "../cache";
 
 interface MotoGPSeason {
   id: string;
@@ -138,10 +139,19 @@ function parseMotoGPSessionDate(sessionDate: string, event: MotoGPEvent): string
   return new Date(candidateUtc.getTime() - offsetMs).toISOString();
 }
 
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
 export class MotoGPHandler implements FeedHandler {
   name = "motogp";
 
   async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
+    const cache = getCache();
+    const cacheKey = `motogp-${series.id}-${year}`;
+    const cached = await cache.get<CalendarEvent[]>(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+      return cached.data;
+    }
+
     const className = params.class || "MotoGP";
     const categoryId = MOTOGP_CATEGORY_IDS[className];
     if (!categoryId) {
@@ -237,11 +247,15 @@ export class MotoGPHandler implements FeedHandler {
       }
 
       const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-      return requestedSessionNames
+      const finalEvents = requestedSessionNames
         ? filterEventsBySessionNames(events, requestedSessionNames)
         : events;
+
+      await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
+      return finalEvents;
     } catch (err) {
       logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
+      if (cached) return cached.data;
       return [];
     }
   }

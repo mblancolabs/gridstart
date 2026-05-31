@@ -95,9 +95,9 @@ The application uses **1-hour caching** for all external data feeds:
    - Refreshes every hour when MotoGP events are requested
 
 ### Cache Storage
-- **In-memory**: All caches are stored in server memory
-- **Per-server instance**: Cache doesn't persist across server restarts
-- **No persistence**: Data is lost when the server restarts
+- **MemoryCache** (default): In-memory storage, lost on restart — no dependencies
+- **RedisCache** (optional): Persistent cache via Redis/Upstash — survives restarts and cold starts
+- Configurable via `REDIS_URL` + `REDIS_TOKEN` env vars. Falls back to MemoryCache when unset.
 
 ### Manual Refresh
 Currently, there's no manual cache invalidation - data refreshes automatically based on the 1-hour TTL. If you need immediate updates, you would need to restart the server or wait for the cache to expire naturally.
@@ -139,6 +139,11 @@ The application supports the following environment variables:
 - `PREFERENCES_RATE_LIMIT_MAX`: Preferences update max requests per IP per window (default: 20)
 - `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes)
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
+- `REDIS_URL`: Redis/Upstash REST URL. Leave unset for in-memory cache (default).
+- `REDIS_TOKEN`: Redis/Upstash REST token. Required if `REDIS_URL` is set.
+- `KV_REST_API_URL`: Vercel KV REST URL (alternative to `REDIS_URL`, auto-injected by Vercel).
+- `KV_REST_API_TOKEN`: Vercel KV REST token (alternative to `REDIS_TOKEN`, auto-injected by Vercel).
+- `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 

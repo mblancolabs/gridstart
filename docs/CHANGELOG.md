@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0] - 2026-05-31
+
+### Added
+- Configurable cache layer with MemoryCache (default) and RedisCache (optional)
+- Redis support via Upstash for persistent caching across restarts and serverless cold starts
+- New `server/cache/` module with `CacheProvider` interface for backend-agnostic caching
+- New cache unit tests (memory, redis, index)
+
+### Changed
+- Feed handlers (ICS, Jolpica, MotoGP) now use shared cache abstraction instead of local Maps
+- Cache TTL configurable via `CACHE_TTL` environment variable
+
+### Documentation
+- Updated README.md with Redis environment variables and cache backend options
+- Updated ARCHITECTURE.md diagrams and caching section for new configurable cache layer
+- Updated .env.example with Redis configuration variables
+- Updated CONTRIBUTING.md with optional Redis setup note
+
 ## [0.7.1] - 2026-05-24
 
 ### Changed

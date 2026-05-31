@@ -52,7 +52,8 @@ npm run db:push
 npm run dev
 ```
 
-By default, the app runs on `http://localhost:5000`.
+By default, the app runs on `http://localhost:5000` with the in-memory cache. No Redis required.
+To enable the Redis cache, set `REDIS_URL` and `REDIS_TOKEN` in your `.env` file.
 
 ## Project Layout
 
