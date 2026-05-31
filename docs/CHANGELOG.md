@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.1] - 2026-05-31
+
+### Changed
+- Replaced Google Fonts (Barlow Condensed, Inter) with Fontshare (Cabinet Grotesk, General Sans) to reduce external dependencies and keep CSP minimal.
+- Externalized landing page inline `<style>` to `client/public/landing.css` and inline `<script>` to `client/public/landing.js`.
+- Served screenshot locally from `client/public/` instead of remote URL.
+
+### Fixed
+- Workbox Fontshare CSP violation: added `https://api.fontshare.com` to `connect-src` in production and development CSP directives.
+- `import.meta.url` build warning in CJS output: replaced with a `require.main === module` / `import.meta.url` dual check and silenced the esbuild warning.
+- Invalid hook call in `QueryClientProvider` during Vite dev: added `@tanstack/react-query` to `optimizeDeps.include` to ensure correct pre-bundling.
+
 ## [0.8.0] - 2026-05-31
 
 ### Added
