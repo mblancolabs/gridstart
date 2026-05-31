@@ -16,6 +16,7 @@ import { ECALHandler } from "./handlers/ecal";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
+import { getOrSet, CACHE_TTL_MS } from "./cache";
 export { fetchICSData } from "./icsFetcher";
 
 interface FeedsCategory {
@@ -297,25 +298,28 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.send("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
       }
 
-      const allEvents: CalendarEvent[] = [];
+      const sortedIds = [...seriesIds].sort().join(",");
+      const icsString = await getOrSet(`ics-export-${sortedIds}`, CACHE_TTL_MS, async () => {
+        const allEvents: CalendarEvent[] = [];
 
-      const fetchPromises = seriesIds.map(async (seriesId) => {
-        const series = allSeries.find((s) => s.id === seriesId);
-        if (!series) return;
+        const fetchPromises = seriesIds.map(async (seriesId) => {
+          const series = allSeries.find((s) => s.id === seriesId);
+          if (!series) return;
 
-        try {
-          const events = await fetchEventsForSeries(series);
-          allEvents.push(...events);
-        } catch (err) {
-          logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
-        }
+          try {
+            const events = await fetchEventsForSeries(series);
+            allEvents.push(...events);
+          } catch (err) {
+            logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
+          }
+        });
+
+        await Promise.all(fetchPromises);
+
+        allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+        return generateICS(allEvents);
       });
-
-      await Promise.all(fetchPromises);
-
-      allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-
-      const icsString = generateICS(allEvents);
 
       res.set("Content-Type", "text/calendar; charset=utf-8");
       res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
