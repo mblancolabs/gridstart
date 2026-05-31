@@ -52,9 +52,7 @@ describe("fetchICSData", () => {
     });
 
     const { fetchICSData } = await import("./icsFetcher");
-    await expect(
-      fetchICSData("error-series", "https://example.com/error.ics"),
-    ).rejects.toThrow("HTTP 500");
+    await expect(fetchICSData("error-series", "https://example.com/error.ics")).rejects.toThrow("HTTP 500");
   });
 
   it("returns stale cached data when fetch fails", async () => {

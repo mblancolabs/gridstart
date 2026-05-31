@@ -3,7 +3,10 @@ import type { CacheEntry, CacheProvider } from "./types";
 const KEY_PREFIX = "cache:";
 
 export class RedisCache implements CacheProvider {
-  private redis: { get: (key: string) => Promise<string | null>; set: (key: string, value: string, opts: { ex: number }) => Promise<any> };
+  private redis: {
+    get: (key: string) => Promise<string | null>;
+    set: (key: string, value: string, opts: { ex: number }) => Promise<unknown>;
+  };
   private defaultTtl: number;
 
   constructor(url: string, token: string, defaultTtl: number) {

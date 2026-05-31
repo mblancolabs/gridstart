@@ -7,22 +7,21 @@ function parseEnvNumber(key: string, fallback: number): number {
 }
 
 function sanitizeLogValue(value: string): string {
-  return value.replace(/[\r\n]+/g, " ").replace(/[\u0000-\u001F\u007F]/g, " ");
+  return value
+    .replace(/[\r\n]+/g, " ")
+    .split("")
+    .map((c) => {
+      const code = c.charCodeAt(0);
+      return code <= 0x1f || code === 0x7f ? " " : c;
+    })
+    .join("");
 }
 
 function encodeLogValue(value: string): string {
   return JSON.stringify(sanitizeLogValue(value));
 }
 
-function createLimiter({
-  windowMs,
-  max,
-  name,
-}: {
-  windowMs: number;
-  max: number;
-  name: string;
-}) {
+function createLimiter({ windowMs, max, name }: { windowMs: number; max: number; name: string }) {
   return rateLimit({
     windowMs,
     max,

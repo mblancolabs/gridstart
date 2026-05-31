@@ -14,26 +14,26 @@ export const STANDARD_SESSION_NAMES = [
 ] as const;
 
 export const SESSION_NAME_ALIASES: Record<string, string> = {
-  "race": "Race",
+  race: "Race",
   "grand prix": "Race",
-  "gp": "Race",
+  gp: "Race",
   "sprint quali": "Sprint Qualifying",
   "sprint qualify": "Sprint Qualifying",
   "sprint qualifying": "Sprint Qualifying",
   "sprint shootout": "Sprint Qualifying",
-  "qualifying": "Qualifying",
-  "quali": "Qualifying",
+  qualifying: "Qualifying",
+  quali: "Qualifying",
   "practice 3": "Practice 3",
-  "fp3": "Practice 3",
+  fp3: "Practice 3",
   "practice 2": "Practice 2",
-  "fp2": "Practice 2",
+  fp2: "Practice 2",
   "practice 1": "Practice 1",
-  "fp1": "Practice 1",
-  "practice": "Practice",
-  "test": "Test",
+  fp1: "Practice 1",
+  practice: "Practice",
+  test: "Test",
   "warm up": "Warm Up",
-  "warm": "Warm Up",
-  "wup": "Warm Up",
+  warm: "Warm Up",
+  wup: "Warm Up",
 };
 
 const standardNamesSet = new Set<string>(STANDARD_SESSION_NAMES);
@@ -110,10 +110,7 @@ function getSessionCategory(sessionName: string): string {
   return sessionName;
 }
 
-export function sessionNameMatches(
-  sessionType: string | undefined,
-  allowedSessionNames: string[]
-): boolean {
+export function sessionNameMatches(sessionType: string | undefined, allowedSessionNames: string[]): boolean {
   const normalizedSessionType = normalizeSessionName(sessionType);
   if (!normalizedSessionType) return false;
 
@@ -138,9 +135,6 @@ export function sessionNameMatches(
   });
 }
 
-export function filterEventsBySessionNames(
-  events: CalendarEvent[],
-  allowedSessionNames: string[]
-): CalendarEvent[] {
+export function filterEventsBySessionNames(events: CalendarEvent[], allowedSessionNames: string[]): CalendarEvent[] {
   return events.filter((event) => sessionNameMatches(event.sessionType, allowedSessionNames));
 }

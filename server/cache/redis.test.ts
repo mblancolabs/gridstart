@@ -71,6 +71,7 @@ describe("RedisCache", () => {
     const entry = { data: "val", fetchedAt: 1 };
 
     let setKey = "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockFetch.mockImplementation(async (_url: string, opts: any) => {
       const body = JSON.parse(opts.body);
       if (body.command === "SET") {
@@ -87,7 +88,9 @@ describe("RedisCache", () => {
   it("ttl is set on key", async () => {
     const entry = { data: "val", fetchedAt: 1 };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let setArgs: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockFetch.mockImplementation(async (_url: string, opts: any) => {
       const body = JSON.parse(opts.body);
       if (body.command === "SET") {
@@ -126,8 +129,6 @@ describe("RedisCache", () => {
     mockFetch.mockResolvedValue({ ok: false, status: 403 });
 
     const cache = createCache();
-    await expect(cache.set("fail", { data: "x", fetchedAt: 1 })).rejects.toThrow(
-      "Redis SET failed",
-    );
+    await expect(cache.set("fail", { data: "x", fetchedAt: 1 })).rejects.toThrow("Redis SET failed");
   });
 });

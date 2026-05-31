@@ -21,6 +21,7 @@ describe("createApp", () => {
 
   it("returns an Express app with request ID middleware", async () => {
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/test-route", (_req: any, res: any) => {
       res.json({ ok: true });
     });
@@ -33,6 +34,7 @@ describe("createApp", () => {
 
   it("sets security headers via helmet", async () => {
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/test-route", (_req: any, res: any) => {
       res.json({ ok: true });
     });
@@ -45,6 +47,7 @@ describe("createApp", () => {
 
   it("sets CORS origin header", async () => {
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/test-route", (_req: any, res: any) => {
       res.json({ ok: true });
     });
@@ -56,6 +59,7 @@ describe("createApp", () => {
   it("parses JSON request bodies with CSRF protection", async () => {
     const { app } = createApp();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.post("/test-json", (req: any, res: any) => {
       res.json({ received: req.body });
     });
@@ -80,14 +84,12 @@ describe("createApp", () => {
   it("rejects POST without CSRF token", async () => {
     const { app } = createApp();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.post("/test-csrf", (_req: any, res: any) => {
       res.json({ ok: true });
     });
 
-    const res = await request(app)
-      .post("/test-csrf")
-      .send({ foo: "bar" })
-      .set("Content-Type", "application/json");
+    const res = await request(app).post("/test-csrf").send({ foo: "bar" }).set("Content-Type", "application/json");
 
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty("error");
@@ -98,6 +100,7 @@ describe("createApp", () => {
     process.env.NODE_ENV = "production";
 
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/csp-test", (_req: any, res: any) => {
       res.json({ ok: true });
     });
@@ -115,6 +118,7 @@ describe("createApp", () => {
   it("logs API request completion to logger", async () => {
     const spy = vi.spyOn(logger, "requestComplete").mockImplementation(() => {});
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/api/test", (_req: any, res: any) => {
       res.json({ data: "ok" });
     });
@@ -131,6 +135,7 @@ describe("createApp", () => {
   it("does not log non-API requests", async () => {
     const spy = vi.spyOn(logger, "requestComplete").mockImplementation(() => {});
     const { app } = createApp();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app.get("/health", (_req: any, res: any) => {
       res.json({ ok: true });
     });

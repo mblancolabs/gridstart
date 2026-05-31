@@ -1,12 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Performance Tests', () => {
-  test('home page loads within performance budget', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'Performance tests run on desktop only');
+test.describe("Performance Tests", () => {
+  test("home page loads within performance budget", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Performance tests run on desktop only");
 
     // Measure page load time
     const startTime = Date.now();
-    await page.goto('/app', { waitUntil: 'networkidle' });
+    await page.goto("/app", { waitUntil: "networkidle" });
     const loadTime = Date.now() - startTime;
 
     // Performance budget: page should load within 5 seconds (more realistic for E2E)
@@ -26,10 +26,10 @@ test.describe('Performance Tests', () => {
     expect(lcpTime).toBeLessThan(4000);
   });
 
-  test('series sidebar renders efficiently', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'Sidebar tests run on desktop only');
+  test("series sidebar renders efficiently", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Sidebar tests run on desktop only");
 
-    await page.goto('/app');
+    await page.goto("/app");
 
     // Measure time to render sidebar
     const startTime = Date.now();
@@ -44,7 +44,7 @@ test.describe('Performance Tests', () => {
 
     // Check that series items are rendered (may take time to load)
     const seriesItems = sidebar.locator('[data-testid^="sidebar-series-"]');
-    
+
     // Wait up to 10 seconds for series to load
     await expect(seriesItems.first()).toBeVisible({ timeout: 10000 });
 
@@ -54,10 +54,10 @@ test.describe('Performance Tests', () => {
     expect(itemCount).toBeGreaterThan(0);
   });
 
-  test('sync dialog opens quickly', async ({ page }) => {
-    await page.goto('/app');
+  test("sync dialog opens quickly", async ({ page }) => {
+    await page.goto("/app");
 
-    const syncButton = page.getByRole('button', { name: /sync/i });
+    const syncButton = page.getByRole("button", { name: /sync/i });
     await expect(syncButton).toBeVisible();
 
     // Measure dialog open time

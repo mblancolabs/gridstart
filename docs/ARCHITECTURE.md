@@ -19,15 +19,15 @@ flowchart LR
 
 ## Repository layout
 
-The top-level repository includes `client/`, `server/`, `shared/`, and `script/`, plus configuration files such as `ics-feeds.json`, `.env.example`, and `package.json`. That layout suggests a deliberate split between UI concerns, backend orchestration, shared schemas/types, and operational helpers.
+The top-level repository includes `client/`, `server/`, `shared/`, and `script/`, plus configuration files such as `config/calendar-feeds.json`, `.env.example`, and `package.json`. That layout suggests a deliberate split between UI concerns, backend orchestration, shared schemas/types, and operational helpers.
 
-| Path | Purpose |
-|---|---|
-| `client/` | React frontend, UI state, routing, event display, filtering, and theme behavior. |
-| `server/` | Express API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. |
-| `shared/` | Shared types, schemas, or contracts used across client and server boundaries. |
-| `script/` | Utility scripts and maintenance helpers outside the main runtime path. |
-| `ics-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters. |
+| Path                         | Purpose                                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `client/`                    | React frontend, UI state, routing, event display, filtering, and theme behavior.                    |
+| `server/`                    | Express API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. |
+| `shared/`                    | Shared types, schemas, or contracts used across client and server boundaries.                       |
+| `script/`                    | Utility scripts and maintenance helpers outside the main runtime path.                              |
+| `config/calendar-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters.        |
 
 ## Runtime components
 
@@ -72,7 +72,7 @@ flowchart TD
 
 ### Configuration-driven expansion
 
-Many series can be added through `ics-feeds.json` instead of custom application code. The following configuration fields are available: `id`, `name`, `shortName`, `color`, `handler`, `params`, `enabled`, and optional `sessionNames`, which means new calendar sources can often be onboarded by extending configuration plus handler support rather than redesigning the system.
+Many series can be added through `config/calendar-feeds.json` instead of custom application code. The following configuration fields are available: `id`, `name`, `shortName`, `color`, `handler`, `params`, `enabled`, and optional `sessionNames`, which means new calendar sources can often be onboarded by extending configuration plus handler support rather than redesigning the system.
 
 ## Request and data flow
 
@@ -109,11 +109,11 @@ sequenceDiagram
 
 The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`. Backend is oriented around discovery, event retrieval, and export generation rather than broad CRUD operations. Preferences are managed entirely client-side via browser cookies. The `/api/preferences` endpoints were removed in 0.7.0.
 
-| Endpoint | Responsibility |
-|---|---|
-| `GET /api/series` | Returns available series metadata for filtering and display. |
-| `GET /api/events` | Returns normalized events for selected series and a date range. |
-| `GET /api/export.ics` | Produces an exportable ICS calendar for selected series. |
+| Endpoint              | Responsibility                                                  |
+| --------------------- | --------------------------------------------------------------- |
+| `GET /api/series`     | Returns available series metadata for filtering and display.    |
+| `GET /api/events`     | Returns normalized events for selected series and a date range. |
+| `GET /api/export.ics` | Produces an exportable ICS calendar for selected series.        |
 
 ## Caching and resilience
 

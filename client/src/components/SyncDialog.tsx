@@ -64,9 +64,7 @@ export function SyncDialog() {
       <DialogContent className="sm:max-w-md" data-testid="sync-dialog">
         <DialogHeader>
           <DialogTitle className="font-display">Sync with Calendar</DialogTitle>
-          <DialogDescription>
-            Subscribe to your selected series in your preferred calendar app.
-          </DialogDescription>
+          <DialogDescription>Subscribe to your selected series in your preferred calendar app.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
@@ -76,20 +74,14 @@ export function SyncDialog() {
               Subscription URL
             </label>
             <div className="flex gap-2">
-              <div className="flex-1 bg-muted rounded-md px-3 py-2 text-xs font-mono break-all max-h-20 overflow-auto" data-testid="text-subscription-url">
+              <div
+                className="flex-1 bg-muted rounded-md px-3 py-2 text-xs font-mono break-all max-h-20 overflow-auto"
+                data-testid="text-subscription-url"
+              >
                 {subscriptionUrl}
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleCopy}
-                data-testid="button-copy-url"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+              <Button variant="outline" size="icon" onClick={handleCopy} data-testid="button-copy-url">
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -116,9 +108,15 @@ export function SyncDialog() {
           {/* Instructions */}
           <div className="text-xs text-muted-foreground space-y-1.5 border-t border-border pt-3">
             <p className="font-medium text-foreground">How to subscribe:</p>
-            <p><strong>Apple Calendar:</strong> File → New Calendar Subscription → paste the URL</p>
-            <p><strong>Google Calendar:</strong> Click the link above or add by URL in settings</p>
-            <p><strong>Outlook:</strong> Add Calendar → From Internet → paste the URL</p>
+            <p>
+              <strong>Apple Calendar:</strong> File → New Calendar Subscription → paste the URL
+            </p>
+            <p>
+              <strong>Google Calendar:</strong> Click the link above or add by URL in settings
+            </p>
+            <p>
+              <strong>Outlook:</strong> Add Calendar → From Internet → paste the URL
+            </p>
           </div>
         </div>
       </DialogContent>
