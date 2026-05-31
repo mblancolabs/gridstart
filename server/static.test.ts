@@ -6,7 +6,6 @@ import fs from "fs";
 
 vi.mock("./middleware/rateLimit", () => ({
   staticLimiter: (() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const m = (req: any, res: any, next: any) => next();
     return m;
   })(),

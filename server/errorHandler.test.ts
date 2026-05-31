@@ -4,7 +4,6 @@ import { BadRequestError } from "./errors";
 
 function createMockResponse(headersSent = false) {
   let statusCode = 200;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let jsonBody: any = null;
   return {
     headersSent,
@@ -12,7 +11,6 @@ function createMockResponse(headersSent = false) {
       statusCode = code;
       return this;
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     json(body: any) {
       jsonBody = body;
       return this;
@@ -40,9 +38,7 @@ describe("errorHandler", () => {
 
   it("returns generic production response without stack for unexpected errors", () => {
     process.env.NODE_ENV = "production";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const req: any = { requestId: "request-123" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res: any = createMockResponse();
     const next = () => {
       throw new Error("next should not be called");
@@ -62,9 +58,7 @@ describe("errorHandler", () => {
 
   it("returns exposed client error details in development", () => {
     process.env.NODE_ENV = "development";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const req: any = { requestId: "request-456" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res: any = createMockResponse();
     const next = () => {
       throw new Error("next should not be called");
@@ -85,16 +79,11 @@ describe("errorHandler", () => {
 
   it("handles non-AppError client errors in else branch", () => {
     process.env.NODE_ENV = "development";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const req: any = { requestId: "req-789" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res: any = createMockResponse();
-    const next = () => {
-      throw new Error("next should not be called");
-    };
+    const next = () => { throw new Error("next should not be called"); };
 
     const error = new Error("Not found");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (error as any).status = 404;
 
     errorHandler(error, req, res, next);
@@ -105,9 +94,7 @@ describe("errorHandler", () => {
 
   it("passes to next middleware when headers already sent", () => {
     const next = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const req: any = { requestId: "req-101" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res: any = createMockResponse(true);
 
     errorHandler(new Error("late error"), req, res, next);

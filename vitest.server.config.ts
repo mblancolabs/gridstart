@@ -5,7 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "server"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@shared": path.resolve(import.meta.dirname, "shared")
     },
   },
   test: {
@@ -16,14 +16,16 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      reportsDirectory: "./coverage",
-      exclude: ["server/test"],
+      reportsDirectory: './coverage',
+      exclude: [
+        "server/test",
+      ],
       thresholds: {
         statements: 80,
         branches: 60,
         functions: 85,
         lines: 85,
       },
-    },
-  },
+    }
+  }
 });

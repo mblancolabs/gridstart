@@ -30,19 +30,19 @@ describe("SeriesSidebar Accessibility", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: mockSeries,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: mockPrefs,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSavePreferences.mockReturnValue({
       mutate: vi.fn(),
       isPending: false,

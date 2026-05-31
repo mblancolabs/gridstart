@@ -11,7 +11,7 @@ flowchart LR
     U[User Browser] --> C[React Client\nclient/]
     C -->|Preferences cookie| UC[(Browser Cookie)]
     C --> A[Express API\nserver/]
-    A --> K[Configurable Cache\nMemory or Redis\n1-hour TTL]
+    A --> K[In-memory Cache\n1-hour TTL]
     A --> F1[Jolpica API\nF1]
     A --> MG[PulseLive API\nMotoGP]
     A --> ICS[ICS Feeds\nMost series]
@@ -19,15 +19,15 @@ flowchart LR
 
 ## Repository layout
 
-The top-level repository includes `client/`, `server/`, `shared/`, and `script/`, plus configuration files such as `config/calendar-feeds.json`, `.env.example`, and `package.json`. That layout suggests a deliberate split between UI concerns, backend orchestration, shared schemas/types, and operational helpers.
+The top-level repository includes `client/`, `server/`, `shared/`, and `script/`, plus configuration files such as `ics-feeds.json`, `.env.example`, and `package.json`. That layout suggests a deliberate split between UI concerns, backend orchestration, shared schemas/types, and operational helpers.
 
-| Path                         | Purpose                                                                                             |
-| ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| `client/`                    | React frontend, UI state, routing, event display, filtering, and theme behavior.                    |
-| `server/`                    | Express API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. |
-| `shared/`                    | Shared types, schemas, or contracts used across client and server boundaries.                       |
-| `script/`                    | Utility scripts and maintenance helpers outside the main runtime path.                              |
-| `config/calendar-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters.        |
+| Path | Purpose |
+|---|---|
+| `client/` | React frontend, UI state, routing, event display, filtering, and theme behavior. |
+| `server/` | Express API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. |
+| `shared/` | Shared types, schemas, or contracts used across client and server boundaries. |
+| `script/` | Utility scripts and maintenance helpers outside the main runtime path. |
+| `ics-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters. |
 
 ## Runtime components
 
@@ -72,7 +72,7 @@ flowchart TD
 
 ### Configuration-driven expansion
 
-Many series can be added through `config/calendar-feeds.json` instead of custom application code. The following configuration fields are available: `id`, `name`, `shortName`, `color`, `handler`, `params`, `enabled`, and optional `sessionNames`, which means new calendar sources can often be onboarded by extending configuration plus handler support rather than redesigning the system.
+Many series can be added through `ics-feeds.json` instead of custom application code. The following configuration fields are available: `id`, `name`, `shortName`, `color`, `handler`, `params`, `enabled`, and optional `sessionNames`, which means new calendar sources can often be onboarded by extending configuration plus handler support rather than redesigning the system.
 
 ## Request and data flow
 
@@ -109,24 +109,17 @@ sequenceDiagram
 
 The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`. Backend is oriented around discovery, event retrieval, and export generation rather than broad CRUD operations. Preferences are managed entirely client-side via browser cookies. The `/api/preferences` endpoints were removed in 0.7.0.
 
-| Endpoint              | Responsibility                                                  |
-| --------------------- | --------------------------------------------------------------- |
-| `GET /api/series`     | Returns available series metadata for filtering and display.    |
-| `GET /api/events`     | Returns normalized events for selected series and a date range. |
-| `GET /api/export.ics` | Produces an exportable ICS calendar for selected series.        |
+| Endpoint | Responsibility |
+|---|---|
+| `GET /api/series` | Returns available series metadata for filtering and display. |
+| `GET /api/events` | Returns normalized events for selected series and a date range. |
+| `GET /api/export.ics` | Produces an exportable ICS calendar for selected series. |
 
 ## Caching and resilience
 
 There is a 1-hour cache TTL for all external data sources, with keys based on series ID or year depending on the feed type. When data is fresh, cached values are returned immediately; when data is stale, the backend refreshes it, and if a refresh fails, stale data can still be used as a fallback.
 
-Caching uses a `CacheProvider` interface with two implementations:
-
-- **MemoryCache** — in-memory `Map`, default when no Redis is configured. Same behavior as the original implementation. No external dependencies.
-- **RedisCache** — backed by Upstash Redis (HTTP REST API). Enabled via `REDIS_URL` + `REDIS_TOKEN` env vars. Persists across restarts and works in serverless environments.
-
-The cache backend is selected at startup and is a singleton across the application. Handlers interact only with the `CacheProvider` interface and are unaware of which backend is in use.
-
-This design reduces latency and upstream dependency pressure without introducing extra infrastructure. The Redis option adds persistence without introducing a TCP connection requirement (Upstash uses HTTPS). There is no manual invalidation path yet.
+This design reduces latency and upstream dependency pressure without introducing extra infrastructure. Current constraints: cache is in-memory only, is scoped to a single server instance, does not survive restarts, and has no manual invalidation path yet.
 
 ## Future: Premium Edition (Phase 2)
 
@@ -145,8 +138,7 @@ flowchart TD
     T -->|No| F
     F --> G{Fetch succeeded?}
     G -->|Yes| W[Write refreshed cache]
-    W --> Z[Write to active backend\nMemory or Redis]
-    Z --> D[Return fresh data]
+    W --> Z[Return fresh data]
     G -->|No| S{Stale cache available?}
     S -->|Yes| Y[Return stale cached data]
     S -->|No| E[Return error]

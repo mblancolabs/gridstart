@@ -1,3 +1,5 @@
+import { type Request } from "express";
+
 const isProduction = process.env.NODE_ENV === "production";
 
 function getErrorDetails(err: unknown) {

@@ -43,7 +43,10 @@ test("PWA icons are served", async ({ request }) => {
   for (const icon of icons) {
     const response = await request.get(icon);
     expect(response.ok()).toBeTruthy();
-    expect(await response.headers()).toHaveProperty("content-type", expect.stringContaining("image/png"));
+    expect(await response.headers()).toHaveProperty(
+      "content-type",
+      expect.stringContaining("image/png"),
+    );
   }
 });
 
@@ -53,7 +56,10 @@ test("has theme-color meta tag", async ({ page }) => {
   await expect(meta).toHaveAttribute("content", "#09090b");
 });
 
-test.skip("app shell loads offline after service worker activation", async ({ page, context }) => {
+test.skip("app shell loads offline after service worker activation", async ({
+  page,
+  context,
+}) => {
   // Load the page first so the SW gets installed
   await page.goto("/app");
   await expect(page.locator('[data-testid="text-month-title"]')).toBeVisible();

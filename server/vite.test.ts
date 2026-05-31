@@ -27,7 +27,6 @@ vi.mock("./utils", () => ({
 
 vi.mock("./middleware/rateLimit", () => ({
   staticLimiter: (() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const m = (req: any, res: any, next: any) => next();
     return m;
   })(),
@@ -49,7 +48,6 @@ vi.mock("fs", () => ({
 describe("setupVite", () => {
   let app: Express;
   let server: Server;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockVite: any;
 
   beforeEach(() => {
@@ -58,19 +56,15 @@ describe("setupVite", () => {
     server = createServer(app);
 
     mockVite = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       middlewares: (req: any, res: any, next: any) => next(),
-      transformIndexHtml: vi
-        .fn()
-        .mockImplementation((url: string, html: string) =>
-          Promise.resolve(html.replace("</head>", '<meta test="true"></head>')),
-        ),
+      transformIndexHtml: vi.fn().mockImplementation((url: string, html: string) =>
+        Promise.resolve(html.replace("</head>", '<meta test="true"></head>')),
+      ),
       ssrFixStacktrace: vi.fn(),
     };
   });
 
   it("creates Vite dev server with correct config", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createViteServerMock = (await import("vite")).createServer as any;
     createViteServerMock.mockResolvedValue(mockVite);
 
@@ -85,7 +79,6 @@ describe("setupVite", () => {
   });
 
   it("renders HTML via catch-all route handler", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createViteServerMock = (await import("vite")).createServer as any;
     createViteServerMock.mockResolvedValue(mockVite);
 
@@ -95,16 +88,14 @@ describe("setupVite", () => {
     const res = await request(app).get("/some-page");
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("text/html");
-    expect(res.text).toContain('src="/src/main.tsx?v=test-id-123"');
+    expect(res.text).toContain("src=\"/src/main.tsx?v=test-id-123\"");
     expect(mockVite.transformIndexHtml).toHaveBeenCalledOnce();
   });
 
   it("calls next with error when template file path is invalid", async () => {
     const utils = await import("./utils");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (utils.validateFilePath as any).mockReturnValue(false);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createViteServerMock = (await import("vite")).createServer as any;
     createViteServerMock.mockResolvedValue(mockVite);
 

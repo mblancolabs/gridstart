@@ -1,9 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test("home page loads and displays the sidebar", async ({ page, isMobile }) => {
-  test.skip(isMobile, "This test is only for desktop viewports");
+test('home page loads and displays the sidebar', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'This test is only for desktop viewports');
 
-  await page.goto("/app");
+  await page.goto('/app');
 
   // Check that the page title is correct
   await expect(page).toHaveTitle(/GridStart/);
@@ -20,18 +20,18 @@ test("home page loads and displays the sidebar", async ({ page, isMobile }) => {
   await expect(seriesItems.first()).toBeVisible({ timeout: 10000 });
 
   // Visual regression test - take a screenshot
-  await expect(page).toHaveScreenshot("home-page-desktop.png", {
+  await expect(page).toHaveScreenshot('home-page-desktop.png', {
     fullPage: true,
     threshold: 0.1,
     maxDiffPixelRatio: 0.02,
   });
 });
 
-test("home page sync functionality works", async ({ page }) => {
-  await page.goto("/app");
+test('home page sync functionality works', async ({ page }) => {
+  await page.goto('/app');
 
   // Find and click the sync button
-  const syncButton = page.getByRole("button", { name: /sync/i });
+  const syncButton = page.getByRole('button', { name: /sync/i });
   await expect(syncButton).toBeVisible();
   await syncButton.click();
 
@@ -40,23 +40,23 @@ test("home page sync functionality works", async ({ page }) => {
   await expect(syncDialog).toBeVisible();
 
   // Take screenshot of dialog
-  await expect(page).toHaveScreenshot("sync-dialog-open.png", {
+  await expect(page).toHaveScreenshot('sync-dialog-open.png', {
     threshold: 0.1,
     maxDiffPixelRatio: 0.02,
   });
 
   // Close the dialog
-  const closeButton = syncDialog.getByRole("button", { name: /close/i });
+  const closeButton = syncDialog.getByRole('button', { name: /close/i });
   await closeButton.click();
 
   // Dialog should be closed
   await expect(syncDialog).not.toBeVisible();
 });
 
-test("mobile series sheet works on small screens", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "This test is only for mobile viewports");
+test('mobile series sheet works on small screens', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'This test is only for mobile viewports');
 
-  await page.goto("/app");
+  await page.goto('/app');
 
   // On mobile, the sidebar should be hidden by default
   const sidebar = page.locator('[data-testid="series-sidebar"]');
@@ -72,7 +72,7 @@ test("mobile series sheet works on small screens", async ({ page, isMobile }) =>
   await expect(mobileSheet).toBeVisible();
 
   // Visual regression for mobile view
-  await expect(page).toHaveScreenshot("mobile-series-sheet-open.png", {
+  await expect(page).toHaveScreenshot('mobile-series-sheet-open.png', {
     fullPage: true,
     threshold: 0.1,
     maxDiffPixelRatio: 0.02,

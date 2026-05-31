@@ -9,14 +9,8 @@ export interface UserPreferences {
 // API Query Schemas
 export const eventsQuerySchema = z.object({
   series: z.string().min(1, "Series parameter is required"),
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD")
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD")
-    .optional(),
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD").optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD").optional(),
 });
 
 export const exportIcsQuerySchema = z.object({
@@ -51,7 +45,7 @@ export interface SeriesInfo {
   color: string;
   category: string;
   handler: string;
-  params: Record<string, unknown>;
+  params: Record<string, any>;
   enabled: boolean;
   sessionNames?: string[];
 }

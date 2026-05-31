@@ -191,13 +191,13 @@ describe("useToast Hook", () => {
     });
 
     expect(result.current.toasts).toHaveLength(1);
-    expect(result.current.toasts.every((t) => t.open)).toBe(true);
+    expect(result.current.toasts.every(t => t.open)).toBe(true);
 
     act(() => {
       result.current.dismiss();
     });
 
-    expect(result.current.toasts.every((t) => !t.open)).toBe(true);
+    expect(result.current.toasts.every(t => !t.open)).toBe(true);
 
     unmount();
   });

@@ -162,7 +162,6 @@ END:VCALENDAR`;
 
   it("filters events by session names when params.sessionNames is provided", async () => {
     const fetchMock = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = fetchMock as any;
     fetchMock.mockResolvedValueOnce({
       ok: true,

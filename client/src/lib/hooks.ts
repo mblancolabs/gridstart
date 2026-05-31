@@ -39,7 +39,10 @@ export function useEvents(seriesIds: string[], from: string, to: string) {
   return useQuery<CalendarEvent[]>({
     queryKey: ["/api/events", seriesParam, from, to],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/events?series=${seriesParam}&from=${from}&to=${to}`);
+      const res = await apiRequest(
+        "GET",
+        `/api/events?series=${seriesParam}&from=${from}&to=${to}`
+      );
       return res.json();
     },
     enabled: seriesIds.length > 0,

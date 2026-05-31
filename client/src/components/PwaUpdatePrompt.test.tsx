@@ -3,8 +3,7 @@ import { act } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderWithProviders, screen, waitFor, userEvent } from "../test/utils/test-utils";
 import { Toaster } from "@/components/ui/toaster";
-import { PwaUpdatePrompt, PwaInstallButton } from "./PwaUpdatePrompt";
-import { captureInstallPrompt, resetInstallPrompt } from "@/lib/pwa";
+import { PwaUpdatePrompt, PwaInstallButton, captureInstallPrompt, resetInstallPrompt } from "./PwaUpdatePrompt";
 
 const mockUpdateSW = vi.fn();
 
@@ -56,11 +55,7 @@ describe("PwaInstallButton", () => {
     renderWithProviders(<PwaInstallButton />);
 
     const event = new Event("beforeinstallprompt");
-    Object.assign(event, {
-      preventDefault: vi.fn(),
-      prompt: vi.fn(),
-      userChoice: Promise.resolve({ outcome: "dismissed" }),
-    });
+    Object.assign(event, { preventDefault: vi.fn(), prompt: vi.fn(), userChoice: Promise.resolve({ outcome: "dismissed" }) });
     await act(() => {
       window.dispatchEvent(event);
     });
@@ -146,7 +141,9 @@ describe("PwaUpdatePrompt", () => {
 
     renderWithToaster(<PwaUpdatePrompt />);
     expect(screen.getByText("Update available")).toBeInTheDocument();
-    expect(screen.getByText("A new version of GridStart is ready.")).toBeInTheDocument();
+    expect(
+      screen.getByText("A new version of GridStart is ready."),
+    ).toBeInTheDocument();
   });
 
   it("should call updateServiceWorker when update button is clicked", async () => {

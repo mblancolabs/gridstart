@@ -36,19 +36,19 @@ describe("SeriesSidebar Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: mockSeries,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: mockPrefs,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSavePreferences.mockReturnValue(mockSavePrefs);
   });
 
@@ -58,7 +58,7 @@ describe("SeriesSidebar Component", () => {
   });
 
   it("should display loading state when series is loading", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -72,7 +72,7 @@ describe("SeriesSidebar Component", () => {
   });
 
   it("should display loading state when preferences are loading", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -87,14 +87,14 @@ describe("SeriesSidebar Component", () => {
 
   it("should group series by category", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     expect(screen.getByText("Motorsports")).toBeInTheDocument();
     expect(screen.getByText("Racing")).toBeInTheDocument();
   });
 
   it("should display all series items", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     expect(screen.getByText("Formula 1")).toBeInTheDocument();
     expect(screen.getByText("Formula 2")).toBeInTheDocument();
     expect(screen.getByText("MotoGP")).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("SeriesSidebar Component", () => {
 
   it("should have correct series status in toggles", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     const f1Switch = screen.getByTestId("sidebar-switch-f1");
     const f2Switch = screen.getByTestId("sidebar-switch-f2");
     const motoSwitch = screen.getByTestId("sidebar-switch-moto");
@@ -112,7 +112,7 @@ describe("SeriesSidebar Component", () => {
     // F1 and MotoGP should be enabled
     expect(f1Switch).toHaveAttribute("data-state", "checked");
     expect(motoSwitch).toHaveAttribute("data-state", "checked");
-
+    
     // F2 and IndyCar should be disabled
     expect(f2Switch).toHaveAttribute("data-state", "unchecked");
     expect(indycarSwitch).toHaveAttribute("data-state", "unchecked");
@@ -120,7 +120,7 @@ describe("SeriesSidebar Component", () => {
 
   it("should toggle series when switch is clicked", async () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     const f2Switch = screen.getByTestId("sidebar-switch-f2");
     fireEvent.click(f2Switch);
 
@@ -131,7 +131,7 @@ describe("SeriesSidebar Component", () => {
 
   it("should remove series from enabled when toggling off", async () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     const f1Switch = screen.getByTestId("sidebar-switch-f1");
     fireEvent.click(f1Switch);
 
@@ -142,7 +142,7 @@ describe("SeriesSidebar Component", () => {
 
   it("should render settings button with correct link", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     const settingsButton = screen.getByTestId("button-settings-link");
     expect(settingsButton).toBeInTheDocument();
     expect(settingsButton.closest("a")).toHaveAttribute("href", "/settings");
@@ -150,7 +150,7 @@ describe("SeriesSidebar Component", () => {
 
   it("should have correct aria labels for series", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     expect(screen.getByTestId("sidebar-series-f1")).toBeInTheDocument();
     expect(screen.getByTestId("sidebar-series-f2")).toBeInTheDocument();
     expect(screen.getByTestId("sidebar-series-moto")).toBeInTheDocument();
@@ -158,7 +158,7 @@ describe("SeriesSidebar Component", () => {
   });
 
   it("should handle invalid enabledSeries JSON gracefully", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: { ...mockPrefs, enabledSeries: "invalid json" },
       isLoading: false,
@@ -166,14 +166,14 @@ describe("SeriesSidebar Component", () => {
     });
 
     renderWithProviders(<SeriesSidebar />);
-
+    
     // Should render without crashing and all switches should be unchecked
     const f1Switch = screen.getByTestId("sidebar-switch-f1");
     expect(f1Switch).toHaveAttribute("data-state", "unchecked");
   });
 
   it("should handle empty series list", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: [],
       isLoading: false,
@@ -186,14 +186,14 @@ describe("SeriesSidebar Component", () => {
 
   it("should have correct testid for category triggers", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     expect(screen.getByTestId("trigger-category-motorsports")).toBeInTheDocument();
     expect(screen.getByTestId("trigger-category-racing")).toBeInTheDocument();
   });
 
   it("should display series color indicator", () => {
     renderWithProviders(<SeriesSidebar />);
-
+    
     const f1Item = screen.getByTestId("sidebar-series-f1");
     const colorSpan = f1Item.querySelector("span[style]");
     expect(colorSpan).toBeInTheDocument();

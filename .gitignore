@@ -5,6 +5,7 @@
 /dist/
 /client/dev-dist/
 /build/
+/server/public/
 /release/
 
 # Test outputs

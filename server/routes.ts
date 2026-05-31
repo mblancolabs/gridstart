@@ -16,31 +16,16 @@ import { ECALHandler } from "./handlers/ecal";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
-import { getOrSet, CACHE_TTL_MS } from "./cache";
 export { fetchICSData } from "./icsFetcher";
 
-interface FeedsCategory {
-  name: string;
-  series: Array<{
-    id: string;
-    name: string;
-    shortName: string;
-    color: string;
-    handler: string;
-    params: Record<string, unknown>;
-    enabled: boolean;
-  }>;
-}
-
 // Load calendar feeds config with validation and merging
-function loadFeedsConfig(): { categories: FeedsCategory[] } {
+function loadFeedsConfig() {
   const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
 
   // Find all calendar-feeds.*.json files except the base one
-  const patternFiles = fs
-    .readdirSync(feedsDir)
-    .filter((f) => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
+  const patternFiles = fs.readdirSync(feedsDir)
+    .filter(f => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
     .sort(); // alphabetical order
 
   console.log("Pattern files:", patternFiles);
@@ -48,13 +33,13 @@ function loadFeedsConfig(): { categories: FeedsCategory[] } {
   const allFiles = [baseFile, ...patternFiles];
 
   // Initialize merged config
-  const mergedConfig: { categories: FeedsCategory[] } = { categories: [] };
-  const categoryMap = new Map<string, FeedsCategory>();
-  const seriesMap = new Map<string, Map<string, FeedsCategory["series"][number]>>();
+  const mergedConfig: any = { categories: [] };
+  const categoryMap = new Map<string, any>();
+  const seriesMap = new Map<string, Map<string, any>>();
 
   for (const file of allFiles) {
     const filePath = path.resolve(feedsDir, file);
-    const config = safeLoadJsonFile(filePath, feedsDir) as { categories?: FeedsCategory[] };
+    const config = safeLoadJsonFile(filePath, feedsDir);
 
     if (!config.categories || !Array.isArray(config.categories)) {
       throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
@@ -64,7 +49,7 @@ function loadFeedsConfig(): { categories: FeedsCategory[] } {
       if (!categoryMap.has(category.name)) {
         categoryMap.set(category.name, { name: category.name, series: [] });
         seriesMap.set(category.name, new Map());
-        mergedConfig.categories.push(categoryMap.get(category.name)!);
+        mergedConfig.categories.push(categoryMap.get(category.name));
       }
 
       const catSeriesMap = seriesMap.get(category.name)!;
@@ -96,8 +81,8 @@ function getAllSeries(): SeriesInfo[] {
         rawSessionNames === undefined
           ? undefined
           : Array.isArray(rawSessionNames)
-            ? normalizeSessionNames(rawSessionNames)
-            : undefined;
+          ? normalizeSessionNames(rawSessionNames)
+          : undefined;
 
       if (rawSessionNames !== undefined && !Array.isArray(rawSessionNames)) {
         throw new Error(`Invalid sessionNames for ${series.id}: must be an array`);
@@ -107,7 +92,9 @@ function getAllSeries(): SeriesInfo[] {
         Array.isArray(rawSessionNames) &&
         (!normalizedSessionNames || normalizedSessionNames.length !== rawSessionNames.length)
       ) {
-        throw new Error(`Invalid sessionNames for ${series.id}: unsupported session names`);
+        throw new Error(
+          `Invalid sessionNames for ${series.id}: unsupported session names`
+        );
       }
 
       result.push({
@@ -135,7 +122,41 @@ handlerRegistry.register(new ECALHandler());
 handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
 
+// ---------- Caching ----------
+//const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
+//const motogpCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
+
 // ---------- Jolpica API (F1 session times) ----------
+
+interface JolpicaSession {
+  date: string;
+  time?: string;
+}
+
+interface JolpicaRace {
+  season: string;
+  round: string;
+  raceName: string;
+  Circuit: {
+    circuitId: string;
+    circuitName: string;
+    Location: {
+      lat: string;
+      long: string;
+      locality: string;
+      country: string;
+    };
+  };
+  date: string;
+  time?: string;
+  FirstPractice?: JolpicaSession;
+  SecondPractice?: JolpicaSession;
+  ThirdPractice?: JolpicaSession;
+  Qualifying?: JolpicaSession;
+  Sprint?: JolpicaSession;
+  SprintQualifying?: JolpicaSession;
+  SprintShootout?: JolpicaSession;
+}
 
 // ---------- ICS export ----------
 
@@ -150,14 +171,17 @@ function generateICS(events: CalendarEvent[]): string {
   for (const event of events) {
     const vevent = new ICAL.Component("vevent");
     vevent.updatePropertyWithValue("uid", event.id);
-    vevent.updatePropertyWithValue("summary", `${event.title}`);
+    vevent.updatePropertyWithValue(
+      "summary",
+      `${event.title}`
+    );
 
     if (event.isAllDay) {
       // All-day event — use VALUE=DATE
       //const d = new Date(event.startDate);
       //const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
       //const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
-
+      
       const dEnd = new Date(event.endDate);
       const endDateStr = `${dEnd.getUTCFullYear()}${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}${String(dEnd.getUTCDate()).padStart(2, "0")}`;
       vevent.addPropertyWithValue("dtend", ICAL.Time.fromDateString(endDateStr));
@@ -184,7 +208,11 @@ function generateICS(events: CalendarEvent[]): string {
 
 // ---------- Fetch events for a series ----------
 
-async function fetchEventsForSeries(series: SeriesInfo, fromDate?: Date, toDate?: Date): Promise<CalendarEvent[]> {
+async function fetchEventsForSeries(
+  series: SeriesInfo,
+  fromDate?: Date,
+  toDate?: Date
+): Promise<CalendarEvent[]> {
   // Determine which years to fetch
   const years = new Set<number>();
   const currentYear = new Date().getFullYear();
@@ -197,7 +225,7 @@ async function fetchEventsForSeries(series: SeriesInfo, fromDate?: Date, toDate?
     throw new Error(`Unknown handler: ${series.handler}`);
   }
 
-  const allEvents: CalendarEvent[] = [];
+  let allEvents: CalendarEvent[] = [];
   for (const year of Array.from(years)) {
     const events = await handler.fetchEvents(series, series.params, year);
     allEvents.push(...events);
@@ -206,7 +234,11 @@ async function fetchEventsForSeries(series: SeriesInfo, fromDate?: Date, toDate?
   return filterByDateRange(allEvents, fromDate, toDate);
 }
 
-function filterByDateRange(events: CalendarEvent[], fromDate?: Date, toDate?: Date): CalendarEvent[] {
+function filterByDateRange(
+  events: CalendarEvent[],
+  fromDate?: Date,
+  toDate?: Date
+): CalendarEvent[] {
   if (!fromDate && !toDate) return events;
   return events.filter((e) => {
     const start = new Date(e.startDate);
@@ -219,7 +251,10 @@ function filterByDateRange(events: CalendarEvent[], fromDate?: Date, toDate?: Da
 
 // ---------- Routes ----------
 
-export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+export async function registerRoutes(
+  httpServer: Server,
+  app: Express
+): Promise<Server> {
   // GET /api/series — list all series
   app.get("/api/series", generalApiLimiter, (_req: Request, res: Response) => {
     res.json(allSeries);
@@ -235,8 +270,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         .filter(Boolean);
 
       // Validate series IDs exist
-      const validSeriesIds = allSeries.map((s) => s.id);
-      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
+      const validSeriesIds = allSeries.map(s => s.id);
+      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
@@ -265,7 +300,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       await Promise.all(fetchPromises);
 
       // Sort by start date
-      allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      allEvents.sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
 
       res.json(allEvents);
     } catch (err) {
@@ -286,43 +324,51 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         .filter(Boolean);
 
       // Validate series IDs exist
-      const validSeriesIds = allSeries.map((s) => s.id);
-      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
+      const validSeriesIds = allSeries.map(s => s.id);
+      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
         res.set("Content-Type", "text/calendar; charset=utf-8");
-        res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
-        return res.send("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
+        res.set(
+          "Content-Disposition",
+          'attachment; filename="gridstart.ics"'
+        );
+        return res.send(
+          "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR"
+        );
       }
 
-      const sortedIds = [...seriesIds].sort().join(",");
-      const icsString = await getOrSet(`ics-export-${sortedIds}`, CACHE_TTL_MS, async () => {
-        const allEvents: CalendarEvent[] = [];
+      const allEvents: CalendarEvent[] = [];
 
-        const fetchPromises = seriesIds.map(async (seriesId) => {
-          const series = allSeries.find((s) => s.id === seriesId);
-          if (!series) return;
+      const fetchPromises = seriesIds.map(async (seriesId) => {
+        const series = allSeries.find((s) => s.id === seriesId);
+        if (!series) return;
 
-          try {
-            const events = await fetchEventsForSeries(series);
-            allEvents.push(...events);
-          } catch (err) {
-            logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
-          }
-        });
-
-        await Promise.all(fetchPromises);
-
-        allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-
-        return generateICS(allEvents);
+        try {
+          const events = await fetchEventsForSeries(series);
+          allEvents.push(...events);
+        } catch (err) {
+          logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
+        }
       });
 
+      await Promise.all(fetchPromises);
+
+      allEvents.sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
+
+      const icsString = generateICS(allEvents);
+
       res.set("Content-Type", "text/calendar; charset=utf-8");
-      res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
+      res.set(
+        "Content-Disposition",
+        'attachment; filename="gridstart.ics"'
+      );
       res.send(icsString);
     } catch (err) {
       if (err instanceof z.ZodError) {

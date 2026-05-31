@@ -3,12 +3,14 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSeries, usePreferences, useSavePreferences, useEvents } from "./hooks";
 
-const { mockApiRequest, mockInvalidateQueries, mockGetCookie, mockSetCookie } = vi.hoisted(() => ({
-  mockApiRequest: vi.fn(),
-  mockInvalidateQueries: vi.fn(),
-  mockGetCookie: vi.fn(),
-  mockSetCookie: vi.fn(),
-}));
+const { mockApiRequest, mockInvalidateQueries, mockGetCookie, mockSetCookie } = vi.hoisted(
+  () => ({
+    mockApiRequest: vi.fn(),
+    mockInvalidateQueries: vi.fn(),
+    mockGetCookie: vi.fn(),
+    mockSetCookie: vi.fn(),
+  })
+);
 
 vi.mock("./queryClient", () => ({
   apiRequest: mockApiRequest,
@@ -142,17 +144,24 @@ describe("hooks", () => {
         json: vi.fn().mockResolvedValue(eventsData),
       });
 
-      const { result } = renderHook(() => useEvents(["f1", "motogp"], "2024-01-01", "2024-01-31"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useEvents(["f1", "motogp"], "2024-01-01", "2024-01-31"),
+        { wrapper: createWrapper() }
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(eventsData);
-      expect(mockApiRequest).toHaveBeenCalledWith("GET", "/api/events?series=f1,motogp&from=2024-01-01&to=2024-01-31");
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "GET",
+        "/api/events?series=f1,motogp&from=2024-01-01&to=2024-01-31"
+      );
     });
 
     it("returns empty array when seriesIds is empty", () => {
-      const { result } = renderHook(() => useEvents([], "2024-01-01", "2024-01-31"), { wrapper: createWrapper() });
+      const { result } = renderHook(
+        () => useEvents([], "2024-01-01", "2024-01-31"),
+        { wrapper: createWrapper() }
+      );
 
       expect(result.current.data).toEqual([]);
       expect(mockApiRequest).not.toHaveBeenCalled();
@@ -161,7 +170,10 @@ describe("hooks", () => {
     it("handles API error gracefully", async () => {
       mockApiRequest.mockRejectedValue(new Error("Network error"));
 
-      const { result } = renderHook(() => useEvents(["f1"], "2024-01-01", "2024-01-31"), { wrapper: createWrapper() });
+      const { result } = renderHook(
+        () => useEvents(["f1"], "2024-01-01", "2024-01-31"),
+        { wrapper: createWrapper() }
+      );
 
       await waitFor(() => expect(result.current.isError).toBe(true));
     });

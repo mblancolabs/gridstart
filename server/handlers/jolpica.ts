@@ -2,7 +2,6 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
-import { getOrSet, CACHE_TTL_MS } from "../cache";
 
 interface JolpicaSession {
   date: string;
@@ -35,13 +34,13 @@ interface JolpicaRace {
 }
 
 const JOLPICA_SESSION_DURATIONS: Record<string, number> = {
-  fp1: 60,
-  fp2: 60,
-  fp3: 60,
-  quali: 70,
+  "fp1": 60,
+  "fp2": 60,
+  "fp3": 60,
+  "quali": 70,
   "sprint-quali": 70,
-  sprint: 45,
-  race: 120,
+  "sprint": 45,
+  "race": 120,
 };
 
 function getDurationForSession(sessionKey: string): number {
@@ -50,22 +49,30 @@ function getDurationForSession(sessionKey: string): number {
 
 export { getDurationForSession };
 
+const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+export { jolpicaCache };
+
 export class JolpicaHandler implements FeedHandler {
   name = "jolpica";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
+  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
     const cacheKey = `jolpica-${series.id}-${year}`;
+    const cached = jolpicaCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+      return cached.data;
+    }
 
     try {
-      return await getOrSet(cacheKey, CACHE_TTL_MS, async () => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
-        const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`, {
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
 
-        if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
 
       const json = await res.json();
       const races: JolpicaRace[] = json?.MRData?.RaceTable?.Races || [];
@@ -81,41 +88,42 @@ export class JolpicaHandler implements FeedHandler {
         const isSprint = !!race.Sprint;
 
         // Session type definitions with their data and labels
-        const sessions: { key: string; label: string; data?: JolpicaSession }[] = isSprint
-          ? [
-              { key: "fp1", label: "Practice", data: race.FirstPractice },
-              {
-                key: "sprint-quali",
-                label: "Sprint Qualifying",
-                data: race.SprintQualifying || race.SprintShootout,
-              },
-              { key: "sprint", label: "Sprint", data: race.Sprint },
-              { key: "quali", label: "Qualifying", data: race.Qualifying },
-              {
-                key: "race",
-                label: "Race",
-                data: { date: race.date, time: race.time },
-              },
-            ]
-          : [
-              { key: "fp1", label: "Practice 1", data: race.FirstPractice },
-              {
-                key: "fp2",
-                label: "Practice 2",
-                data: race.SecondPractice,
-              },
-              {
-                key: "fp3",
-                label: "Practice 3",
-                data: race.ThirdPractice,
-              },
-              { key: "quali", label: "Qualifying", data: race.Qualifying },
-              {
-                key: "race",
-                label: "Race",
-                data: { date: race.date, time: race.time },
-              },
-            ];
+        const sessions: { key: string; label: string; data?: JolpicaSession }[] =
+          isSprint
+            ? [
+                { key: "fp1", label: "Practice", data: race.FirstPractice },
+                {
+                  key: "sprint-quali",
+                  label: "Sprint Qualifying",
+                  data: race.SprintQualifying || race.SprintShootout,
+                },
+                { key: "sprint", label: "Sprint", data: race.Sprint },
+                { key: "quali", label: "Qualifying", data: race.Qualifying },
+                {
+                  key: "race",
+                  label: "Race",
+                  data: { date: race.date, time: race.time },
+                },
+              ]
+            : [
+                { key: "fp1", label: "Practice 1", data: race.FirstPractice },
+                {
+                  key: "fp2",
+                  label: "Practice 2",
+                  data: race.SecondPractice,
+                },
+                {
+                  key: "fp3",
+                  label: "Practice 3",
+                  data: race.ThirdPractice,
+                },
+                { key: "quali", label: "Qualifying", data: race.Qualifying },
+                {
+                  key: "race",
+                  label: "Race",
+                  data: { date: race.date, time: race.time },
+                },
+              ];
 
         for (const session of sessions) {
           const sessionLabel = normalizeSessionName(session.label);
@@ -132,7 +140,9 @@ export class JolpicaHandler implements FeedHandler {
             // Estimate session duration
             const durationMinutes = getDurationForSession(session.key);
             const start = new Date(startDate);
-            endDate = new Date(start.getTime() + durationMinutes * 60 * 1000).toISOString();
+            endDate = new Date(
+              start.getTime() + durationMinutes * 60 * 1000
+            ).toISOString();
           } else {
             startDate = `${session.data.date}T00:00:00Z`;
             endDate = `${session.data.date}T23:59:59Z`;
@@ -144,7 +154,7 @@ export class JolpicaHandler implements FeedHandler {
             seriesName: series.name,
             seriesShortName: series.shortName,
             seriesColor: series.color,
-            title: `${series.shortName} | ${race.raceName.replace(/Grand Prix/g, "GP")} ${sessionLabel}`,
+            title: `${series.shortName} | ${race.raceName.replace(/Grand Prix/g, 'GP')} ${sessionLabel}`,
             startDate,
             endDate,
             location: `${circuitName}, ${location}`,
@@ -156,11 +166,16 @@ export class JolpicaHandler implements FeedHandler {
         }
       }
 
-      const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
-      return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
-    });
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+      const finalEvents = requestedSessionNames
+        ? filterEventsBySessionNames(events, requestedSessionNames)
+        : events;
+
+      jolpicaCache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
+      return finalEvents;
     } catch (err) {
       logger.error(err, "Failed to fetch Jolpica data", { seriesId: series.id });
+      if (cached) return cached.data;
       return [];
     }
   }

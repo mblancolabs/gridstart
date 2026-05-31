@@ -1,6 +1,11 @@
 export function GridStartLogo({ className = "h-6 w-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" className={className} aria-label="GridStart logo">
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      className={className}
+      aria-label="GridStart logo"
+    >
       {/* Checkered flag pattern - 4x4 grid, alternating */}
       <rect x="2" y="2" width="6" height="6" fill="currentColor" />
       <rect x="14" y="2" width="6" height="6" fill="currentColor" />

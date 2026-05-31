@@ -1,8 +1,13 @@
-import { getOrSet, CACHE_TTL_MS } from "./cache";
+const icsCache = new Map<string, { data: string; fetchedAt: number }>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 export async function fetchICSData(seriesId: string, icsUrl: string): Promise<string> {
-  const cacheKey = `ics-${seriesId}`;
-  return getOrSet(cacheKey, CACHE_TTL_MS, async () => {
+  const cached = icsCache.get(seriesId);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+    return cached.data;
+  }
+
+  try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(icsUrl, { signal: controller.signal });
@@ -12,6 +17,13 @@ export async function fetchICSData(seriesId: string, icsUrl: string): Promise<st
       throw new Error(`HTTP ${res.status}`);
     }
 
-    return res.text();
-  });
+    const text = await res.text();
+    icsCache.set(seriesId, { data: text, fetchedAt: Date.now() });
+    return text;
+  } catch (err) {
+    if (cached) {
+      return cached.data;
+    }
+    throw err;
+  }
 }

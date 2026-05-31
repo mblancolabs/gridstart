@@ -49,26 +49,28 @@ describe("Settings Page", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: mockSeries,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: mockPrefs,
       isLoading: false,
       error: null,
     });
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSavePreferences.mockReturnValue(mockSavePrefs);
   });
 
   it("renders the settings page title and back button", () => {
     renderWithProviders(<Settings />);
 
-    expect(screen.getByTestId("text-settings-title")).toHaveTextContent("Series Configuration");
+    expect(screen.getByTestId("text-settings-title")).toHaveTextContent(
+      "Series Configuration"
+    );
     expect(screen.getByTestId("button-back")).toBeInTheDocument();
   });
 
@@ -77,9 +79,18 @@ describe("Settings Page", () => {
 
     expect(screen.getByText("Motorsports")).toBeInTheDocument();
     expect(screen.getByText("Open Wheel")).toBeInTheDocument();
-    expect(screen.getByTestId("switch-series-f1")).toHaveAttribute("data-state", "checked");
-    expect(screen.getByTestId("switch-series-moto")).toHaveAttribute("data-state", "unchecked");
-    expect(screen.getByTestId("switch-series-indy")).toHaveAttribute("data-state", "unchecked");
+    expect(screen.getByTestId("switch-series-f1")).toHaveAttribute(
+      "data-state",
+      "checked"
+    );
+    expect(screen.getByTestId("switch-series-moto")).toHaveAttribute(
+      "data-state",
+      "unchecked"
+    );
+    expect(screen.getByTestId("switch-series-indy")).toHaveAttribute(
+      "data-state",
+      "unchecked"
+    );
   });
 
   it("toggles an individual series and calls mutate with updated values", async () => {
@@ -103,7 +114,7 @@ describe("Settings Page", () => {
   });
 
   it("shows loading skeletons when series or preferences are loading", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.useSeries.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -118,7 +129,7 @@ describe("Settings Page", () => {
   });
 
   it("handles invalid preferences JSON gracefully", () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: { ...mockPrefs, enabledSeries: "invalid json" },
       isLoading: false,
@@ -127,7 +138,10 @@ describe("Settings Page", () => {
 
     renderWithProviders(<Settings />);
 
-    expect(screen.getByTestId("switch-series-f1")).toHaveAttribute("data-state", "unchecked");
+    expect(screen.getByTestId("switch-series-f1")).toHaveAttribute(
+      "data-state",
+      "unchecked"
+    );
     expect(screen.getByTestId("switch-series-moto")).toBeInTheDocument();
   });
 });

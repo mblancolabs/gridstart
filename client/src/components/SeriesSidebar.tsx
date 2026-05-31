@@ -3,7 +3,11 @@ import { ChevronDown, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useSeries, usePreferences, useSavePreferences } from "@/lib/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SeriesInfo } from "@shared/schema";
@@ -33,17 +37,16 @@ export function SeriesSidebar() {
   }, [series]);
 
   const toggleSeries = (id: string) => {
-    const next = enabledSeries.includes(id) ? enabledSeries.filter((s) => s !== id) : [...enabledSeries, id];
+    const next = enabledSeries.includes(id)
+      ? enabledSeries.filter((s) => s !== id)
+      : [...enabledSeries, id];
     savePrefs.mutate(next);
   };
 
   const isLoading = seriesLoading || prefsLoading;
 
   return (
-    <aside
-      className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block"
-      data-testid="series-sidebar"
-    >
+    <aside className="w-72 shrink-0 border-r border-border bg-sidebar overflow-y-auto hidden lg:block" data-testid="series-sidebar">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -77,12 +80,11 @@ export function SeriesSidebar() {
         {!isLoading &&
           categories.map((cat) => (
             <Collapsible key={cat.name} defaultOpen>
-              <CollapsibleTrigger
-                className="flex items-center gap-1.5 w-full text-left group"
-                data-testid={`trigger-category-${cat.name.toLowerCase().replace(/\s+/g, "-")}`}
-              >
+              <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-left group" data-testid={`trigger-category-${cat.name.toLowerCase().replace(/\s+/g, "-")}`}>
                 <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{cat.name}</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {cat.name}
+                </span>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-1.5 space-y-0.5">
                 {cat.items.map((s) => {
@@ -94,7 +96,10 @@ export function SeriesSidebar() {
                       data-testid={`sidebar-series-${s.id}`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: s.color }}
+                        />
                         <span className="text-sm">{s.name}</span>
                       </div>
                       <Switch

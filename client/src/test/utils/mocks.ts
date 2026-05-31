@@ -42,7 +42,7 @@ export function createMockSeries(overrides = {}) {
 }
 
 // Factory function for creating mock events
-export function createMockEvent<T extends object = object>(overrides: T = {} as T) {
+export function createMockEvent<T extends object = {}>(overrides: T = {} as T) {
   return {
     id: "evt-1",
     title: "Monaco Grand Prix",
@@ -82,7 +82,7 @@ export function createMockPreferences(overrides = {}) {
 }
 
 // Mock fetch responses
-export function mockFetch(responses: Record<string, unknown>) {
+export function mockFetch(responses: Record<string, any>) {
   return vi.fn((url: string) => {
     const matchedUrl = Object.keys(responses).find((key) => url.includes(key));
     if (matchedUrl) {

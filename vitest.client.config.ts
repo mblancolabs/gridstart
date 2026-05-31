@@ -24,8 +24,11 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      reportsDirectory: "./coverage",
-      exclude: ["shared/", "client/src/test"],
+      reportsDirectory: './coverage',
+      exclude: [
+        "shared/",
+        "client/src/test",
+      ],
     },
   },
 });

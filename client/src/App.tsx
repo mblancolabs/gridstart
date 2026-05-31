@@ -35,8 +35,17 @@ function Header() {
       <div className="flex items-center gap-2">
         <PwaInstallButton />
         <SyncDialog />
-        <Button variant="ghost" size="icon" onClick={toggleTheme} data-testid="button-theme-toggle">
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          data-testid="button-theme-toggle"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </header>
@@ -58,22 +67,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 function AppRouter() {
   return (
     <Switch>
-      <Route
-        path="/"
-        component={() => (
-          <AppLayout>
-            <Home />
-          </AppLayout>
-        )}
-      />
-      <Route
-        path="/settings"
-        component={() => (
-          <AppLayout>
-            <Settings />
-          </AppLayout>
-        )}
-      />
+      <Route path="/" component={() => <AppLayout><Home /></AppLayout>} />
+      <Route path="/settings" component={() => <AppLayout><Settings /></AppLayout>} />
       <Route component={NotFound} />
     </Switch>
   );

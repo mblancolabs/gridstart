@@ -47,7 +47,7 @@ Object.defineProperty(window, "localStorage", {
 // Suppress console errors during tests (optional, for cleaner test output)
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: unknown[]) => {
+  console.error = (...args: any[]) => {
     if (
       typeof args[0] === "string" &&
       (args[0].includes("Warning: ReactDOM.render") ||
@@ -63,7 +63,7 @@ afterAll(() => {
   console.error = originalError;
 });
 
-Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   value: vi.fn(() => ({
     fillRect: vi.fn(),
     clearRect: vi.fn(),

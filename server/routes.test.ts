@@ -4,7 +4,7 @@ import request from "supertest";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { errorHandler } from "./errorHandler";
-import { clearCacheInstance } from "./cache";
+import { jolpicaCache } from "./handlers/jolpica";
 
 const originalFetch = global.fetch;
 
@@ -13,9 +13,8 @@ describe("API routes", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = vi.fn() as any;
-    clearCacheInstance();
+    jolpicaCache.clear();
     app = express();
     app.use(express.json());
     await registerRoutes(createServer(), app);
@@ -150,20 +149,18 @@ describe("API routes", () => {
           json: async () => ({
             MRData: {
               RaceTable: {
-                Races: [
-                  {
-                    season: `${year}`,
-                    round: "1",
-                    raceName: "Test Grand Prix",
-                    Circuit: {
-                      circuitName: "Test Circuit",
-                      Location: { locality: "City", country: "Country" },
-                    },
-                    date: `${year}-03-01`,
-                    time: "15:00:00Z",
-                    FirstPractice: { date: `${year}-02-28`, time: "11:30:00Z" },
+                Races: [{
+                  season: `${year}`,
+                  round: "1",
+                  raceName: "Test Grand Prix",
+                  Circuit: {
+                    circuitName: "Test Circuit",
+                    Location: { locality: "City", country: "Country" },
                   },
-                ],
+                  date: `${year}-03-01`,
+                  time: "15:00:00Z",
+                  FirstPractice: { date: `${year}-02-28`, time: "11:30:00Z" },
+                }],
               },
             },
           }),

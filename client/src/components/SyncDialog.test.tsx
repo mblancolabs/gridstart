@@ -20,7 +20,7 @@ describe("SyncDialog Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: mockPrefs,
       isLoading: false,
@@ -48,7 +48,7 @@ describe("SyncDialog Component", () => {
   it("should open dialog when sync button is clicked", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -60,7 +60,7 @@ describe("SyncDialog Component", () => {
   it("should display subscription URL with correct series", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -73,7 +73,7 @@ describe("SyncDialog Component", () => {
   it("should have copy button in dialog", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -86,7 +86,7 @@ describe("SyncDialog Component", () => {
   it("should display Google Calendar link", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -100,7 +100,7 @@ describe("SyncDialog Component", () => {
   it("should open Google Calendar link in new tab", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -114,7 +114,7 @@ describe("SyncDialog Component", () => {
   it("should display subscription instructions", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -126,7 +126,7 @@ describe("SyncDialog Component", () => {
   });
 
   it("should handle empty series list", async () => {
-    // @ts-expect-error
+    // @ts-ignore
     hooks.usePreferences.mockReturnValue({
       data: createMockPreferences({ enabledSeries: JSON.stringify([]) }),
       isLoading: false,
@@ -135,7 +135,7 @@ describe("SyncDialog Component", () => {
 
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -148,19 +148,21 @@ describe("SyncDialog Component", () => {
   it("should display dialog description", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Subscribe to your selected series in your preferred calendar app/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Subscribe to your selected series in your preferred calendar app/)
+      ).toBeInTheDocument();
     });
   });
 
   it("should have proper dialog header", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -173,7 +175,7 @@ describe("SyncDialog Component", () => {
   it("should display quick subscribe label", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -185,7 +187,7 @@ describe("SyncDialog Component", () => {
 
   it("should copy URL successfully with clipboard API", async () => {
     const user = userEvent.setup();
-
+    
     // Mock clipboard API
     const mockClipboard = {
       writeText: vi.fn().mockResolvedValue(undefined),
@@ -196,7 +198,7 @@ describe("SyncDialog Component", () => {
     });
 
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -209,7 +211,9 @@ describe("SyncDialog Component", () => {
     await user.click(copyButton);
 
     // Should call clipboard API
-    expect(mockClipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("/api/export.ics?series=f1,f2"));
+    expect(mockClipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("/api/export.ics?series=f1,f2")
+    );
 
     // Should show check icon
     await waitFor(() => {
@@ -219,7 +223,7 @@ describe("SyncDialog Component", () => {
 
   it("should fallback to DOM copy when clipboard API fails", async () => {
     const user = userEvent.setup();
-
+    
     // Mock clipboard API to fail
     const mockClipboard = {
       writeText: vi.fn().mockRejectedValue(new Error("Clipboard not supported")),
@@ -237,7 +241,7 @@ describe("SyncDialog Component", () => {
     });
 
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -272,7 +276,7 @@ describe("SyncDialog Component", () => {
     });
 
     renderWithProviders(<SyncDialog />);
-
+    
     const syncButton = screen.getByTestId("button-sync-calendar");
     await user.click(syncButton);
 
@@ -311,3 +315,4 @@ describe("SyncDialog Component", () => {
     setTimeoutSpy.mockRestore();
   });
 });
+

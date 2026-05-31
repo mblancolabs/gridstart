@@ -4,7 +4,12 @@ import ICAL from "ical.js";
 import { fetchICSData } from "../icsFetcher";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 
-export function parseICSEvents(icsData: string, series: SeriesInfo, fromDate?: Date, toDate?: Date): CalendarEvent[] {
+export function parseICSEvents(
+  icsData: string,
+  series: SeriesInfo,
+  fromDate?: Date,
+  toDate?: Date
+): CalendarEvent[] {
   const events: CalendarEvent[] = [];
 
   try {
@@ -30,8 +35,10 @@ export function parseICSEvents(icsData: string, series: SeriesInfo, fromDate?: D
       if (fromDate && endDate < fromDate) continue;
       if (toDate && startDate > toDate) continue;
 
-      const location = (vevent.getFirstPropertyValue("location") as string | null) || undefined;
-      const description = (vevent.getFirstPropertyValue("description") as string | null) || undefined;
+      const location =
+        (vevent.getFirstPropertyValue("location") as string | null) || undefined;
+      const description =
+        (vevent.getFirstPropertyValue("description") as string | null) || undefined;
 
       const summary = event.summary || "Untitled Event";
 
@@ -78,8 +85,8 @@ function detectSessionType(title: string): string | undefined {
 export class ICSHandler implements FeedHandler {
   name = "ics";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, _year: number): Promise<CalendarEvent[]> {
-    const url = params.url as string | undefined;
+  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
+    const url = params.url;
     if (!url) {
       throw new Error("ICS handler requires 'url' parameter");
     }
@@ -87,7 +94,9 @@ export class ICSHandler implements FeedHandler {
     // For now, fetch current year only. Could be enhanced to fetch multiple years
     const icsData = await fetchICSData(series.id, url);
     const events = parseICSEvents(icsData, series);
-    const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
-    return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
+    const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+    return requestedSessionNames
+      ? filterEventsBySessionNames(events, requestedSessionNames)
+      : events;
   }
 }
