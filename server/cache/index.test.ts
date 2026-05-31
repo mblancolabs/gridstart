@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { MemoryCache } from "./memory";
 import { getCache, clearCacheInstance } from "./index";
 
 describe("getCache", () => {
