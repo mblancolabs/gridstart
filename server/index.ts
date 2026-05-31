@@ -19,6 +19,7 @@ declare module "http" {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       requestId?: string;
@@ -31,17 +32,19 @@ export function createApp() {
   const httpServer = createServer(app);
 
   const isProduction = process.env.NODE_ENV === "production";
-  const devCspOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-  const devCspWsOrigin = process.env.DEV_CSP_WS_ORIGIN || devCspOrigin.replace(/^https?:/, 'ws:');
+  const devCspOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+  const devCspWsOrigin = process.env.DEV_CSP_WS_ORIGIN || devCspOrigin.replace(/^https?:/, "ws:");
 
   // Enable CORS with specific configuration
-  app.use(cors({
-    origin: devCspOrigin,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token'],
-    credentials: false,
-    maxAge: 86400,
-  }));
+  app.use(
+    cors({
+      origin: devCspOrigin,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+      credentials: false,
+      maxAge: 86400,
+    }),
+  );
 
   app.use(
     express.json({
@@ -68,7 +71,7 @@ export function createApp() {
               styleSrc: ["'self'", "https://api.fontshare.com"],
               fontSrc: ["'self'", "https://api.fontshare.com", "https://cdn.fontshare.com"],
               imgSrc: ["'self'", "data:"],
-              connectSrc: ["'self'"],
+              connectSrc: ["'self'", "https://api.fontshare.com"],
               workerSrc: ["'self'"],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],
@@ -80,7 +83,7 @@ export function createApp() {
               styleSrc: ["'self'", "'unsafe-inline'", "https://api.fontshare.com"],
               fontSrc: ["'self'", "https://api.fontshare.com", "https://cdn.fontshare.com"],
               imgSrc: ["'self'", "data:"],
-              connectSrc: ["'self'", devCspOrigin, devCspWsOrigin],
+              connectSrc: ["'self'", "https://api.fontshare.com", devCspOrigin, devCspWsOrigin],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],
               formAction: ["'self'"],
@@ -98,7 +101,7 @@ export function createApp() {
   app.use((req, res, next) => {
     const start = Date.now();
     const path = req.path;
-    let capturedJsonResponse: Record<string, any> | undefined = undefined;
+    let capturedJsonResponse: Record<string, unknown> | undefined = undefined;
 
     const originalResJson = res.json;
     res.json = function (bodyJson, ...args) {
@@ -161,9 +164,9 @@ export async function startServer() {
   );
 }
 
-const isMainModule = process.argv[1] && (
-  import.meta.url === `file://${process.argv[1]}`
-);
+const isMainModule =
+  process.argv[1] &&
+  (typeof require !== "undefined" ? require.main === module : import.meta.url === `file://${process.argv[1]}`);
 
 if (isMainModule) {
   startServer();

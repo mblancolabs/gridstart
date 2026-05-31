@@ -22,27 +22,15 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
 }
 
 // Wrapper component that provides all necessary providers
-function Wrapper({
-  children,
-  queryClient,
-}: {
-  children: React.ReactNode;
-  queryClient: QueryClient;
-}) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+// eslint-disable-next-line react-refresh/only-export-components
+function Wrapper({ children, queryClient }: { children: React.ReactNode; queryClient: QueryClient }) {
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
 // Custom render function that includes all providers
 export function renderWithProviders(
   ui: ReactElement,
-  {
-    queryClient = createTestQueryClient(),
-    ...renderOptions
-  }: ExtendedRenderOptions = {}
+  { queryClient = createTestQueryClient(), ...renderOptions }: ExtendedRenderOptions = {},
 ) {
   const Wrapper_ = ({ children }: { children: React.ReactNode }) => (
     <Wrapper queryClient={queryClient}>{children}</Wrapper>
@@ -55,6 +43,7 @@ export function renderWithProviders(
 }
 
 // Re-export everything from React Testing Library
+// eslint-disable-next-line react-refresh/only-export-components
 export * from "@testing-library/react";
 export { userEvent };
 export { default as userEventLib } from "@testing-library/user-event";

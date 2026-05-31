@@ -33,9 +33,7 @@ export default function Settings() {
   }, [series]);
 
   const toggleSeries = (id: string) => {
-    const next = enabledSeries.includes(id)
-      ? enabledSeries.filter((s) => s !== id)
-      : [...enabledSeries, id];
+    const next = enabledSeries.includes(id) ? enabledSeries.filter((s) => s !== id) : [...enabledSeries, id];
     savePrefs.mutate(next);
   };
 
@@ -109,10 +107,7 @@ export default function Settings() {
                         data-testid={`row-series-${s.id}`}
                       >
                         <div className="flex items-center gap-3">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: s.color }}
-                          />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
                           <div>
                             <p className="text-sm font-medium">{s.name}</p>
                             <p className="text-xs text-muted-foreground">{s.shortName}</p>

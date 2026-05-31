@@ -14,80 +14,78 @@ export const STANDARD_SESSION_NAMES = [
 ] as const;
 
 export const SESSION_NAME_ALIASES: Record<string, string> = {
-  "race": "Race",
+  race: "Race",
   "grand prix": "Race",
-  "gp": "Race",
+  gp: "Race",
   "sprint quali": "Sprint Qualifying",
   "sprint qualify": "Sprint Qualifying",
   "sprint qualifying": "Sprint Qualifying",
   "sprint shootout": "Sprint Qualifying",
-  "qualifying": "Qualifying",
-  "quali": "Qualifying",
+  qualifying: "Qualifying",
+  quali: "Qualifying",
   "practice 3": "Practice 3",
-  "fp3": "Practice 3",
+  fp3: "Practice 3",
   "practice 2": "Practice 2",
-  "fp2": "Practice 2",
+  fp2: "Practice 2",
   "practice 1": "Practice 1",
-  "fp1": "Practice 1",
-  "practice": "Practice",
-  "test": "Test",
+  fp1: "Practice 1",
+  practice: "Practice",
+  test: "Test",
   "warm up": "Warm Up",
-  "warm": "Warm Up",
-  "wup": "Warm Up",
+  warm: "Warm Up",
+  wup: "Warm Up",
 };
 
 const standardNamesSet = new Set<string>(STANDARD_SESSION_NAMES);
+
+const normalizeSessionNameCache = new Map<string, string | undefined>();
 
 export function normalizeSessionName(label?: string): string | undefined {
   if (!label) return undefined;
 
   const normalized = label.trim();
+
+  const cached = normalizeSessionNameCache.get(normalized);
+  if (cached !== undefined) return cached;
+
+  let result: string | undefined;
+
   if (standardNamesSet.has(normalized)) {
-    return normalized;
-  }
-
-  const lower = normalized.toLowerCase();
-  if (SESSION_NAME_ALIASES[lower]) {
-    return SESSION_NAME_ALIASES[lower];
-  }
-
-  const practiceMatch = lower.match(/^(fp|practice)\s*([1-9])$/);
-  if (practiceMatch) {
-    const practiceNumber = Number(practiceMatch[2]);
-    if (practiceNumber >= 1 && practiceNumber <= 3) {
-      return `Practice ${practiceNumber}`;
+    result = normalized;
+  } else {
+    const lower = normalized.toLowerCase();
+    if (SESSION_NAME_ALIASES[lower]) {
+      result = SESSION_NAME_ALIASES[lower];
+    } else {
+      const practiceMatch = lower.match(/^(fp|practice)\s*([1-9])$/);
+      if (practiceMatch) {
+        const practiceNumber = Number(practiceMatch[2]);
+        result = practiceNumber >= 1 && practiceNumber <= 3 ? `Practice ${practiceNumber}` : "Practice";
+      } else {
+        const qualifyingMatch = lower.match(/^(q|qualifying)\s*(\d+)$/);
+        if (qualifyingMatch) {
+          result = "Qualifying";
+        } else if (lower.includes("practice")) {
+          result = "Practice";
+        } else if (lower.includes("test")) {
+          result = "Test";
+        } else if (lower.includes("warm") || lower.includes("wup")) {
+          result = "Warm Up";
+        } else if (lower.includes("sprint qual") || lower.includes("sprint shootout")) {
+          result = "Sprint Qualifying";
+        } else if (lower.includes("sprint")) {
+          result = "Sprint";
+        } else if (lower.includes("qualifying") || lower.includes("quali")) {
+          result = "Qualifying";
+        } else if (lower.includes("race") || lower.includes("gp") || lower.includes("grand prix")) {
+          result = "Race";
+        }
+      }
     }
-    return "Practice";
   }
 
-  const qualifyingMatch = lower.match(/^(q|qualifying)\s*(\d+)$/);
-  if (qualifyingMatch) {
-    return "Qualifying";
-  }
-
-  if (lower.includes("practice")) {
-    return "Practice";
-  }
-  if (lower.includes("test")) {
-    return "Test";
-  }
-  if (lower.includes("warm") || lower.includes("wup")) {
-    return "Warm Up";
-  }
-  if (lower.includes("sprint qual") || lower.includes("sprint shootout")) {
-    return "Sprint Qualifying";
-  }
-  if (lower.includes("sprint")) {
-    return "Sprint";
-  }
-  if (lower.includes("qualifying") || lower.includes("quali")) {
-    return "Qualifying";
-  }
-  if (lower.includes("race") || lower.includes("gp") || lower.includes("grand prix")) {
-    return "Race";
-  }
-
-  return undefined;
+  normalizeSessionNameCache.set(normalized, result);
+  return result;
 }
 
 export function normalizeSessionNames(values?: unknown): string[] | undefined {
@@ -110,10 +108,7 @@ function getSessionCategory(sessionName: string): string {
   return sessionName;
 }
 
-export function sessionNameMatches(
-  sessionType: string | undefined,
-  allowedSessionNames: string[]
-): boolean {
+export function sessionNameMatches(sessionType: string | undefined, allowedSessionNames: string[]): boolean {
   const normalizedSessionType = normalizeSessionName(sessionType);
   if (!normalizedSessionType) return false;
 
@@ -138,9 +133,6 @@ export function sessionNameMatches(
   });
 }
 
-export function filterEventsBySessionNames(
-  events: CalendarEvent[],
-  allowedSessionNames: string[]
-): CalendarEvent[] {
+export function filterEventsBySessionNames(events: CalendarEvent[], allowedSessionNames: string[]): CalendarEvent[] {
   return events.filter((event) => sessionNameMatches(event.sessionType, allowedSessionNames));
 }

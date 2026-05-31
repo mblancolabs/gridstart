@@ -2,6 +2,7 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionNames } from "./sessionLabels";
+import { getOrSet, CACHE_TTL_MS } from "../cache";
 
 interface MotoGPSeason {
   id: string;
@@ -38,9 +39,9 @@ interface MotoGPSession {
 
 const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
 const MOTOGP_CATEGORY_IDS: Record<string, string> = {
-  "MotoGP": "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
-  "Moto2": "549640b8-fd9c-4245-acfd-60e4bc38b25c",
-  "Moto3": "954f7e65-2ef2-4423-b949-4961cc603e45",
+  MotoGP: "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
+  Moto2: "549640b8-fd9c-4245-acfd-60e4bc38b25c",
+  Moto3: "954f7e65-2ef2-4423-b949-4961cc603e45",
 };
 
 const MOTOGP_SESSION_LABELS: Record<string, string> = {
@@ -95,10 +96,7 @@ const MOTOGP_COUNTRY_TIMEZONES: Record<string, string> = {
 };
 
 function getMotoGPTimeZone(event: MotoGPEvent): string | undefined {
-  return (
-    MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] ||
-    MOTOGP_COUNTRY_TIMEZONES[event.country.iso]
-  );
+  return MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] || MOTOGP_COUNTRY_TIMEZONES[event.country.iso];
 }
 
 function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
@@ -141,15 +139,17 @@ function parseMotoGPSessionDate(sessionDate: string, event: MotoGPEvent): string
 export class MotoGPHandler implements FeedHandler {
   name = "motogp";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
-    const className = params.class || "MotoGP";
+  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
+    const cacheKey = `motogp-${series.id}-${year}`;
+    const className = (params.class as string) || "MotoGP";
     const categoryId = MOTOGP_CATEGORY_IDS[className];
     if (!categoryId) {
       throw new Error(`Unknown MotoGP class: ${className}`);
     }
 
     try {
-      // 1. Find the season UUID for the year
+      return await getOrSet(cacheKey, CACHE_TTL_MS, async () => {
+        // 1. Find the season UUID for the year
       const seasonsRes = await fetch(`${MOTOGP_API_BASE}/results/seasons`);
       if (!seasonsRes.ok) throw new Error(`Seasons HTTP ${seasonsRes.status}`);
       const seasons: MotoGPSeason[] = await seasonsRes.json();
@@ -187,7 +187,7 @@ export class MotoGPHandler implements FeedHandler {
 
         try {
           const sessionsRes = await fetch(
-            `${MOTOGP_API_BASE}/results/sessions?eventUuid=${mgpEvent.id}&categoryUuid=${categoryId}`
+            `${MOTOGP_API_BASE}/results/sessions?eventUuid=${mgpEvent.id}&categoryUuid=${categoryId}`,
           );
           if (!sessionsRes.ok) continue;
 
@@ -217,7 +217,7 @@ export class MotoGPHandler implements FeedHandler {
               seriesName: series.name,
               seriesShortName: series.shortName,
               seriesColor: series.color,
-              title: `${series.shortName} | ${raceName.split(' of ').pop()} ${label}`,
+              title: `${series.shortName} | ${raceName.split(" of ").pop()} ${label}`,
               startDate,
               endDate,
               location,
@@ -236,10 +236,9 @@ export class MotoGPHandler implements FeedHandler {
         }
       }
 
-      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-      return requestedSessionNames
-        ? filterEventsBySessionNames(events, requestedSessionNames)
-        : events;
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
+      return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
+    });
     } catch (err) {
       logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
       return [];

@@ -12,7 +12,7 @@ export default defineConfig({
       devOptions: {
         enabled: true,
         type: "module",
-        webManifestUrl: '/manifest.webmanifest',
+        webManifestUrl: "/manifest.webmanifest",
       },
       manifest: {
         name: "GridStart — Motorsport Calendar",
@@ -42,7 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: '/app.html',
+        navigateFallback: "/app.html",
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         runtimeCaching: [
           {
@@ -72,6 +72,16 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "@tanstack/react-query",
+    ],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -84,7 +94,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    cssMinify: 'esbuild',
+    cssMinify: "esbuild",
     rollupOptions: {
       input: path.resolve(import.meta.dirname, "client", "app.html"),
     },

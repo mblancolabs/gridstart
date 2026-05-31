@@ -10,6 +10,7 @@
 A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
 
 GridStart is available in two editions:
+
 - **Free Edition** (current) — No database required. User preferences are stored in a browser cookie. Fully self-contained.
 - **Premium Edition** (planned) — Adds persistent storage with SQLite, user accounts, and per-user preferences.
 
@@ -30,6 +31,7 @@ GridStart is available in two editions:
 ## Supported Series
 
 ### Open Wheel
+
 - Formula 1 (F1) - Live session data from Jolpica API
 - Formula E (FE)
 - IndyCar Series
@@ -37,20 +39,24 @@ GridStart is available in two editions:
 - Formula 3 (F3)
 
 ### Motorcycles
+
 - MotoGP - Live session data from PulseLive API
 - World Superbikes (WSBK)
 - MXGP
 
 ### Endurance
+
 - WEC / Le Mans
 - IMSA SportsCar
 - European Le Mans Series (ELMS)
 
 ### NASCAR
+
 - NASCAR Cup Series
 - NASCAR Xfinity
 
 ### GT & Touring
+
 - DTM
 - GT World Challenge Europe
 - Supercars Championship
@@ -58,6 +64,7 @@ GridStart is available in two editions:
 - Intercontinental GT Challenge
 
 ### Rally & Off-Road
+
 - World Rally Championship (WRC)
 - Dakar Rally
 
@@ -66,16 +73,19 @@ GridStart is available in two editions:
 The application uses **1-hour caching** for all external data feeds:
 
 ### Cache Duration
+
 - **TTL (Time To Live)**: 1 hour (60 minutes)
 - **Cache Key**: Based on series ID and year (for API feeds)
 
 ### Refresh Behavior
 
 **Fresh Data (within 1 hour):**
+
 - Returns cached data immediately without making API calls
 - Fastest response time
 
 **Stale Data (after 1 hour):**
+
 - Makes fresh API/ICS requests to update cache
 - If the fresh request fails, falls back to stale cached data
 - Ensures the app continues working even if external services are down
@@ -95,16 +105,19 @@ The application uses **1-hour caching** for all external data feeds:
    - Refreshes every hour when MotoGP events are requested
 
 ### Cache Storage
-- **In-memory**: All caches are stored in server memory
-- **Per-server instance**: Cache doesn't persist across server restarts
-- **No persistence**: Data is lost when the server restarts
+
+- **MemoryCache** (default): In-memory storage, lost on restart — no dependencies
+- **RedisCache** (optional): Persistent cache via Redis/Upstash — survives restarts and cold starts
+- Configurable via `REDIS_URL` + `REDIS_TOKEN` env vars. Falls back to MemoryCache when unset.
 
 ### Manual Refresh
+
 Currently, there's no manual cache invalidation - data refreshes automatically based on the 1-hour TTL. If you need immediate updates, you would need to restart the server or wait for the cache to expire naturally.
 
 ## Tech Stack
 
 ### Frontend
+
 - **React 19** with TypeScript
 - **Vite** for build tooling
 - **Tailwind CSS v4** for styling
@@ -114,6 +127,7 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 - **date-fns** for date handling
 
 ### Backend
+
 - **Express.js** with TypeScript
 - **ICAL.js** for calendar parsing/export
 
@@ -139,6 +153,11 @@ The application supports the following environment variables:
 - `PREFERENCES_RATE_LIMIT_MAX`: Preferences update max requests per IP per window (default: 20)
 - `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes)
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
+- `REDIS_URL`: Redis/Upstash REST URL. Leave unset for in-memory cache (default).
+- `REDIS_TOKEN`: Redis/Upstash REST token. Required if `REDIS_URL` is set.
+- `KV_REST_API_URL`: Vercel KV REST URL (alternative to `REDIS_URL`, auto-injected by Vercel).
+- `KV_REST_API_TOKEN`: Vercel KV REST token (alternative to `REDIS_TOKEN`, auto-injected by Vercel).
+- `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 
@@ -149,6 +168,7 @@ GridStart supports deployment on Vercel. See [`backlog/vercel.md`](backlog/verce
 ## Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd gridstart
@@ -162,6 +182,7 @@ GridStart supports deployment on Vercel. See [`backlog/vercel.md`](backlog/verce
 ## Development
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -171,6 +192,7 @@ The application will be available at `http://localhost:5000` (or the port specif
 ## Production Build
 
 1. Build the application:
+
    ```bash
    npm run build
    ```
@@ -198,6 +220,7 @@ Rate-limited requests return HTTP `429 Too Many Requests` with a JSON payload an
 ## Configuration
 
 ### ICS Feeds
+
 Series data is configured using one or more feed definition files.
 
 By default, GridStart loads the main feed configuration and can support additional feed files for custom or private overrides. This makes it possible to extend or override upstream feed definitions without modifying the default configuration directly.
@@ -218,6 +241,7 @@ When multiple feed files are present, custom definitions and overrides can be la
 Standard session names include: `Practice`, `Practice 1`, `Practice 2`, `Practice 3`, `Qualifying`, `Sprint Qualifying`, `Sprint`, `Warm Up`, `Race`, and `Test`.
 
 ### Special Series
+
 - **F1**: Uses Jolpica API for detailed session timing instead of ICS feeds
 - **MotoGP**: Uses PulseLive API for session-level data
 

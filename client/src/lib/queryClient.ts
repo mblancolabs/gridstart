@@ -4,10 +4,10 @@ const API_BASE = ".";
 
 async function getCsrfToken(): Promise<string | null> {
   // Read CSRF token from cookie
-  const cookies = document.cookie.split(';');
+  const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'csrf-token') {
+    const [name, value] = cookie.trim().split("=");
+    if (name === "csrf-token") {
       return decodeURIComponent(value);
     }
   }
@@ -21,11 +21,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+export async function apiRequest(method: string, url: string, data?: unknown | undefined): Promise<Response> {
   const headers: Record<string, string> = {};
 
   if (data) {
@@ -51,9 +47,7 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const path = queryKey.join("/").replace(/\/\/+/g, "/");

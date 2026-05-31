@@ -60,13 +60,13 @@ describe("Home Page", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: mockPrefs,
       isLoading: false,
       error: null,
     });
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: mockEvents,
       isLoading: false,
@@ -100,16 +100,12 @@ describe("Home Page", () => {
 
   it("should fetch events with correct parameters", () => {
     renderWithProviders(<Home />);
-    
-    expect(hooks.useEvents).toHaveBeenCalledWith(
-      ["f1"],
-      expect.any(String),
-      expect.any(String)
-    );
+
+    expect(hooks.useEvents).toHaveBeenCalledWith(["f1"], expect.any(String), expect.any(String));
   });
 
   it("should display loading state when events are loading", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -122,7 +118,7 @@ describe("Home Page", () => {
   });
 
   it("should handle no enabled series", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: createMockPreferences({ enabledSeries: JSON.stringify([]) }),
       isLoading: false,
@@ -135,7 +131,7 @@ describe("Home Page", () => {
   });
 
   it("should handle no events", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: [],
       isLoading: false,
@@ -147,7 +143,7 @@ describe("Home Page", () => {
   });
 
   it("should handle invalid preferences JSON", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: { ...mockPrefs, enabledSeries: "invalid json" },
       isLoading: false,
@@ -160,7 +156,7 @@ describe("Home Page", () => {
   });
 
   it("should handle multiple series", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: createMockPreferences({
         enabledSeries: JSON.stringify(["f1", "f2", "moto"]),
@@ -170,11 +166,7 @@ describe("Home Page", () => {
     });
 
     renderWithProviders(<Home />);
-    expect(hooks.useEvents).toHaveBeenCalledWith(
-      ["f1", "f2", "moto"],
-      expect.any(String),
-      expect.any(String)
-    );
+    expect(hooks.useEvents).toHaveBeenCalledWith(["f1", "f2", "moto"], expect.any(String), expect.any(String));
   });
 
   it("should display timezone indicator", () => {
@@ -189,7 +181,7 @@ describe("Home Page", () => {
   });
 
   it("should handle preferences loading state", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -213,13 +205,13 @@ describe("Home Page", () => {
 
   it("should handle events with all properties", () => {
     renderWithProviders(<Home />);
-    
+
     // Should handle the complex event structure without errors
     expect(hooks.useEvents).toHaveBeenCalled();
   });
 
   it("should handle events without race details", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: [
         createMockEvent({
@@ -368,6 +360,7 @@ describe("Home Page", () => {
       const result = groupIntoWeekends(events);
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty("sessions");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((result[0] as any).sessions).toHaveLength(2);
     });
 
@@ -393,13 +386,13 @@ describe("Home Page", () => {
 
   // Test UI branches
   it("should show empty state when no series enabled", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: createMockPreferences({ enabledSeries: JSON.stringify([]) }),
       isLoading: false,
       error: null,
     });
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: [],
       isLoading: false,
@@ -412,7 +405,7 @@ describe("Home Page", () => {
   });
 
   it("should show loading skeleton", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.useEvents.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -455,15 +448,15 @@ describe("Home Page", () => {
     expect(dayButtons.length).toBeGreaterThan(0);
 
     // Should have some buttons with event indicators (dots)
-    const buttonsWithDots = dayButtons.filter(button => 
-      button.querySelector("[class*='rounded-full'][style*='background-color']")
+    const buttonsWithDots = dayButtons.filter((button) =>
+      button.querySelector("[class*='rounded-full'][style*='background-color']"),
     );
     expect(buttonsWithDots.length).toBeGreaterThan(0);
   });
 
   it("should handle dark mode color adjustments", async () => {
     // Mock dark mode
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.add("dark");
 
     renderWithProviders(<Home />);
 
@@ -472,12 +465,12 @@ describe("Home Page", () => {
 
     // Clean up in act so the MutationObserver update is handled correctly.
     await act(async () => {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     });
   });
 
   it("should handle invalid preferences JSON gracefully", () => {
-    // @ts-ignore
+    // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
       data: { ...mockPrefs, enabledSeries: "invalid json" },
       isLoading: false,

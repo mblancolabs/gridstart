@@ -1,902 +1,544 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GridStart — Your Motorsport Calendar</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,600;0,700;0,800;1,700&family=Inter:wght@300..700&display=swap" rel="stylesheet">
-<style>
-/* === ART DIRECTION ===
-   Concept: Motorsport calendar tool → precision, speed, dark weekend atmosphere
-   Palette: Dark surfaces (asphalt/carbon), red accent (racing red), neutral grays
-   Typography: Barlow Condensed (display, bold, condensed – race program feel) + Inter (body, precise)
-   Density: Balanced — editorial sections breathe, feature grid is dense
-*/
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GridStart — Your Motorsport Calendar</title>
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&f[]=cabinet-grotesk@300,500,700,800,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/landing.css" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only">Skip to content</a>
 
-/* ===== TOKENS ===== */
-:root {
-  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
-  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
-  --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
-  --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
-  --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
-  --text-2xl:  clamp(2rem,     1.2rem  + 2.5vw,  3.5rem);
-  --text-3xl:  clamp(2.5rem,   1rem    + 4vw,    5rem);
-  --text-hero: clamp(3.5rem,   1rem    + 7vw,    8.5rem);
-
-  --space-1:  0.25rem; --space-2:  0.5rem;  --space-3:  0.75rem;
-  --space-4:  1rem;    --space-5:  1.25rem; --space-6:  1.5rem;
-  --space-8:  2rem;    --space-10: 2.5rem;  --space-12: 3rem;
-  --space-16: 4rem;    --space-20: 5rem;    --space-24: 6rem;
-
-  --radius-sm: 0.25rem; --radius-md: 0.5rem;
-  --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
-
-  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
-
-  --content-narrow:  640px;
-  --content-default: 960px;
-  --content-wide:    1200px;
-
-  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --font-body:    'Inter', 'Helvetica Neue', sans-serif;
-}
-
-/* Dark (primary) theme */
-[data-theme="dark"] {
-  --color-bg:              #0e0d0c;
-  --color-surface:         #141312;
-  --color-surface-2:       #1a1918;
-  --color-surface-offset:  #201f1d;
-  --color-surface-dynamic: #2a2927;
-  --color-divider:         #2e2d2b;
-  --color-border:          #363432;
-  --color-text:            #e8e6e3;
-  --color-text-muted:      #8a8885;
-  --color-text-faint:      #525150;
-  --color-text-inverse:    #0e0d0c;
-  --color-primary:         #e8201c;
-  --color-primary-hover:   #f53530;
-  --color-primary-active:  #c41a17;
-  --color-primary-highlight: #2d1a19;
-  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.35);
-  --shadow-md: 0 4px 16px oklch(0 0 0 / 0.45);
-  --shadow-lg: 0 16px 48px oklch(0 0 0 / 0.55);
-}
-
-[data-theme="light"] {
-  --color-bg:              #f5f4f2;
-  --color-surface:         #f9f8f6;
-  --color-surface-2:       #ffffff;
-  --color-surface-offset:  #eceae7;
-  --color-surface-dynamic: #e3e1de;
-  --color-divider:         #d8d6d3;
-  --color-border:          #cccac7;
-  --color-text:            #1a1917;
-  --color-text-muted:      #6e6c69;
-  --color-text-faint:      #aaa9a6;
-  --color-text-inverse:    #f5f4f2;
-  --color-primary:         #c41a17;
-  --color-primary-hover:   #a81511;
-  --color-primary-active:  #8a0f0d;
-  --color-primary-highlight: #fdecea;
-  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
-  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
-  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --color-bg: #f5f4f2; --color-surface: #f9f8f6; --color-surface-2: #ffffff;
-    --color-surface-offset: #eceae7; --color-surface-dynamic: #e3e1de;
-    --color-divider: #d8d6d3; --color-border: #cccac7;
-    --color-text: #1a1917; --color-text-muted: #6e6c69; --color-text-faint: #aaa9a6;
-    --color-text-inverse: #f5f4f2;
-    --color-primary: #c41a17; --color-primary-hover: #a81511;
-    --color-primary-active: #8a0f0d; --color-primary-highlight: #fdecea;
-    --shadow-sm: 0 1px 2px oklch(0.2 0.01 80/0.06);
-    --shadow-md: 0 4px 12px oklch(0.2 0.01 80/0.08);
-    --shadow-lg: 0 12px 32px oklch(0.2 0.01 80/0.12);
-  }
-}
-
-/* ===== BASE ===== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html {
-  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility; scroll-behavior: smooth;
-  scroll-padding-top: var(--space-16);
-}
-body {
-  min-height: 100dvh; line-height: 1.6;
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  color: var(--color-text);
-  background-color: var(--color-bg);
-}
-img, picture, svg { display: block; max-width: 100%; height: auto; }
-ul[role="list"] { list-style: none; }
-input, button, select { font: inherit; color: inherit; }
-h1, h2, h3, h4 { text-wrap: balance; line-height: 1.1; }
-p, li { text-wrap: pretty; max-width: 72ch; }
-::selection { background: color-mix(in oklch, var(--color-primary) 25%, transparent); }
-:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-button { cursor: pointer; background: none; border: none; }
-a, button, [role="button"] {
-  transition: color var(--transition-interactive), background var(--transition-interactive),
-    border-color var(--transition-interactive), box-shadow var(--transition-interactive);
-}
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-
-/* ===== LAYOUT ===== */
-.container {
-  max-width: var(--content-wide);
-  margin-inline: auto;
-  padding-inline: clamp(var(--space-4), 4vw, var(--space-12));
-}
-.container--narrow { max-width: var(--content-default); }
-
-/* ===== HEADER / NAV ===== */
-.site-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--space-4) clamp(var(--space-4), 4vw, var(--space-12));
-  background: color-mix(in oklch, var(--color-bg) 85%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.06);
-}
-.logo {
-  display: flex; align-items: center; gap: var(--space-2);
-  text-decoration: none; color: var(--color-text);
-  font-family: var(--font-display); font-size: var(--text-lg);
-  font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
-}
-.logo svg { flex-shrink: 0; }
-.nav-links {
-  display: flex; align-items: center; gap: var(--space-8);
-  list-style: none;
-}
-.nav-links a {
-  text-decoration: none; color: var(--color-text-muted);
-  font-size: var(--text-sm); font-weight: 500;
-  transition: color var(--transition-interactive);
-}
-.nav-links a:hover { color: var(--color-text); }
-.header-actions { display: flex; align-items: center; gap: var(--space-3); }
-.btn {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  padding: 0.5rem 1.25rem; border-radius: var(--radius-md);
-  font-size: var(--text-sm); font-weight: 600; text-decoration: none;
-  cursor: pointer; border: none; white-space: nowrap;
-  transition: background var(--transition-interactive), color var(--transition-interactive),
-    box-shadow var(--transition-interactive), transform var(--transition-interactive);
-}
-.btn:active { transform: translateY(1px); }
-.btn-primary {
-  background: var(--color-primary); color: #fff;
-}
-.btn-primary:hover { background: var(--color-primary-hover); box-shadow: 0 4px 16px color-mix(in oklch, var(--color-primary) 45%, transparent); }
-.btn-ghost {
-  background: transparent; color: var(--color-text-muted);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.15);
-}
-.btn-ghost:hover { color: var(--color-text); border-color: oklch(from var(--color-text) l c h / 0.3); }
-.theme-toggle {
-  display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: var(--radius-full);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.15);
-  color: var(--color-text-muted);
-}
-.theme-toggle:hover { color: var(--color-text); border-color: oklch(from var(--color-text) l c h / 0.3); }
-
-/* ===== HERO ===== */
-.hero {
-  position: relative; overflow: hidden;
-  min-height: 100svh;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding-top: 80px;
-}
-.hero-bg {
-  position: absolute; inset: 0; z-index: 0;
-  background: var(--color-bg);
-}
-/* racing flag grid pattern */
-.hero-bg::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      oklch(from var(--color-text) l c h / 0.025) 0px,
-      oklch(from var(--color-text) l c h / 0.025) 1px,
-      transparent 1px, transparent 60px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      oklch(from var(--color-text) l c h / 0.025) 0px,
-      oklch(from var(--color-text) l c h / 0.025) 1px,
-      transparent 1px, transparent 60px
-    );
-}
-/* accent glow top-right */
-.hero-bg::after {
-  content: '';
-  position: absolute; top: -10%; right: -5%; width: 55%; padding-bottom: 55%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center,
-    color-mix(in oklch, var(--color-primary) 12%, transparent) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-.hero-content {
-  position: relative; z-index: 1;
-  padding: clamp(var(--space-16), 10vw, var(--space-24)) clamp(var(--space-4), 4vw, var(--space-12));
-  max-width: var(--content-wide); margin-inline: auto; width: 100%;
-}
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  font-family: var(--font-display); font-size: var(--text-xs);
-  font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--color-primary); margin-bottom: var(--space-6);
-}
-.hero-eyebrow::before {
-  content: ''; display: block; width: 24px; height: 2px;
-  background: var(--color-primary);
-}
-.hero-heading {
-  font-family: var(--font-display);
-  font-size: var(--text-hero);
-  font-weight: 800; line-height: 0.92;
-  letter-spacing: -0.01em; text-transform: uppercase;
-  color: var(--color-text);
-  margin-bottom: var(--space-8);
-}
-.hero-heading em {
-  font-style: normal; color: var(--color-primary);
-}
-.hero-sub {
-  font-size: var(--text-lg); color: var(--color-text-muted);
-  font-weight: 300; max-width: 52ch;
-  line-height: 1.5; margin-bottom: var(--space-10);
-}
-.hero-ctas {
-  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
-  margin-bottom: var(--space-16);
-}
-.btn-lg { padding: 0.75rem 2rem; font-size: var(--text-base); border-radius: var(--radius-lg); }
-.hero-stats {
-  display: flex; gap: clamp(var(--space-8), 5vw, var(--space-20));
-  padding-top: var(--space-8);
-  border-top: 1px solid oklch(from var(--color-text) l c h / 0.1);
-  flex-wrap: wrap;
-}
-.stat-item { display: flex; flex-direction: column; gap: var(--space-1); }
-.stat-number {
-  font-family: var(--font-display); font-size: var(--text-2xl);
-  font-weight: 800; color: var(--color-text); letter-spacing: -0.02em;
-  line-height: 1;
-}
-.stat-label {
-  font-size: var(--text-xs); color: var(--color-text-muted);
-  text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;
-}
-
-/* ===== SCREENSHOT SECTION ===== */
-.screenshot-section {
-  padding: clamp(var(--space-16), 8vw, var(--space-24)) clamp(var(--space-4), 4vw, var(--space-12));
-  position: relative; overflow: hidden;
-  background: var(--color-surface);
-}
-.screenshot-wrap {
-  position: relative; max-width: 1080px; margin: 0 auto;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 1px solid oklch(from var(--color-text) l c h / 0.1);
-  box-shadow: var(--shadow-lg), 0 0 80px color-mix(in oklch, var(--color-primary) 10%, transparent);
-}
-.screenshot-wrap img {
-  width: 100%; height: auto; display: block;
-}
-.screenshot-caption {
-  text-align: center; margin-top: var(--space-6);
-  font-size: var(--text-xs); color: var(--color-text-faint);
-  letter-spacing: 0.08em; text-transform: uppercase;
-}
-
-/* ===== SECTION SHARED ===== */
-.section {
-  padding: clamp(var(--space-16), 8vw, var(--space-24)) clamp(var(--space-4), 4vw, var(--space-12));
-}
-.section-label {
-  font-family: var(--font-display); font-size: var(--text-xs);
-  font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--color-primary); margin-bottom: var(--space-4);
-  display: flex; align-items: center; gap: var(--space-2);
-}
-.section-label::before {
-  content: ''; display: block; width: 16px; height: 2px; background: var(--color-primary);
-}
-.section-title {
-  font-family: var(--font-display); font-size: var(--text-2xl);
-  font-weight: 800; text-transform: uppercase; line-height: 1;
-  margin-bottom: var(--space-6);
-}
-.section-desc {
-  font-size: var(--text-base); color: var(--color-text-muted);
-  max-width: 56ch; line-height: 1.7;
-}
-
-/* ===== SERIES SECTION ===== */
-.series-section { background: var(--color-bg); }
-.series-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-12);
-}
-.series-card {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.08);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm); font-weight: 500;
-  color: var(--color-text-muted);
-  transition: background var(--transition-interactive), border-color var(--transition-interactive), color var(--transition-interactive);
-}
-.series-card:hover {
-  background: var(--color-surface-2);
-  border-color: oklch(from var(--color-text) l c h / 0.18);
-  color: var(--color-text);
-}
-.series-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-
-/* ===== FEATURES ===== */
-.features-section { background: var(--color-surface); }
-.features-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  margin-top: var(--space-12);
-}
-.feature-card {
-  padding: var(--space-8) var(--space-8);
-  background: var(--color-surface-2);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.08);
-  border-radius: var(--radius-xl);
-  display: flex; flex-direction: column; gap: var(--space-4);
-  transition: box-shadow var(--transition-interactive);
-}
-.feature-card:hover { box-shadow: var(--shadow-md); }
-.feature-card--wide { grid-column: 1 / -1; }
-.feature-icon {
-  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  color: var(--color-primary);
-}
-.feature-title {
-  font-family: var(--font-display); font-size: var(--text-xl);
-  font-weight: 700; text-transform: uppercase; line-height: 1;
-}
-.feature-desc {
-  font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.65;
-}
-
-/* === CARD WITH WIDE LAYOUT === */
-.feature-card--wide-inner {
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); align-items: center;
-}
-.feature-mockup {
-  background: var(--color-surface-offset);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.1);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  display: flex; flex-direction: column; gap: var(--space-3);
-}
-.mock-row {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.08);
-}
-.mock-flag { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.mock-label { font-size: var(--text-xs); color: var(--color-text-muted); flex: 1; }
-.mock-badge {
-  font-size: 10px; font-weight: 700; font-family: var(--font-display); text-transform: uppercase;
-  letter-spacing: 0.05em; padding: 2px 8px; border-radius: var(--radius-full);
-  background: color-mix(in oklch, var(--color-primary) 20%, var(--color-surface));
-  color: var(--color-primary);
-}
-.mock-badge--muted {
-  background: oklch(from var(--color-text) l c h / 0.06);
-  color: var(--color-text-faint);
-}
-
-/* ===== ICS SECTION ===== */
-.ics-section {
-  background: var(--color-bg);
-  border-top: 1px solid oklch(from var(--color-text) l c h / 0.07);
-}
-.ics-inner {
-  display: grid; grid-template-columns: 1fr 1fr; gap: clamp(var(--space-8), 6vw, var(--space-20));
-  align-items: center;
-}
-.cal-apps { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-8); }
-.cal-badge {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.12);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted);
-  letter-spacing: 0.04em;
-}
-.ics-mockup {
-  background: var(--color-surface);
-  border: 1px solid oklch(from var(--color-text) l c h / 0.1);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-.ics-mockup-header {
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface-offset);
-  border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.08);
-  display: flex; align-items: center; gap: var(--space-3);
-  font-size: var(--text-xs); font-weight: 600; font-family: var(--font-display);
-  text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted);
-}
-.ics-events { padding: var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
-.ics-event {
-  display: flex; gap: var(--space-3); align-items: flex-start;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary);
-}
-.ics-event--alt { border-left-color: #3b82f6; }
-.ics-event--alt2 { border-left-color: #f59e0b; }
-.ics-event-date {
-  font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800;
-  line-height: 1; color: var(--color-text); min-width: 36px; text-align: center;
-}
-.ics-event-month { font-size: var(--text-xs); color: var(--color-text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
-.ics-event-info { flex: 1; }
-.ics-event-title { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); }
-.ics-event-sub { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
-
-/* ===== CTA SECTION ===== */
-.cta-section {
-  padding: clamp(var(--space-20), 10vw, var(--space-32)) clamp(var(--space-4), 4vw, var(--space-12));
-  text-align: center;
-  background: var(--color-surface);
-  position: relative; overflow: hidden;
-}
-.cta-section::before {
-  content: '';
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 60vw; height: 60vw; max-width: 700px; max-height: 700px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center,
-    color-mix(in oklch, var(--color-primary) 8%, transparent) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-.cta-heading {
-  font-family: var(--font-display); font-size: var(--text-3xl);
-  font-weight: 800; text-transform: uppercase;
-  line-height: 0.95; margin-bottom: var(--space-6);
-  position: relative; z-index: 1;
-}
-.cta-sub {
-  color: var(--color-text-muted); font-size: var(--text-lg);
-  max-width: 46ch; margin: 0 auto var(--space-10);
-  position: relative; z-index: 1; font-weight: 300;
-}
-.cta-actions { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
-
-/* ===== FOOTER ===== */
-.site-footer {
-  padding: var(--space-12) clamp(var(--space-4), 4vw, var(--space-12));
-  border-top: 1px solid oklch(from var(--color-text) l c h / 0.07);
-  background: var(--color-bg);
-}
-.footer-inner {
-  max-width: var(--content-wide); margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: var(--space-4);
-}
-.footer-links {
-  display: flex; gap: var(--space-6); list-style: none; flex-wrap: wrap;
-}
-.footer-links a {
-  font-size: var(--text-xs); color: var(--color-text-faint); text-decoration: none;
-  letter-spacing: 0.04em;
-  transition: color var(--transition-interactive);
-}
-.footer-links a:hover { color: var(--color-text-muted); }
-.footer-copy {
-  font-size: var(--text-xs); color: var(--color-text-faint); letter-spacing: 0.04em;
-}
-
-/* ===== MOBILE ===== */
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-  .features-grid { grid-template-columns: 1fr; }
-  .feature-card--wide { grid-column: 1; }
-  .feature-card--wide-inner { grid-template-columns: 1fr; }
-  .ics-inner { grid-template-columns: 1fr; }
-  .hero-stats { gap: var(--space-8); }
-}
-@media (max-width: 480px) {
-  .hero-ctas { flex-direction: column; align-items: flex-start; }
-  .btn-lg { width: 100%; justify-content: center; }
-}
-
-/* ===== SCROLL ANIMATION ===== */
-.reveal {
-  opacity: 0; transform: translateY(24px);
-  transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
-}
-.reveal.visible { opacity: 1; transform: none; }
-.reveal-delay-1 { transition-delay: 0.1s; }
-.reveal-delay-2 { transition-delay: 0.2s; }
-.reveal-delay-3 { transition-delay: 0.3s; }
-</style>
-</head>
-<body>
-
-<a href="#main" class="sr-only">Skip to content</a>
-
-<!-- NAV -->
-<header class="site-header">
-  <a href="#" class="logo">
-    <!-- SVG Logo: checkered flag shape simplified into G + speed stripe -->
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="GridStart logo" role="img">
-      <rect x="2" y="2" width="11" height="11" rx="1" fill="var(--color-primary)"/>
-      <rect x="15" y="2" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35"/>
-      <rect x="2" y="15" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35"/>
-      <rect x="15" y="15" width="11" height="11" rx="1" fill="var(--color-primary)"/>
-    </svg>
-    GridStart
-  </a>
-  <nav aria-label="Main navigation">
-    <ul class="nav-links" role="list">
-      <li><a href="#series">Series</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#export">Export</a></li>
-    </ul>
-  </nav>
-  <div class="header-actions">
-    <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
-    <a href="https://github.com/mblancolabs/gridstart" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-      View on GitHub
-    </a>
-  </div>
-</header>
-
-<!-- HERO -->
-<main id="main">
-<section class="hero" aria-labelledby="hero-heading">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">Open Source Motorsport Calendar</p>
-    <h1 class="hero-heading" id="hero-heading">
-      Every race.<br><em>One grid.</em>
-    </h1>
-    <p class="hero-sub">
-      GridStart aggregates F1, MotoGP, WEC, NASCAR, and 15+ other series into a single, unified calendar — with live session times, timezone support, and one-click ICS export.
-    </p>
-    <div class="hero-ctas">
-      <a href="/app" class="btn btn-primary btn-lg">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Open Calendar
+    <!-- NAV -->
+    <header class="site-header">
+      <a href="#" class="logo">
+        <!-- SVG Logo: checkered flag shape simplified into G + speed stripe -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="GridStart logo" role="img">
+          <rect x="2" y="2" width="11" height="11" rx="1" fill="var(--color-primary)" />
+          <rect x="15" y="2" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35" />
+          <rect x="2" y="15" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35" />
+          <rect x="15" y="15" width="11" height="11" rx="1" fill="var(--color-primary)" />
+        </svg>
+        GridStart
       </a>
-      <a href="#features" class="btn btn-ghost btn-lg">See Features</a>
-      <a href="https://github.com/mblancolabs/gridstart" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-lg">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        Get GridStart
-      </a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <span class="stat-number">15+</span>
-        <span class="stat-label">Racing Series</span>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links" role="list">
+          <li><a href="#series">Series</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#export">Export</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </button>
+        <a
+          href="https://github.com/mblancolabs/gridstart"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-primary"
+        >
+          View on GitHub
+        </a>
       </div>
-      <div class="stat-item">
-        <span class="stat-number">500+</span>
-        <span class="stat-label">Events/Year</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">Live</span>
-        <span class="stat-label">Session Data</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">ICS</span>
-        <span class="stat-label">Calendar Export</span>
-      </div>
-    </div>
-  </div>
-</section>
+    </header>
 
-<!-- SCREENSHOT -->
-<section class="screenshot-section" aria-label="Application screenshot">
-  <div class="screenshot-wrap reveal">
-    <img
-      src="https://raw.githubusercontent.com/mblancolabs/gridstart/main/docs/assets/gridstart-screenshot.png"
-      alt="GridStart calendar view showing multiple motorsport series with session details"
-      width="1080" height="620" loading="lazy"
-    >
-  </div>
-  <p class="screenshot-caption">GridStart — multi-series calendar view</p>
-</section>
-
-<!-- SERIES -->
-<section class="section series-section" id="series" aria-labelledby="series-title">
-  <div class="container container--narrow">
-    <p class="section-label reveal">Coverage</p>
-    <h2 class="section-title reveal reveal-delay-1" id="series-title">Every series.<br>One app.</h2>
-    <p class="section-desc reveal reveal-delay-2">From Formula 1 to the Dakar Rally, GridStart covers the full spectrum of motorsport. Configure exactly which series matter to you.</p>
-  </div>
-  <div class="container">
-    <div class="series-grid" role="list">
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#e8201c"></span>Formula 1</div>
-      <div class="series-card reveal reveal-delay-1" role="listitem"><span class="series-dot" style="background:#ff6900"></span>MotoGP</div>
-      <div class="series-card reveal reveal-delay-2" role="listitem"><span class="series-dot" style="background:#0090ff"></span>Formula E</div>
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#f5c400"></span>WEC / Le Mans</div>
-      <div class="series-card reveal reveal-delay-1" role="listitem"><span class="series-dot" style="background:#0090ff"></span>IndyCar</div>
-      <div class="series-card reveal reveal-delay-2" role="listitem"><span class="series-dot" style="background:#00b140"></span>NASCAR Cup</div>
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#e8201c"></span>Formula 2</div>
-      <div class="series-card reveal reveal-delay-1" role="listitem"><span class="series-dot" style="background:#e8201c"></span>Formula 3</div>
-      <div class="series-card reveal reveal-delay-2" role="listitem"><span class="series-dot" style="background:#6c3eb8"></span>WSBK</div>
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#f5c400"></span>IMSA</div>
-      <div class="series-card reveal reveal-delay-1" role="listitem"><span class="series-dot" style="background:#0090ff"></span>WRC</div>
-      <div class="series-card reveal reveal-delay-2" role="listitem"><span class="series-dot" style="background:#ff6900"></span>MXGP</div>
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#e8201c"></span>DTM</div>
-      <div class="series-card reveal reveal-delay-1" role="listitem"><span class="series-dot" style="background:#0090ff"></span>BTCC</div>
-      <div class="series-card reveal reveal-delay-2" role="listitem"><span class="series-dot" style="background:#f5c400"></span>ELMS</div>
-      <div class="series-card reveal" role="listitem"><span class="series-dot" style="background:#6c3eb8"></span>+ more</div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section class="section features-section" id="features" aria-labelledby="features-title">
-  <div class="container">
-    <div class="container--narrow" style="padding-inline:0">
-      <p class="section-label reveal">What you get</p>
-      <h2 class="section-title reveal reveal-delay-1" id="features-title">Built for the<br>serious fan.</h2>
-    </div>
-
-    <div class="features-grid">
-      <!-- Wide card: session-level detail -->
-      <div class="feature-card feature-card--wide reveal">
-        <div class="feature-card--wide-inner">
-          <div>
-            <div class="feature-icon" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <h3 class="feature-title" style="margin-top:var(--space-4)">Session-Level<br>Precision</h3>
-            <p class="feature-desc" style="margin-top:var(--space-3)">
-              Not just race weekends — see every FP1, FP2, FP3, qualifying, sprint, and race session. Exact UTC times synced from official sources, converted to your local timezone.
-            </p>
+    <!-- HERO -->
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="hero-eyebrow">Open Source Motorsport Calendar</p>
+          <h1 class="hero-heading" id="hero-heading">Every race.<br /><em>One grid.</em></h1>
+          <p class="hero-sub">
+            GridStart aggregates F1, MotoGP, WEC, NASCAR, and 15+ other series into a single, unified calendar — with
+            live session times, timezone support, and one-click ICS export.
+          </p>
+          <div class="hero-ctas">
+            <a href="/app" class="btn btn-primary btn-lg">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Open Calendar
+            </a>
+            <a href="#features" class="btn btn-ghost btn-lg">See Features</a>
+            <a
+              href="https://github.com/mblancolabs/gridstart"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-ghost btn-lg"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                />
+              </svg>
+              Get GridStart
+            </a>
           </div>
-          <div class="feature-mockup" aria-hidden="true">
-            <div class="mock-row">
-              <span class="mock-flag" style="background:#e8201c"></span>
-              <span class="mock-label">Monaco Grand Prix · FP1</span>
-              <span class="mock-badge">Live</span>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">15+</span>
+              <span class="stat-label">Racing Series</span>
             </div>
-            <div class="mock-row">
-              <span class="mock-flag" style="background:#e8201c"></span>
-              <span class="mock-label">Monaco Grand Prix · FP2</span>
-              <span class="mock-badge--muted mock-badge">Fri 15:00</span>
+            <div class="stat-item">
+              <span class="stat-number">500+</span>
+              <span class="stat-label">Events/Year</span>
             </div>
-            <div class="mock-row">
-              <span class="mock-flag" style="background:#e8201c"></span>
-              <span class="mock-label">Monaco Grand Prix · Qualifying</span>
-              <span class="mock-badge--muted mock-badge">Sat 16:00</span>
+            <div class="stat-item">
+              <span class="stat-number">Live</span>
+              <span class="stat-label">Session Data</span>
             </div>
-            <div class="mock-row">
-              <span class="mock-flag" style="background:#e8201c"></span>
-              <span class="mock-label">Monaco Grand Prix · Race</span>
-              <span class="mock-badge--muted mock-badge">Sun 15:00</span>
+            <div class="stat-item">
+              <span class="stat-number">ICS</span>
+              <span class="stat-label">Calendar Export</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- 2 regular cards -->
-      <div class="feature-card reveal">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <!-- SCREENSHOT -->
+      <section class="screenshot-section" aria-label="Application screenshot">
+        <div class="screenshot-wrap reveal">
+          <img
+            src="/gridstart-screenshot.png"
+            alt="GridStart calendar view showing multiple motorsport series with session details"
+            width="1080"
+            height="620"
+            loading="lazy"
+          />
         </div>
-        <h3 class="feature-title">Unified<br>Calendar View</h3>
-        <p class="feature-desc">All your chosen series on a single grid. Filter by series, view by month or list. No more jumping between official sites.</p>
-      </div>
+        <p class="screenshot-caption">GridStart — multi-series calendar view</p>
+      </section>
 
-      <div class="feature-card reveal reveal-delay-1">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      <!-- SERIES -->
+      <section class="section series-section" id="series" aria-labelledby="series-title">
+        <div class="container container--narrow">
+          <p class="section-label reveal">Coverage</p>
+          <h2 class="section-title reveal reveal-delay-1" id="series-title">Every series.<br />One app.</h2>
+          <p class="section-desc reveal reveal-delay-2">
+            From Formula 1 to the Dakar Rally, GridStart covers the full spectrum of motorsport. Configure exactly which
+            series matter to you.
+          </p>
         </div>
-        <h3 class="feature-title">Live API<br>Sources</h3>
-        <p class="feature-desc">F1 via Jolpica API. MotoGP via PulseLive. ICS feeds for all other series. Fresh data every hour with stale-fallback safety.</p>
-      </div>
+        <div class="container">
+          <div class="series-grid" role="list">
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #e8201c"></span>Formula 1
+            </div>
+            <div class="series-card reveal reveal-delay-1" role="listitem">
+              <span class="series-dot" style="background: #ff6900"></span>MotoGP
+            </div>
+            <div class="series-card reveal reveal-delay-2" role="listitem">
+              <span class="series-dot" style="background: #0090ff"></span>Formula E
+            </div>
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #f5c400"></span>WEC / Le Mans
+            </div>
+            <div class="series-card reveal reveal-delay-1" role="listitem">
+              <span class="series-dot" style="background: #0090ff"></span>IndyCar
+            </div>
+            <div class="series-card reveal reveal-delay-2" role="listitem">
+              <span class="series-dot" style="background: #00b140"></span>NASCAR Cup
+            </div>
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #e8201c"></span>Formula 2
+            </div>
+            <div class="series-card reveal reveal-delay-1" role="listitem">
+              <span class="series-dot" style="background: #e8201c"></span>Formula 3
+            </div>
+            <div class="series-card reveal reveal-delay-2" role="listitem">
+              <span class="series-dot" style="background: #6c3eb8"></span>WSBK
+            </div>
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #f5c400"></span>IMSA
+            </div>
+            <div class="series-card reveal reveal-delay-1" role="listitem">
+              <span class="series-dot" style="background: #0090ff"></span>WRC
+            </div>
+            <div class="series-card reveal reveal-delay-2" role="listitem">
+              <span class="series-dot" style="background: #ff6900"></span>MXGP
+            </div>
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #e8201c"></span>DTM
+            </div>
+            <div class="series-card reveal reveal-delay-1" role="listitem">
+              <span class="series-dot" style="background: #0090ff"></span>BTCC
+            </div>
+            <div class="series-card reveal reveal-delay-2" role="listitem">
+              <span class="series-dot" style="background: #f5c400"></span>ELMS
+            </div>
+            <div class="series-card reveal" role="listitem">
+              <span class="series-dot" style="background: #6c3eb8"></span>+ more
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div class="feature-card reveal">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10 10 10 0 0 1-10-10A10 10 0 0 1 12 2"/><path d="M2 12h4M18 12h4M12 2v4M12 18v4"/></svg>
-        </div>
-        <h3 class="feature-title">Dark &amp; Light<br>Theme</h3>
-        <p class="feature-desc">Race day dark mode, bright morning light mode. Toggle instantly or respect your system preference.</p>
-      </div>
+      <!-- FEATURES -->
+      <section class="section features-section" id="features" aria-labelledby="features-title">
+        <div class="container">
+          <div class="container--narrow" style="padding-inline: 0">
+            <p class="section-label reveal">What you get</p>
+            <h2 class="section-title reveal reveal-delay-1" id="features-title">Built for the<br />serious fan.</h2>
+          </div>
 
-      <div class="feature-card reveal reveal-delay-1">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <h3 class="feature-title">Open Source<br>&amp; Self-Hosted</h3>
-        <p class="feature-desc">MIT licensed. Run it yourself, fork it, customize it. Built with React + TypeScript + Express — a stack you know.</p>
-      </div>
-    </div>
-  </div>
-</section>
+          <div class="features-grid">
+            <!-- Wide card: session-level detail -->
+            <div class="feature-card feature-card--wide reveal">
+              <div class="feature-card--wide-inner">
+                <div>
+                  <div class="feature-icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  </div>
+                  <h3 class="feature-title" style="margin-top: var(--space-4)">Session-Level<br />Precision</h3>
+                  <p class="feature-desc" style="margin-top: var(--space-3)">
+                    Not just race weekends — see every FP1, FP2, FP3, qualifying, sprint, and race session. Exact UTC
+                    times synced from official sources, converted to your local timezone.
+                  </p>
+                </div>
+                <div class="feature-mockup" aria-hidden="true">
+                  <div class="mock-row">
+                    <span class="mock-flag" style="background: #e8201c"></span>
+                    <span class="mock-label">Monaco Grand Prix · FP1</span>
+                    <span class="mock-badge">Live</span>
+                  </div>
+                  <div class="mock-row">
+                    <span class="mock-flag" style="background: #e8201c"></span>
+                    <span class="mock-label">Monaco Grand Prix · FP2</span>
+                    <span class="mock-badge--muted mock-badge">Fri 15:00</span>
+                  </div>
+                  <div class="mock-row">
+                    <span class="mock-flag" style="background: #e8201c"></span>
+                    <span class="mock-label">Monaco Grand Prix · Qualifying</span>
+                    <span class="mock-badge--muted mock-badge">Sat 16:00</span>
+                  </div>
+                  <div class="mock-row">
+                    <span class="mock-flag" style="background: #e8201c"></span>
+                    <span class="mock-label">Monaco Grand Prix · Race</span>
+                    <span class="mock-badge--muted mock-badge">Sun 15:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-<!-- ICS EXPORT -->
-<section class="section ics-section" id="export" aria-labelledby="ics-title">
-  <div class="container">
-    <div class="ics-inner">
-      <div>
-        <p class="section-label reveal">Calendar Export</p>
-        <h2 class="section-title reveal reveal-delay-1" id="ics-title">Subscribe once.<br>Never miss a<br><em style="color:var(--color-primary);font-style:normal">start.</em></h2>
-        <p class="section-desc reveal reveal-delay-2">Export your selected series as ICS files that auto-update in any calendar app. Select only the series you follow, export, done.</p>
-        <div class="cal-apps reveal reveal-delay-3">
-          <span class="cal-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/></svg>
-            Google Calendar
-          </span>
-          <span class="cal-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Outlook
-          </span>
-          <span class="cal-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            Apple Calendar
-          </span>
+            <!-- 2 regular cards -->
+            <div class="feature-card reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M9 21V9" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Unified<br />Calendar View</h3>
+              <p class="feature-desc">
+                All your chosen series on a single grid. Filter by series, view by month or list. No more jumping
+                between official sites.
+              </p>
+            </div>
+
+            <div class="feature-card reveal reveal-delay-1">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Live API<br />Sources</h3>
+              <p class="feature-desc">
+                F1 via Jolpica API. MotoGP via PulseLive. ICS feeds for all other series. Fresh data every hour with
+                stale-fallback safety.
+              </p>
+            </div>
+
+            <div class="feature-card reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10 10 10 0 0 1-10-10A10 10 0 0 1 12 2" />
+                  <path d="M2 12h4M18 12h4M12 2v4M12 18v4" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Dark &amp; Light<br />Theme</h3>
+              <p class="feature-desc">
+                Race day dark mode, bright morning light mode. Toggle instantly or respect your system preference.
+              </p>
+            </div>
+
+            <div class="feature-card reveal reveal-delay-1">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Open Source<br />&amp; Self-Hosted</h3>
+              <p class="feature-desc">
+                MIT licensed. Run it yourself, fork it, customize it. Built with React + TypeScript + Express — a stack
+                you know.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="ics-mockup reveal reveal-delay-1">
-        <div class="ics-mockup-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          gridstart-calendar.ics
-        </div>
-        <div class="ics-events">
-          <div class="ics-event">
+      </section>
+
+      <!-- ICS EXPORT -->
+      <section class="section ics-section" id="export" aria-labelledby="ics-title">
+        <div class="container">
+          <div class="ics-inner">
             <div>
-              <div class="ics-event-date">25</div>
-              <div class="ics-event-month">May</div>
+              <p class="section-label reveal">Calendar Export</p>
+              <h2 class="section-title reveal reveal-delay-1" id="ics-title">
+                Subscribe once.<br />Never miss a<br /><em style="color: var(--color-primary); font-style: normal"
+                  >start.</em
+                >
+              </h2>
+              <p class="section-desc reveal reveal-delay-2">
+                Export your selected series as ICS files that auto-update in any calendar app. Select only the series
+                you follow, export, done.
+              </p>
+              <div class="cal-apps reveal reveal-delay-3">
+                <span class="cal-badge">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+                  </svg>
+                  Google Calendar
+                </span>
+                <span class="cal-badge">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  Outlook
+                </span>
+                <span class="cal-badge">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                  Apple Calendar
+                </span>
+              </div>
             </div>
-            <div class="ics-event-info">
-              <div class="ics-event-title">Monaco GP · Race</div>
-              <div class="ics-event-sub">Formula 1 · 15:00 CET</div>
-            </div>
-          </div>
-          <div class="ics-event ics-event--alt">
-            <div>
-              <div class="ics-event-date">26</div>
-              <div class="ics-event-month">May</div>
-            </div>
-            <div class="ics-event-info">
-              <div class="ics-event-title">Mugello Round · Race 1</div>
-              <div class="ics-event-sub">MotoGP · 14:00 CET</div>
-            </div>
-          </div>
-          <div class="ics-event ics-event--alt2">
-            <div>
-              <div class="ics-event-date">15</div>
-              <div class="ics-event-month">Jun</div>
-            </div>
-            <div class="ics-event-info">
-              <div class="ics-event-title">24 Heures du Mans</div>
-              <div class="ics-event-sub">WEC · 16:00 CET</div>
+            <div class="ics-mockup reveal reveal-delay-1">
+              <div class="ics-mockup-header">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                gridstart-calendar.ics
+              </div>
+              <div class="ics-events">
+                <div class="ics-event">
+                  <div>
+                    <div class="ics-event-date">25</div>
+                    <div class="ics-event-month">May</div>
+                  </div>
+                  <div class="ics-event-info">
+                    <div class="ics-event-title">Monaco GP · Race</div>
+                    <div class="ics-event-sub">Formula 1 · 15:00 CET</div>
+                  </div>
+                </div>
+                <div class="ics-event ics-event--alt">
+                  <div>
+                    <div class="ics-event-date">26</div>
+                    <div class="ics-event-month">May</div>
+                  </div>
+                  <div class="ics-event-info">
+                    <div class="ics-event-title">Mugello Round · Race 1</div>
+                    <div class="ics-event-sub">MotoGP · 14:00 CET</div>
+                  </div>
+                </div>
+                <div class="ics-event ics-event--alt2">
+                  <div>
+                    <div class="ics-event-date">15</div>
+                    <div class="ics-event-month">Jun</div>
+                  </div>
+                  <div class="ics-event-info">
+                    <div class="ics-event-title">24 Heures du Mans</div>
+                    <div class="ics-event-sub">WEC · 16:00 CET</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta-section" aria-labelledby="cta-heading">
+        <h2 class="cta-heading reveal" id="cta-heading">Ready<br />to race?</h2>
+        <p class="cta-sub reveal reveal-delay-1">
+          Self-host in minutes. MIT licensed. Built for motorsport fans who want every session on time.
+        </p>
+        <div class="cta-actions reveal reveal-delay-2">
+          <a href="/app" class="btn btn-primary btn-lg">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Open Calendar
+          </a>
+          <a
+            href="https://github.com/mblancolabs/gridstart"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-ghost btn-lg"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+              />
+            </svg>
+            GitHub — mblancolabs/gridstart
+          </a>
+          <a
+            href="https://github.com/mblancolabs/gridstart/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-ghost btn-lg"
+            >Read the Docs</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a href="#" class="logo" style="font-size: var(--text-sm)">
+          <svg width="20" height="20" viewBox="0 0 28 28" fill="none" aria-label="GridStart" role="img">
+            <rect x="2" y="2" width="11" height="11" rx="1" fill="var(--color-primary)" />
+            <rect x="15" y="2" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35" />
+            <rect x="2" y="15" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35" />
+            <rect x="15" y="15" width="11" height="11" rx="1" fill="var(--color-primary)" />
+          </svg>
+          GridStart
+        </a>
+        <nav aria-label="Footer navigation">
+          <ul class="footer-links" role="list">
+            <li>
+              <a href="https://github.com/mblancolabs/gridstart" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </li>
+            <li>
+              <a
+                href="https://github.com/mblancolabs/gridstart/blob/main/LICENSE.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                >MIT License</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/mblancolabs/gridstart/blob/main/CONTRIBUTING.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Contributing</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <span class="footer-copy">Open source motorsport calendar</span>
       </div>
-    </div>
-  </div>
-</section>
+      <p
+        style="
+          margin-top: var(--space-6);
+          font-size: var(--text-xs);
+          color: var(--color-text-faint);
+          text-align: center;
+          max-width: var(--content-wide);
+          margin-inline: auto;
+          border-top: 1px solid oklch(from var(--color-text) l c h / 0.06);
+          padding-top: var(--space-6);
+          letter-spacing: 0.04em;
+        "
+      >
+        This site uses a cookie for security and one to remember your series preferences.
+      </p>
+    </footer>
 
-<!-- CTA -->
-<section class="cta-section" aria-labelledby="cta-heading">
-  <h2 class="cta-heading reveal" id="cta-heading">Ready<br>to race?</h2>
-  <p class="cta-sub reveal reveal-delay-1">Self-host in minutes. MIT licensed. Built for motorsport fans who want every session on time.</p>
-  <div class="cta-actions reveal reveal-delay-2">
-    <a href="/app" class="btn btn-primary btn-lg">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Open Calendar
-    </a>
-    <a href="https://github.com/mblancolabs/gridstart" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-lg">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      GitHub — mblancolabs/gridstart
-    </a>
-    <a href="https://github.com/mblancolabs/gridstart/blob/main/README.md" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-lg">Read the Docs</a>
-  </div>
-</section>
-</main>
-
-<!-- FOOTER -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <a href="#" class="logo" style="font-size:var(--text-sm)">
-      <svg width="20" height="20" viewBox="0 0 28 28" fill="none" aria-label="GridStart" role="img">
-        <rect x="2" y="2" width="11" height="11" rx="1" fill="var(--color-primary)"/>
-        <rect x="15" y="2" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35"/>
-        <rect x="2" y="15" width="11" height="11" rx="1" fill="var(--color-text)" opacity="0.35"/>
-        <rect x="15" y="15" width="11" height="11" rx="1" fill="var(--color-primary)"/>
-      </svg>
-      GridStart
-    </a>
-    <nav aria-label="Footer navigation">
-      <ul class="footer-links" role="list">
-        <li><a href="https://github.com/mblancolabs/gridstart" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-        <li><a href="https://github.com/mblancolabs/gridstart/blob/main/LICENSE.txt" target="_blank" rel="noopener noreferrer">MIT License</a></li>
-        <li><a href="https://github.com/mblancolabs/gridstart/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing</a></li>
-      </ul>
-    </nav>
-    <span class="footer-copy">Open source motorsport calendar</span>
-  </div>
-  <p style="margin-top:var(--space-6);font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;max-width:var(--content-wide);margin-inline:auto;border-top:1px solid oklch(from var(--color-text) l c h / 0.06);padding-top:var(--space-6);letter-spacing:0.04em">
-    This site uses a cookie for security and one to remember your series preferences.
-  </p>
-</footer>
-
-<script>
-// Theme toggle
-(function(){
-  const t = document.querySelector('[data-theme-toggle]');
-  const r = document.documentElement;
-  let d = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
-  r.setAttribute('data-theme', d);
-  function updateIcon() {
-    if (!t) return;
-    t.setAttribute('aria-label', 'Switch to ' + (d === 'dark' ? 'light' : 'dark') + ' mode');
-    t.innerHTML = d === 'dark'
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  }
-  updateIcon();
-  if (t) t.addEventListener('click', () => {
-    d = d === 'dark' ? 'light' : 'dark';
-    r.setAttribute('data-theme', d);
-    updateIcon();
-  });
-})();
-
-// Scroll reveal
-(function(){
-  if (!('IntersectionObserver' in window)) {
-    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-    return;
-  }
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
-  }, { threshold: 0.12, rootMargin: '0px 0px -48px 0px' });
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-})();
-</script>
-</body>
+    <script src="/landing.js" defer></script>
+  </body>
 </html>

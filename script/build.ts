@@ -38,10 +38,7 @@ async function buildAll() {
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
-  const allDeps = [
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.devDependencies || {}),
-  ];
+  const allDeps = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
@@ -56,6 +53,7 @@ async function buildAll() {
     minify: true,
     external: externals,
     logLevel: "info",
+    logOverride: { "empty-import-meta": "silent" },
   });
 }
 

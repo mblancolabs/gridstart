@@ -10,8 +10,8 @@ Please read these files first:
 
 - `README.md` for project setup and runtime behavior
 - `.env.example` for supported environment variables
-- `ics-feeds.json` for series configuration
-- `drizzle.config.ts` and the `shared/` folder for schema-related changes
+- `config/calendar-feeds.json` for series configuration
+- `shared/` folder for shared types, schemas, and contracts
 
 ## What You Can Contribute
 
@@ -40,19 +40,14 @@ Useful contributions include:
 npm install
 ```
 
-### Initialize the database
-
-```bash
-npm run db:push
-```
-
 ### Start the development server
 
 ```bash
 npm run dev
 ```
 
-By default, the app runs on `http://localhost:5000`.
+By default, the app runs on `http://localhost:5000` with the in-memory cache. No Redis required.
+To enable the Redis cache, set `REDIS_URL` and `REDIS_TOKEN` in your `.env` file.
 
 ## Project Layout
 
@@ -65,9 +60,8 @@ script/     Utility or maintenance scripts
 
 Additional important files:
 
-- `ics-feeds.json`: configuration for calendar feeds and supported series
+- `config/calendar-feeds.json`: configuration for calendar feeds and supported series
 - `.env.example`: local environment variable reference
-- `drizzle.config.ts`: Drizzle configuration
 - `README.md`: primary project documentation
 
 ## Branches and Pull Requests
@@ -125,7 +119,7 @@ Small, focused pull requests are easier to review and merge than large mixed cha
 
 ## Adding or Updating a Series
 
-Most series are configured through `ics-feeds.json`.
+Most series are configured through `config/calendar-feeds.json`.
 
 When adding a new series:
 
@@ -146,14 +140,13 @@ Please verify:
 
 For F1 and MotoGP, check any special handling already documented in the README before changing source logic.
 
-## Database Changes
+## Schema Changes
 
-If your change affects persisted data or schema:
+If your change affects shared schemas or types:
 
-1. Update the shared schema definitions.
-2. Run the relevant Drizzle workflow.
-3. Verify the app still starts from a clean setup.
-4. Document any migration or compatibility implications in the PR.
+1. Update the definitions in `shared/`.
+2. Verify the app still starts from a clean setup.
+3. Document any schema implications in the PR.
 
 Avoid schema changes that are unnecessary for the feature.
 
