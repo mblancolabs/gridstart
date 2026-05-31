@@ -63,7 +63,7 @@ afterAll(() => {
   console.error = originalError;
 });
 
-Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
   value: vi.fn(() => ({
     fillRect: vi.fn(),
     clearRect: vi.fn(),

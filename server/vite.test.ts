@@ -57,9 +57,11 @@ describe("setupVite", () => {
 
     mockVite = {
       middlewares: (req: any, res: any, next: any) => next(),
-      transformIndexHtml: vi.fn().mockImplementation((url: string, html: string) =>
-        Promise.resolve(html.replace("</head>", '<meta test="true"></head>')),
-      ),
+      transformIndexHtml: vi
+        .fn()
+        .mockImplementation((url: string, html: string) =>
+          Promise.resolve(html.replace("</head>", '<meta test="true"></head>')),
+        ),
       ssrFixStacktrace: vi.fn(),
     };
   });
@@ -88,7 +90,7 @@ describe("setupVite", () => {
     const res = await request(app).get("/some-page");
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("text/html");
-    expect(res.text).toContain("src=\"/src/main.tsx?v=test-id-123\"");
+    expect(res.text).toContain('src="/src/main.tsx?v=test-id-123"');
     expect(mockVite.transformIndexHtml).toHaveBeenCalledOnce();
   });
 

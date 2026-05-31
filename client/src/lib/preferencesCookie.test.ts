@@ -11,9 +11,7 @@ describe("getEnabledSeriesFromCookie", () => {
   beforeEach(() => {
     // Clear all cookies
     document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
     });
   });
 
@@ -62,9 +60,7 @@ describe("getEnabledSeriesFromCookie", () => {
 describe("setEnabledSeriesCookie", () => {
   beforeEach(() => {
     document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
     });
   });
 
@@ -95,9 +91,7 @@ describe("setEnabledSeriesCookie", () => {
 
     setEnabledSeriesCookie(["f1"]);
 
-    expect(mockSet).toHaveBeenCalledWith(
-      expect.stringContaining("path=/")
-    );
+    expect(mockSet).toHaveBeenCalledWith(expect.stringContaining("path=/"));
 
     Object.defineProperty(document, "cookie", originalCookie);
   });

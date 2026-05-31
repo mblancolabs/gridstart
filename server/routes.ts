@@ -24,8 +24,9 @@ function loadFeedsConfig() {
   const baseFile = "calendar-feeds.json";
 
   // Find all calendar-feeds.*.json files except the base one
-  const patternFiles = fs.readdirSync(feedsDir)
-    .filter(f => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
+  const patternFiles = fs
+    .readdirSync(feedsDir)
+    .filter((f) => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
     .sort(); // alphabetical order
 
   console.log("Pattern files:", patternFiles);
@@ -81,8 +82,8 @@ function getAllSeries(): SeriesInfo[] {
         rawSessionNames === undefined
           ? undefined
           : Array.isArray(rawSessionNames)
-          ? normalizeSessionNames(rawSessionNames)
-          : undefined;
+            ? normalizeSessionNames(rawSessionNames)
+            : undefined;
 
       if (rawSessionNames !== undefined && !Array.isArray(rawSessionNames)) {
         throw new Error(`Invalid sessionNames for ${series.id}: must be an array`);
@@ -92,9 +93,7 @@ function getAllSeries(): SeriesInfo[] {
         Array.isArray(rawSessionNames) &&
         (!normalizedSessionNames || normalizedSessionNames.length !== rawSessionNames.length)
       ) {
-        throw new Error(
-          `Invalid sessionNames for ${series.id}: unsupported session names`
-        );
+        throw new Error(`Invalid sessionNames for ${series.id}: unsupported session names`);
       }
 
       result.push({
@@ -167,17 +166,14 @@ function generateICS(events: CalendarEvent[]): string {
   for (const event of events) {
     const vevent = new ICAL.Component("vevent");
     vevent.updatePropertyWithValue("uid", event.id);
-    vevent.updatePropertyWithValue(
-      "summary",
-      `${event.title}`
-    );
+    vevent.updatePropertyWithValue("summary", `${event.title}`);
 
     if (event.isAllDay) {
       // All-day event — use VALUE=DATE
       //const d = new Date(event.startDate);
       //const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
       //const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
-      
+
       const dEnd = new Date(event.endDate);
       const endDateStr = `${dEnd.getUTCFullYear()}${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}${String(dEnd.getUTCDate()).padStart(2, "0")}`;
       vevent.addPropertyWithValue("dtend", ICAL.Time.fromDateString(endDateStr));
@@ -204,11 +200,7 @@ function generateICS(events: CalendarEvent[]): string {
 
 // ---------- Fetch events for a series ----------
 
-async function fetchEventsForSeries(
-  series: SeriesInfo,
-  fromDate?: Date,
-  toDate?: Date
-): Promise<CalendarEvent[]> {
+async function fetchEventsForSeries(series: SeriesInfo, fromDate?: Date, toDate?: Date): Promise<CalendarEvent[]> {
   // Determine which years to fetch
   const years = new Set<number>();
   const currentYear = new Date().getFullYear();
@@ -221,7 +213,7 @@ async function fetchEventsForSeries(
     throw new Error(`Unknown handler: ${series.handler}`);
   }
 
-  let allEvents: CalendarEvent[] = [];
+  const allEvents: CalendarEvent[] = [];
   for (const year of Array.from(years)) {
     const events = await handler.fetchEvents(series, series.params, year);
     allEvents.push(...events);
@@ -230,11 +222,7 @@ async function fetchEventsForSeries(
   return filterByDateRange(allEvents, fromDate, toDate);
 }
 
-function filterByDateRange(
-  events: CalendarEvent[],
-  fromDate?: Date,
-  toDate?: Date
-): CalendarEvent[] {
+function filterByDateRange(events: CalendarEvent[], fromDate?: Date, toDate?: Date): CalendarEvent[] {
   if (!fromDate && !toDate) return events;
   return events.filter((e) => {
     const start = new Date(e.startDate);
@@ -247,10 +235,7 @@ function filterByDateRange(
 
 // ---------- Routes ----------
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
+export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   // GET /api/series — list all series
   app.get("/api/series", generalApiLimiter, (_req: Request, res: Response) => {
     res.json(allSeries);
@@ -266,8 +251,8 @@ export async function registerRoutes(
         .filter(Boolean);
 
       // Validate series IDs exist
-      const validSeriesIds = allSeries.map(s => s.id);
-      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
+      const validSeriesIds = allSeries.map((s) => s.id);
+      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
@@ -296,10 +281,7 @@ export async function registerRoutes(
       await Promise.all(fetchPromises);
 
       // Sort by start date
-      allEvents.sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      );
+      allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
       res.json(allEvents);
     } catch (err) {
@@ -320,21 +302,16 @@ export async function registerRoutes(
         .filter(Boolean);
 
       // Validate series IDs exist
-      const validSeriesIds = allSeries.map(s => s.id);
-      const invalidSeries = seriesIds.filter(id => !validSeriesIds.includes(id));
+      const validSeriesIds = allSeries.map((s) => s.id);
+      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
         res.set("Content-Type", "text/calendar; charset=utf-8");
-        res.set(
-          "Content-Disposition",
-          'attachment; filename="gridstart.ics"'
-        );
-        return res.send(
-          "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR"
-        );
+        res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
+        return res.send("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
       }
 
       const allEvents: CalendarEvent[] = [];
@@ -353,18 +330,12 @@ export async function registerRoutes(
 
       await Promise.all(fetchPromises);
 
-      allEvents.sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      );
+      allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
       const icsString = generateICS(allEvents);
 
       res.set("Content-Type", "text/calendar; charset=utf-8");
-      res.set(
-        "Content-Disposition",
-        'attachment; filename="gridstart.ics"'
-      );
+      res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
       res.send(icsString);
     } catch (err) {
       if (err instanceof z.ZodError) {

@@ -81,7 +81,9 @@ describe("errorHandler", () => {
     process.env.NODE_ENV = "development";
     const req: any = { requestId: "req-789" };
     const res: any = createMockResponse();
-    const next = () => { throw new Error("next should not be called"); };
+    const next = () => {
+      throw new Error("next should not be called");
+    };
 
     const error = new Error("Not found");
     (error as any).status = 404;

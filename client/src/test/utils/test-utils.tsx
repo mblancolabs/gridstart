@@ -22,27 +22,14 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
 }
 
 // Wrapper component that provides all necessary providers
-function Wrapper({
-  children,
-  queryClient,
-}: {
-  children: React.ReactNode;
-  queryClient: QueryClient;
-}) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+function Wrapper({ children, queryClient }: { children: React.ReactNode; queryClient: QueryClient }) {
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
 // Custom render function that includes all providers
 export function renderWithProviders(
   ui: ReactElement,
-  {
-    queryClient = createTestQueryClient(),
-    ...renderOptions
-  }: ExtendedRenderOptions = {}
+  { queryClient = createTestQueryClient(), ...renderOptions }: ExtendedRenderOptions = {},
 ) {
   const Wrapper_ = ({ children }: { children: React.ReactNode }) => (
     <Wrapper queryClient={queryClient}>{children}</Wrapper>

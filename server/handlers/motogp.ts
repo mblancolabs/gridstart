@@ -39,9 +39,9 @@ interface MotoGPSession {
 
 const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
 const MOTOGP_CATEGORY_IDS: Record<string, string> = {
-  "MotoGP": "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
-  "Moto2": "549640b8-fd9c-4245-acfd-60e4bc38b25c",
-  "Moto3": "954f7e65-2ef2-4423-b949-4961cc603e45",
+  MotoGP: "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
+  Moto2: "549640b8-fd9c-4245-acfd-60e4bc38b25c",
+  Moto3: "954f7e65-2ef2-4423-b949-4961cc603e45",
 };
 
 const MOTOGP_SESSION_LABELS: Record<string, string> = {
@@ -96,10 +96,7 @@ const MOTOGP_COUNTRY_TIMEZONES: Record<string, string> = {
 };
 
 function getMotoGPTimeZone(event: MotoGPEvent): string | undefined {
-  return (
-    MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] ||
-    MOTOGP_COUNTRY_TIMEZONES[event.country.iso]
-  );
+  return MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] || MOTOGP_COUNTRY_TIMEZONES[event.country.iso];
 }
 
 function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
@@ -197,7 +194,7 @@ export class MotoGPHandler implements FeedHandler {
 
         try {
           const sessionsRes = await fetch(
-            `${MOTOGP_API_BASE}/results/sessions?eventUuid=${mgpEvent.id}&categoryUuid=${categoryId}`
+            `${MOTOGP_API_BASE}/results/sessions?eventUuid=${mgpEvent.id}&categoryUuid=${categoryId}`,
           );
           if (!sessionsRes.ok) continue;
 
@@ -227,7 +224,7 @@ export class MotoGPHandler implements FeedHandler {
               seriesName: series.name,
               seriesShortName: series.shortName,
               seriesColor: series.color,
-              title: `${series.shortName} | ${raceName.split(' of ').pop()} ${label}`,
+              title: `${series.shortName} | ${raceName.split(" of ").pop()} ${label}`,
               startDate,
               endDate,
               location,
@@ -247,9 +244,7 @@ export class MotoGPHandler implements FeedHandler {
       }
 
       const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-      const finalEvents = requestedSessionNames
-        ? filterEventsBySessionNames(events, requestedSessionNames)
-        : events;
+      const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
 
       await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
       return finalEvents;

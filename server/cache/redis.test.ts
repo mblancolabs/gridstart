@@ -126,8 +126,6 @@ describe("RedisCache", () => {
     mockFetch.mockResolvedValue({ ok: false, status: 403 });
 
     const cache = createCache();
-    await expect(cache.set("fail", { data: "x", fetchedAt: 1 })).rejects.toThrow(
-      "Redis SET failed",
-    );
+    await expect(cache.set("fail", { data: "x", fetchedAt: 1 })).rejects.toThrow("Redis SET failed");
   });
 });

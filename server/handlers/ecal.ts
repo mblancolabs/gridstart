@@ -8,15 +8,10 @@ import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames
 const IGNORED_TITLE_WORDS = ["calendar", "Welcome"];
 
 function removeEmojis(text: string): string {
-  return text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D\u20E3]/gu, '').trim();
+  return text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D\u20E3]/gu, "").trim();
 }
 
-export function parseICSEvents(
-  icsData: string,
-  series: SeriesInfo,
-  fromDate?: Date,
-  toDate?: Date
-): CalendarEvent[] {
+export function parseICSEvents(icsData: string, series: SeriesInfo, fromDate?: Date, toDate?: Date): CalendarEvent[] {
   const events: CalendarEvent[] = [];
 
   try {
@@ -42,13 +37,12 @@ export function parseICSEvents(
       if (fromDate && endDate < fromDate) continue;
       if (toDate && startDate > toDate) continue;
 
-      let location =
-        (vevent.getFirstPropertyValue("location") as string | null) || undefined;
+      let location = (vevent.getFirstPropertyValue("location") as string | null) || undefined;
 
       const summary = event.summary || "Untitled Event";
 
       // Ignore events with titles containing specified words
-      if (IGNORED_TITLE_WORDS.some(word => summary.toLowerCase().includes(word.toLowerCase()))) continue;
+      if (IGNORED_TITLE_WORDS.some((word) => summary.toLowerCase().includes(word.toLowerCase()))) continue;
 
       // Override location if it contains separator patterns
       if (location) {
@@ -56,7 +50,7 @@ export function parseICSEvents(
         if (location.includes("|")) {
           location = location.split("|")[0].trim();
         }
-        
+
         // Then try different separators in order of specificity
         const separators = ["@ ", "at the ", "at ", "on the ", "on "];
         for (const sep of separators) {
@@ -75,10 +69,10 @@ export function parseICSEvents(
       let raceName: string | undefined;
       if (sessionType) {
         // Remove the session type from the title to get race name
-        const escapedSessionType = sessionType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        raceName = summary.replace(new RegExp(`\\b${escapedSessionType}\\b`, 'gi'), '').trim();
+        const escapedSessionType = sessionType.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        raceName = summary.replace(new RegExp(`\\b${escapedSessionType}\\b`, "gi"), "").trim();
         // Remove trailing separators like | : -
-        raceName = raceName.replace(/[|:-]+$/, '').trim();
+        raceName = raceName.replace(/[|:-]+$/, "").trim();
         // Remove emojis
         raceName = removeEmojis(raceName);
         // If raceName is empty or same as series short name, don't set it
@@ -88,10 +82,8 @@ export function parseICSEvents(
       }
 
       // Override title with standardized format
-      let title = location && sessionType 
-        ? `${series.shortName} | ${location} ${sessionType}`
-        : summary;
-      
+      let title = location && sessionType ? `${series.shortName} | ${location} ${sessionType}` : summary;
+
       // Remove emojis from title
       title = removeEmojis(title);
 
@@ -151,8 +143,6 @@ export class ECALHandler implements FeedHandler {
     const icsData = await fetchICSData(series.id, url);
     const events = parseICSEvents(icsData, series);
     const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-    return requestedSessionNames
-      ? filterEventsBySessionNames(events, requestedSessionNames)
-      : events;
+    return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
   }
 }

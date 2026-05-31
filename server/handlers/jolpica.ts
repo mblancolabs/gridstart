@@ -35,13 +35,13 @@ interface JolpicaRace {
 }
 
 const JOLPICA_SESSION_DURATIONS: Record<string, number> = {
-  "fp1": 60,
-  "fp2": 60,
-  "fp3": 60,
-  "quali": 70,
+  fp1: 60,
+  fp2: 60,
+  fp3: 60,
+  quali: 70,
   "sprint-quali": 70,
-  "sprint": 45,
-  "race": 120,
+  sprint: 45,
+  race: 120,
 };
 
 function getDurationForSession(sessionKey: string): number {
@@ -87,42 +87,41 @@ export class JolpicaHandler implements FeedHandler {
         const isSprint = !!race.Sprint;
 
         // Session type definitions with their data and labels
-        const sessions: { key: string; label: string; data?: JolpicaSession }[] =
-          isSprint
-            ? [
-                { key: "fp1", label: "Practice", data: race.FirstPractice },
-                {
-                  key: "sprint-quali",
-                  label: "Sprint Qualifying",
-                  data: race.SprintQualifying || race.SprintShootout,
-                },
-                { key: "sprint", label: "Sprint", data: race.Sprint },
-                { key: "quali", label: "Qualifying", data: race.Qualifying },
-                {
-                  key: "race",
-                  label: "Race",
-                  data: { date: race.date, time: race.time },
-                },
-              ]
-            : [
-                { key: "fp1", label: "Practice 1", data: race.FirstPractice },
-                {
-                  key: "fp2",
-                  label: "Practice 2",
-                  data: race.SecondPractice,
-                },
-                {
-                  key: "fp3",
-                  label: "Practice 3",
-                  data: race.ThirdPractice,
-                },
-                { key: "quali", label: "Qualifying", data: race.Qualifying },
-                {
-                  key: "race",
-                  label: "Race",
-                  data: { date: race.date, time: race.time },
-                },
-              ];
+        const sessions: { key: string; label: string; data?: JolpicaSession }[] = isSprint
+          ? [
+              { key: "fp1", label: "Practice", data: race.FirstPractice },
+              {
+                key: "sprint-quali",
+                label: "Sprint Qualifying",
+                data: race.SprintQualifying || race.SprintShootout,
+              },
+              { key: "sprint", label: "Sprint", data: race.Sprint },
+              { key: "quali", label: "Qualifying", data: race.Qualifying },
+              {
+                key: "race",
+                label: "Race",
+                data: { date: race.date, time: race.time },
+              },
+            ]
+          : [
+              { key: "fp1", label: "Practice 1", data: race.FirstPractice },
+              {
+                key: "fp2",
+                label: "Practice 2",
+                data: race.SecondPractice,
+              },
+              {
+                key: "fp3",
+                label: "Practice 3",
+                data: race.ThirdPractice,
+              },
+              { key: "quali", label: "Qualifying", data: race.Qualifying },
+              {
+                key: "race",
+                label: "Race",
+                data: { date: race.date, time: race.time },
+              },
+            ];
 
         for (const session of sessions) {
           const sessionLabel = normalizeSessionName(session.label);
@@ -139,9 +138,7 @@ export class JolpicaHandler implements FeedHandler {
             // Estimate session duration
             const durationMinutes = getDurationForSession(session.key);
             const start = new Date(startDate);
-            endDate = new Date(
-              start.getTime() + durationMinutes * 60 * 1000
-            ).toISOString();
+            endDate = new Date(start.getTime() + durationMinutes * 60 * 1000).toISOString();
           } else {
             startDate = `${session.data.date}T00:00:00Z`;
             endDate = `${session.data.date}T23:59:59Z`;
@@ -153,7 +150,7 @@ export class JolpicaHandler implements FeedHandler {
             seriesName: series.name,
             seriesShortName: series.shortName,
             seriesColor: series.color,
-            title: `${series.shortName} | ${race.raceName.replace(/Grand Prix/g, 'GP')} ${sessionLabel}`,
+            title: `${series.shortName} | ${race.raceName.replace(/Grand Prix/g, "GP")} ${sessionLabel}`,
             startDate,
             endDate,
             location: `${circuitName}, ${location}`,
@@ -166,9 +163,7 @@ export class JolpicaHandler implements FeedHandler {
       }
 
       const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-      const finalEvents = requestedSessionNames
-        ? filterEventsBySessionNames(events, requestedSessionNames)
-        : events;
+      const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
 
       await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
       return finalEvents;

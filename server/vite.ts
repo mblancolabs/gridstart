@@ -40,9 +40,7 @@ export async function setupVite(server: Server, app: Express) {
 
     if (url === "/" || url === "/index.html") {
       try {
-        const landingPath = path.resolve(
-          import.meta.dirname, "..", "client", "index.html",
-        );
+        const landingPath = path.resolve(import.meta.dirname, "..", "client", "index.html");
         if (!validateFilePath(landingPath, path.resolve(import.meta.dirname, ".."))) {
           throw new Error("Invalid template file path");
         }
@@ -56,12 +54,7 @@ export async function setupVite(server: Server, app: Express) {
     }
 
     try {
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "app.html",
-      );
+      const clientTemplate = path.resolve(import.meta.dirname, "..", "client", "app.html");
 
       // Validate template path for security
       if (!validateFilePath(clientTemplate, path.resolve(import.meta.dirname, ".."))) {
@@ -70,10 +63,7 @@ export async function setupVite(server: Server, app: Express) {
 
       // always reload the app.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
-      );
+      template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {

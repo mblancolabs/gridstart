@@ -71,7 +71,7 @@ describe("cn - Tailwind class merger", () => {
       size === "sm" ? "px-2 py-1" : undefined,
       variant === "primary" ? "bg-blue-500" : undefined,
       variant === "secondary" ? "bg-gray-500" : undefined,
-      disabled ? "opacity-50" : undefined
+      disabled ? "opacity-50" : undefined,
     );
 
     expect(result).toContain("button");

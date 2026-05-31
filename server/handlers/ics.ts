@@ -4,12 +4,7 @@ import ICAL from "ical.js";
 import { fetchICSData } from "../icsFetcher";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 
-export function parseICSEvents(
-  icsData: string,
-  series: SeriesInfo,
-  fromDate?: Date,
-  toDate?: Date
-): CalendarEvent[] {
+export function parseICSEvents(icsData: string, series: SeriesInfo, fromDate?: Date, toDate?: Date): CalendarEvent[] {
   const events: CalendarEvent[] = [];
 
   try {
@@ -35,10 +30,8 @@ export function parseICSEvents(
       if (fromDate && endDate < fromDate) continue;
       if (toDate && startDate > toDate) continue;
 
-      const location =
-        (vevent.getFirstPropertyValue("location") as string | null) || undefined;
-      const description =
-        (vevent.getFirstPropertyValue("description") as string | null) || undefined;
+      const location = (vevent.getFirstPropertyValue("location") as string | null) || undefined;
+      const description = (vevent.getFirstPropertyValue("description") as string | null) || undefined;
 
       const summary = event.summary || "Untitled Event";
 
@@ -95,8 +88,6 @@ export class ICSHandler implements FeedHandler {
     const icsData = await fetchICSData(series.id, url);
     const events = parseICSEvents(icsData, series);
     const requestedSessionNames = normalizeSessionNames(params.sessionNames);
-    return requestedSessionNames
-      ? filterEventsBySessionNames(events, requestedSessionNames)
-      : events;
+    return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
   }
 }

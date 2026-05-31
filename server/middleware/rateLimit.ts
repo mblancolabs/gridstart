@@ -14,15 +14,7 @@ function encodeLogValue(value: string): string {
   return JSON.stringify(sanitizeLogValue(value));
 }
 
-function createLimiter({
-  windowMs,
-  max,
-  name,
-}: {
-  windowMs: number;
-  max: number;
-  name: string;
-}) {
+function createLimiter({ windowMs, max, name }: { windowMs: number; max: number; name: string }) {
   return rateLimit({
     windowMs,
     max,

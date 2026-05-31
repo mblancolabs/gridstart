@@ -133,14 +133,44 @@ describe("API logic", () => {
     it("matches numbered session types against canonical filters", () => {
       const allowed = normalizeSessionNames(["Practice", "Qualifying"]);
       expect(allowed).toEqual(["Practice", "Qualifying"]);
-      expect(filterEventsBySessionNames(
-        [{ id: "1", seriesId: "test", seriesName: "Test", seriesShortName: "T", seriesColor: "#000", title: "Test", startDate: "2026-01-01T00:00:00Z", endDate: "2026-01-01T01:00:00Z", isAllDay: false, sessionType: "Practice 1" }],
-        allowed || []
-      )).toHaveLength(1);
-      expect(filterEventsBySessionNames(
-        [{ id: "2", seriesId: "test", seriesName: "Test", seriesShortName: "T", seriesColor: "#000", title: "Test", startDate: "2026-01-01T00:00:00Z", endDate: "2026-01-01T01:00:00Z", isAllDay: false, sessionType: "Qualifying 2" }],
-        allowed || []
-      )).toHaveLength(1);
+      expect(
+        filterEventsBySessionNames(
+          [
+            {
+              id: "1",
+              seriesId: "test",
+              seriesName: "Test",
+              seriesShortName: "T",
+              seriesColor: "#000",
+              title: "Test",
+              startDate: "2026-01-01T00:00:00Z",
+              endDate: "2026-01-01T01:00:00Z",
+              isAllDay: false,
+              sessionType: "Practice 1",
+            },
+          ],
+          allowed || [],
+        ),
+      ).toHaveLength(1);
+      expect(
+        filterEventsBySessionNames(
+          [
+            {
+              id: "2",
+              seriesId: "test",
+              seriesName: "Test",
+              seriesShortName: "T",
+              seriesColor: "#000",
+              title: "Test",
+              startDate: "2026-01-01T00:00:00Z",
+              endDate: "2026-01-01T01:00:00Z",
+              isAllDay: false,
+              sessionType: "Qualifying 2",
+            },
+          ],
+          allowed || [],
+        ),
+      ).toHaveLength(1);
     });
   });
 
@@ -171,7 +201,7 @@ END:VCALENDAR`,
           handler: "ics",
           params: {},
           enabled: true,
-        }
+        },
       );
 
       const filtered = filterEventsBySessionNames(events, ["Practice 1"]);
@@ -222,10 +252,12 @@ END:VCALENDAR`,
         },
       };
 
-      fetchMock.mockImplementation(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockApiResponse),
-      }));
+      fetchMock.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockApiResponse),
+        }),
+      );
 
       const result = await handler.fetchEvents(mockSeries, {}, 2024);
 
@@ -275,7 +307,7 @@ END:VCALENDAR`,
       const result = await handler.fetchEvents(mockSeries, {}, 2025);
 
       expect(result).toHaveLength(4); // FP1, Sprint Quali, Sprint, Race
-      const sprintQuali = result.find(e => e.sessionType === "Sprint Qualifying");
+      const sprintQuali = result.find((e) => e.sessionType === "Sprint Qualifying");
       expect(sprintQuali).toBeDefined();
     });
 
@@ -304,15 +336,17 @@ END:VCALENDAR`,
         },
       };
 
-      fetchMock.mockImplementation(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockApiResponse),
-      }));
+      fetchMock.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockApiResponse),
+        }),
+      );
 
       const result = await handler.fetchEvents(mockSeries, {}, 2026);
 
       expect(result).toHaveLength(2);
-      const fp1 = result.find(e => e.sessionType === "Practice 1");
+      const fp1 = result.find((e) => e.sessionType === "Practice 1");
       expect(fp1?.isAllDay).toBe(true);
       expect(fp1?.startDate).toBe("2024-02-29T00:00:00Z");
       expect(fp1?.endDate).toBe("2024-02-29T23:59:59Z");
@@ -327,10 +361,12 @@ END:VCALENDAR`,
         },
       };
 
-      fetchMock.mockImplementation(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockApiResponse),
-      }));
+      fetchMock.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockApiResponse),
+        }),
+      );
 
       // First call
       await handler.fetchEvents(mockSeries, {}, 2027);
@@ -445,11 +481,7 @@ END:VCALENDAR`,
       });
 
       // Only request "Practice" sessions — should filter out Qualifying and Race
-      const result = await handler.fetchEvents(
-        mockSeries,
-        { sessionNames: ["Practice"] },
-        2032,
-      );
+      const result = await handler.fetchEvents(mockSeries, { sessionNames: ["Practice"] }, 2032);
 
       expect(result.length).toBeGreaterThan(0);
       expect(result.every((e) => e.sessionType?.includes("Practice"))).toBe(true);

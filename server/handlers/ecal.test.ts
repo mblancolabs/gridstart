@@ -220,9 +220,7 @@ describe("ECALHandler", () => {
 
   it("throws when url param is missing", async () => {
     const handler = new ECALHandler();
-    await expect(
-      handler.fetchEvents(testSeries, {}, 2026),
-    ).rejects.toThrow("ECAL handler requires 'url' parameter");
+    await expect(handler.fetchEvents(testSeries, {}, 2026)).rejects.toThrow("ECAL handler requires 'url' parameter");
   });
 
   it("filters events by session names when params.sessionNames is provided", async () => {

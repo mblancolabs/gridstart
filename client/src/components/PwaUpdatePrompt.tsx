@@ -69,11 +69,7 @@ export function PwaUpdatePrompt() {
         title: "Update available",
         description: "A new version of GridStart is ready.",
         action: (
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => updateServiceWorker(true)}
-          >
+          <Button variant="default" size="sm" onClick={() => updateServiceWorker(true)}>
             Update
           </Button>
         ),

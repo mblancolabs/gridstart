@@ -24,7 +24,7 @@ export function validateFilePath(filePath: string, allowedDir: string): boolean 
 
   // Additional check: ensure no .. components
   const relativePath = path.relative(resolvedAllowedDir, resolvedPath);
-  if (relativePath.startsWith('..') || relativePath.includes('../') || relativePath.includes('..\\')) {
+  if (relativePath.startsWith("..") || relativePath.includes("../") || relativePath.includes("..\\")) {
     return false;
   }
 
@@ -43,7 +43,7 @@ export function safeLoadJsonFile(filePath: string, allowedDir: string): any {
     if (!fs.existsSync(filePath)) {
       throw new Error(`File not found: ${filePath}`);
     }
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(content);
   } catch (error) {
     if (error instanceof SyntaxError) {

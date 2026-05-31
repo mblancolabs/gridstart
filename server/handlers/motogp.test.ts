@@ -39,13 +39,9 @@ describe("MotoGPHandler", () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as any;
 
-    await expect(
-      handler.fetchEvents(
-        testSeries,
-        { class: "MotoE" },
-        year,
-      ),
-    ).rejects.toThrow("Unknown MotoGP class: MotoE");
+    await expect(handler.fetchEvents(testSeries, { class: "MotoE" }, year)).rejects.toThrow(
+      "Unknown MotoGP class: MotoE",
+    );
   });
 
   it("returns empty array when seasons API fails", async () => {
@@ -72,46 +68,54 @@ describe("MotoGPHandler", () => {
         return Promise.resolve({ ok: true, json: async () => [{ id: "season-2026", year }] });
       }
       if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=true")) {
-        return Promise.resolve({ ok: true, json: async () => [{
-          id: "event-1",
-          name: "Grand Prix of Test",
-          sponsored_name: "MotoGP Test Championship",
-          short_name: "Test GP",
-          date_start: "2026-03-20T00:00:00+00:00",
-          date_end: "2026-03-22T00:00:00+00:00",
-          test: false,
-          circuit: {
-            id: "c1",
-            name: "Test Circuit",
-            place: "Austin",
-            nation: "Testland",
-          },
-          country: {
-            iso: "US",
-            name: "United States",
-          },
-        }] });
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              id: "event-1",
+              name: "Grand Prix of Test",
+              sponsored_name: "MotoGP Test Championship",
+              short_name: "Test GP",
+              date_start: "2026-03-20T00:00:00+00:00",
+              date_end: "2026-03-22T00:00:00+00:00",
+              test: false,
+              circuit: {
+                id: "c1",
+                name: "Test Circuit",
+                place: "Austin",
+                nation: "Testland",
+              },
+              country: {
+                iso: "US",
+                name: "United States",
+              },
+            },
+          ],
+        });
       }
       if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=false")) {
         return Promise.resolve({ ok: true, json: async () => [] });
       }
       if (url.includes("/results/sessions?eventUuid=")) {
-        return Promise.resolve({ ok: true, json: async () => [
-          {
-            id: "s1",
-            date: "2026-03-20T10:00:00Z",
-            number: 1,
-            type: "FP",
-            status: "SCHEDULED",
-          },
-          {
-            id: "s2",
-            date: "2026-03-20T14:00:00Z",
-            number: 1,
-            type: "Q",
-            status: "SCHEDULED",
-          },
-        ] });
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              id: "s1",
+              date: "2026-03-20T10:00:00Z",
+              number: 1,
+              type: "FP",
+              status: "SCHEDULED",
+            },
+            {
+              id: "s2",
+              date: "2026-03-20T14:00:00Z",
+              number: 1,
+              type: "Q",
+              status: "SCHEDULED",
+            },
+          ],
+        });
       }
       return Promise.reject(new Error(`Unexpected fetch call: ${url}`));
     });

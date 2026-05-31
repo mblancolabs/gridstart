@@ -84,10 +84,7 @@ describe("createApp", () => {
       res.json({ ok: true });
     });
 
-    const res = await request(app)
-      .post("/test-csrf")
-      .send({ foo: "bar" })
-      .set("Content-Type", "application/json");
+    const res = await request(app).post("/test-csrf").send({ foo: "bar" }).set("Content-Type", "application/json");
 
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty("error");

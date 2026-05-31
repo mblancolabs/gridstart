@@ -2,14 +2,7 @@ import { useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSeries, usePreferences, useSavePreferences } from "@/lib/hooks";
 import type { SeriesInfo } from "@shared/schema";
 
@@ -38,9 +31,7 @@ export function MobileSeriesSheet() {
   }, [series]);
 
   const toggleSeries = (id: string) => {
-    const next = enabledSeries.includes(id)
-      ? enabledSeries.filter((s) => s !== id)
-      : [...enabledSeries, id];
+    const next = enabledSeries.includes(id) ? enabledSeries.filter((s) => s !== id) : [...enabledSeries, id];
     savePrefs.mutate(next);
   };
 
@@ -60,9 +51,7 @@ export function MobileSeriesSheet() {
         <div className="mt-4 space-y-4">
           {categories.map((cat) => (
             <div key={cat.name} className="space-y-1.5">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {cat.name}
-              </h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{cat.name}</h4>
               {cat.items.map((s) => {
                 const enabled = enabledSeries.includes(s.id);
                 return (
@@ -72,10 +61,7 @@ export function MobileSeriesSheet() {
                     data-testid={`mobile-series-${s.id}`}
                   >
                     <div className="flex items-center gap-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: s.color }}
-                      />
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
                       <span className="text-sm">{s.name}</span>
                     </div>
                     <Switch

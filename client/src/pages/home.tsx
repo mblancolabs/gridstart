@@ -12,13 +12,7 @@ import {
   isToday,
   addDays,
 } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Calendar as CalendarIcon,
-  Clock,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,9 +22,12 @@ import type { CalendarEvent } from "@shared/schema";
 // ---------- Timezone helpers ----------
 
 const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const shortTzName = new Intl.DateTimeFormat("en", {
-  timeZoneName: "short",
-}).formatToParts(new Date()).find((p) => p.type === "timeZoneName")?.value || userTz;
+const shortTzName =
+  new Intl.DateTimeFormat("en", {
+    timeZoneName: "short",
+  })
+    .formatToParts(new Date())
+    .find((p) => p.type === "timeZoneName")?.value || userTz;
 
 export function formatLocalTime(isoString: string): string {
   const d = new Date(isoString);
@@ -69,8 +66,11 @@ export function lightenColor(hex: string, minLightness: number = 55): string {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -81,18 +81,19 @@ export function lightenColor(hex: string, minLightness: number = 55): string {
   if (l * 100 < minLightness) l = minLightness / 100;
   // hsl -> rgb
   const hue2rgb = (p: number, q: number, t: number) => {
-    if (t < 0) t += 1; if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
     return p;
   };
   const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
   const p = 2 * l - q;
-  const nr = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+  const nr = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
   const ng = Math.round(hue2rgb(p, q, h) * 255);
-  const nb = Math.round(hue2rgb(p, q, h - 1/3) * 255);
-  return `#${nr.toString(16).padStart(2,'0')}${ng.toString(16).padStart(2,'0')}${nb.toString(16).padStart(2,'0')}`;
+  const nb = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
+  return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
 }
 
 // ---------- Session type styling ----------
@@ -109,7 +110,7 @@ export function getSessionIcon(sessionType?: string): string {
 }
 
 export function getSessionBadgeVariant(
-  sessionType?: string
+  sessionType?: string,
 ): "default" | "secondary" | "outline-solid" | "destructive" {
   if (!sessionType) return "outline-solid";
   const lower = sessionType.toLowerCase();
@@ -159,8 +160,7 @@ export function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | Rac
       location: first.location,
       round: first.round,
       sessions: sessions.sort(
-        (a: CalendarEvent, b: CalendarEvent) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        (a: CalendarEvent, b: CalendarEvent) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
       ),
     });
   });
@@ -176,8 +176,10 @@ export function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | Rac
   }
 
   allItems.sort(
-    (a: { sortDate: string; item: CalendarEvent | RaceWeekend }, b: { sortDate: string; item: CalendarEvent | RaceWeekend }) =>
-      new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime()
+    (
+      a: { sortDate: string; item: CalendarEvent | RaceWeekend },
+      b: { sortDate: string; item: CalendarEvent | RaceWeekend },
+    ) => new Date(a.sortDate).getTime() - new Date(b.sortDate).getTime(),
   );
 
   return allItems.map((i) => i.item);
@@ -193,13 +195,13 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const eventListRef = useRef<HTMLDivElement>(null);
-  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setIsDark(document.documentElement.classList.contains("dark"));
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
@@ -289,19 +291,11 @@ export default function Home() {
 
         {/* Month navigation */}
         <div className="flex items-center justify-between">
-          <h2
-            className="font-display text-xl font-bold tracking-tight"
-            data-testid="text-month-title"
-          >
+          <h2 className="font-display text-xl font-bold tracking-tight" data-testid="text-month-title">
             {format(currentMonth, "MMMM yyyy")}
           </h2>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToday}
-              data-testid="button-today"
-            >
+            <Button variant="outline" size="sm" onClick={goToday} data-testid="button-today">
               Today
             </Button>
             <Button
@@ -344,9 +338,7 @@ export default function Home() {
               const today = isToday(d);
               const isSelected = selectedDay && isSameDay(d, selectedDay);
 
-              const uniqueColors = Array.from(
-                new Set(dayEvents.map((e) => e.seriesColor))
-              ).slice(0, 4);
+              const uniqueColors = Array.from(new Set(dayEvents.map((e) => e.seriesColor))).slice(0, 4);
 
               return (
                 <button
@@ -411,26 +403,20 @@ export default function Home() {
 
         {/* Events list */}
         <div ref={eventListRef} className="space-y-4">
-          <h3
-            className="font-display text-lg font-bold"
-            data-testid="text-upcoming-title"
-          >
+          <h3 className="font-display text-lg font-bold" data-testid="text-upcoming-title">
             {enabledSeries.length === 0
               ? "No series selected"
               : isLoading
-              ? "Loading events..."
-              : upcomingItems.length === 0
-              ? "No upcoming events this month"
-              : "Upcoming Events"}
+                ? "Loading events..."
+                : upcomingItems.length === 0
+                  ? "No upcoming events this month"
+                  : "Upcoming Events"}
           </h3>
 
           {isLoading && (
             <div className="space-y-3" data-testid="skeleton-events">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex gap-3 p-3 rounded-lg border border-border bg-card"
-                >
+                <div key={i} className="flex gap-3 p-3 rounded-lg border border-border bg-card">
                   <Skeleton className="w-16 h-16 rounded-md" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
@@ -442,14 +428,9 @@ export default function Home() {
           )}
 
           {!isLoading && enabledSeries.length === 0 && (
-            <div
-              className="text-center py-12 text-muted-foreground"
-              data-testid="text-empty-state"
-            >
+            <div className="text-center py-12 text-muted-foreground" data-testid="text-empty-state">
               <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">
-                Enable some series from the sidebar to see events.
-              </p>
+              <p className="text-sm">Enable some series from the sidebar to see events.</p>
             </div>
           )}
 
@@ -463,7 +444,7 @@ export default function Home() {
                 />
               ) : (
                 <SingleEventCard key={item.id} event={item} selectedDay={selectedDay} />
-              )
+              ),
             )}
         </div>
       </div>
@@ -473,13 +454,7 @@ export default function Home() {
 
 // ---------- Race weekend card ----------
 
-function RaceWeekendCard({
-  weekend,
-  selectedDay,
-}: {
-  weekend: RaceWeekend;
-  selectedDay: Date | null;
-}) {
+function RaceWeekendCard({ weekend, selectedDay }: { weekend: RaceWeekend; selectedDay: Date | null }) {
   const firstDate = weekend.sessions[0].startDate;
   const lastDate = weekend.sessions[weekend.sessions.length - 1].startDate;
 
@@ -513,45 +488,35 @@ function RaceWeekendCard({
         </div>
         <div className="text-xs text-muted-foreground shrink-0 text-right">
           {formatLocalDate(firstDate)}
-          {formatLocalDate(firstDate) !== formatLocalDate(lastDate) &&
-            ` — ${formatLocalDate(lastDate)}`}
+          {formatLocalDate(firstDate) !== formatLocalDate(lastDate) && ` — ${formatLocalDate(lastDate)}`}
         </div>
       </div>
 
       {/* Sessions list */}
       <div className="divide-y divide-border">
         {weekend.sessions.map((session) => {
-          const isHighlighted =
-            selectedDay && isSameDay(new Date(session.startDate), selectedDay);
+          const isHighlighted = selectedDay && isSameDay(new Date(session.startDate), selectedDay);
 
           return (
             <div
               key={session.id}
               data-testid={`card-session-${session.id}`}
-              className={`px-4 py-2.5 flex items-center gap-3 text-sm ${
-                isHighlighted ? "bg-accent" : ""
-              }`}
+              className={`px-4 py-2.5 flex items-center gap-3 text-sm ${isHighlighted ? "bg-accent" : ""}`}
             >
               {/* Time column */}
               <div className="w-16 shrink-0 text-right">
                 {session.isAllDay ? (
                   <span className="text-xs text-muted-foreground">All day</span>
                 ) : (
-                  <span className="font-mono text-xs font-medium">
-                    {formatLocalTime(session.startDate)}
-                  </span>
+                  <span className="font-mono text-xs font-medium">{formatLocalTime(session.startDate)}</span>
                 )}
               </div>
 
               {/* Session icon */}
-              <span className="text-sm shrink-0 w-5 text-center">
-                {getSessionIcon(session.sessionType)}
-              </span>
+              <span className="text-sm shrink-0 w-5 text-center">{getSessionIcon(session.sessionType)}</span>
 
               {/* Session name */}
-              <span className="flex-1 min-w-0 truncate">
-                {session.sessionType || session.title}
-              </span>
+              <span className="flex-1 min-w-0 truncate">{session.sessionType || session.title}</span>
 
               {/* Day label */}
               <span className="text-xs text-muted-foreground shrink-0">
@@ -561,10 +526,7 @@ function RaceWeekendCard({
               </span>
 
               {/* Badge */}
-              <Badge
-                variant={getSessionBadgeVariant(session.sessionType)}
-                className="text-[10px] shrink-0"
-              >
+              <Badge variant={getSessionBadgeVariant(session.sessionType)} className="text-[10px] shrink-0">
                 {session.sessionType || "Event"}
               </Badge>
             </div>
@@ -577,24 +539,15 @@ function RaceWeekendCard({
 
 // ---------- Single event card (non-grouped) ----------
 
-function SingleEventCard({
-  event,
-  selectedDay,
-}: {
-  event: CalendarEvent;
-  selectedDay: Date | null;
-}) {
-  const isHighlighted =
-    selectedDay && isSameDay(new Date(event.startDate), selectedDay);
+function SingleEventCard({ event, selectedDay }: { event: CalendarEvent; selectedDay: Date | null }) {
+  const isHighlighted = selectedDay && isSameDay(new Date(event.startDate), selectedDay);
 
   return (
     <div
       id={`events-${format(new Date(event.startDate), "yyyy-MM-dd")}`}
       data-testid={`card-event-${event.id}`}
       className={`flex items-start gap-3 p-3 rounded-lg border bg-card ${
-        isHighlighted
-          ? "border-primary/40 ring-1 ring-primary/20"
-          : "border-border"
+        isHighlighted ? "border-primary/40 ring-1 ring-primary/20" : "border-border"
       }`}
     >
       {/* Series badge */}
@@ -606,9 +559,7 @@ function SingleEventCard({
       </span>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold leading-tight truncate">
-          {event.title}
-        </p>
+        <p className="text-sm font-semibold leading-tight truncate">{event.title}</p>
         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
           {event.isAllDay ? (
             <span className="flex items-center gap-1">
@@ -618,8 +569,7 @@ function SingleEventCard({
           ) : (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {formatLocalDate(event.startDate)},{" "}
-              {formatLocalTime(event.startDate)}
+              {formatLocalDate(event.startDate)}, {formatLocalTime(event.startDate)}
               <span className="text-muted-foreground/60">{shortTzName}</span>
             </span>
           )}

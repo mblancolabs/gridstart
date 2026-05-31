@@ -6,18 +6,19 @@ import * as logger from "./logger";
 export function errorHandler(err: unknown, req: Request, res: Response, next: NextFunction) {
   const isProduction = process.env.NODE_ENV === "production";
   const requestId = req.requestId as string | undefined;
-  const status = err instanceof AppError
-    ? err.status
-    : typeof err === "object" && err !== null && "status" in err && typeof (err as any).status === "number"
-      ? (err as any).status
-      : 500;
+  const status =
+    err instanceof AppError
+      ? err.status
+      : typeof err === "object" && err !== null && "status" in err && typeof (err as any).status === "number"
+        ? (err as any).status
+        : 500;
 
   let message: string;
   let errorId: string | undefined;
 
   if (status >= 500) {
     errorId = isProduction ? randomUUID() : undefined;
-    message = isProduction ? "Internal Server Error" : (err instanceof Error ? err.message : "Internal Server Error");
+    message = isProduction ? "Internal Server Error" : err instanceof Error ? err.message : "Internal Server Error";
     logger.error(err, "Internal server error", { requestId, status, errorId });
   } else if (err instanceof AppError && err.exposeMessage) {
     message = err.message;

@@ -149,18 +149,20 @@ describe("API routes", () => {
           json: async () => ({
             MRData: {
               RaceTable: {
-                Races: [{
-                  season: `${year}`,
-                  round: "1",
-                  raceName: "Test Grand Prix",
-                  Circuit: {
-                    circuitName: "Test Circuit",
-                    Location: { locality: "City", country: "Country" },
+                Races: [
+                  {
+                    season: `${year}`,
+                    round: "1",
+                    raceName: "Test Grand Prix",
+                    Circuit: {
+                      circuitName: "Test Circuit",
+                      Location: { locality: "City", country: "Country" },
+                    },
+                    date: `${year}-03-01`,
+                    time: "15:00:00Z",
+                    FirstPractice: { date: `${year}-02-28`, time: "11:30:00Z" },
                   },
-                  date: `${year}-03-01`,
-                  time: "15:00:00Z",
-                  FirstPractice: { date: `${year}-02-28`, time: "11:30:00Z" },
-                }],
+                ],
               },
             },
           }),
