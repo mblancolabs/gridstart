@@ -27,6 +27,7 @@ describe("MotoGPHandler", () => {
 
   it("returns an empty array when no season is available", async () => {
     const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = fetchMock as any;
     fetchMock.mockResolvedValueOnce({ ok: true, json: async () => [] });
 
@@ -37,6 +38,7 @@ describe("MotoGPHandler", () => {
 
   it("throws for unknown MotoGP class", async () => {
     const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = fetchMock as any;
 
     await expect(handler.fetchEvents(testSeries, { class: "MotoE" }, year)).rejects.toThrow(
@@ -46,6 +48,7 @@ describe("MotoGPHandler", () => {
 
   it("returns empty array when seasons API fails", async () => {
     const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = fetchMock as any;
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -61,6 +64,7 @@ describe("MotoGPHandler", () => {
 
   it("fetches MotoGP events and maps sessions correctly", async () => {
     const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = fetchMock as any;
 
     fetchMock.mockImplementation((url: string) => {

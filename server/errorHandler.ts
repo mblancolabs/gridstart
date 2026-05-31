@@ -9,8 +9,8 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   const status =
     err instanceof AppError
       ? err.status
-      : typeof err === "object" && err !== null && "status" in err && typeof (err as any).status === "number"
-        ? (err as any).status
+      : typeof err === "object" && err !== null && "status" in err && typeof (err as { status: unknown }).status === "number"
+        ? (err as { status: number }).status
         : 500;
 
   let message: string;

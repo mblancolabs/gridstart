@@ -2,48 +2,24 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useCallback } from "react";
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-  prompt(): Promise<void>;
-}
-
-declare global {
-  interface WindowEventMap {
-    beforeinstallprompt: BeforeInstallPromptEvent;
-  }
-}
-
-let deferredPrompt: BeforeInstallPromptEvent | null = null;
-
-export function captureInstallPrompt() {
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-}
-
-export function resetInstallPrompt() {
-  deferredPrompt = null;
-}
+import { getDeferredPrompt, clearDeferredPrompt } from "@/lib/pwa";
 
 export function PwaInstallButton() {
-  const [available, setAvailable] = useState(false);
+  const [available, setAvailable] = useState(() => !!getDeferredPrompt());
 
   useEffect(() => {
     const handler = () => setAvailable(true);
     window.addEventListener("beforeinstallprompt", handler);
-    if (deferredPrompt) setAvailable(true);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const handleInstall = useCallback(async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    const dp = getDeferredPrompt();
+    if (!dp) return;
+    dp.prompt();
+    const { outcome } = await dp.userChoice;
     if (outcome === "accepted") {
-      deferredPrompt = null;
+      clearDeferredPrompt();
       setAvailable(false);
     }
   }, []);

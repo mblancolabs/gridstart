@@ -78,8 +78,8 @@ function detectSessionType(title: string): string | undefined {
 export class ICSHandler implements FeedHandler {
   name = "ics";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
-    const url = params.url;
+  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, _year: number): Promise<CalendarEvent[]> {
+    const url = params.url as string | undefined;
     if (!url) {
       throw new Error("ICS handler requires 'url' parameter");
     }
@@ -87,7 +87,7 @@ export class ICSHandler implements FeedHandler {
     // For now, fetch current year only. Could be enhanced to fetch multiple years
     const icsData = await fetchICSData(series.id, url);
     const events = parseICSEvents(icsData, series);
-    const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+    const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
     return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
   }
 }

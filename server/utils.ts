@@ -34,7 +34,7 @@ export function validateFilePath(filePath: string, allowedDir: string): boolean 
 /**
  * Safely loads and parses a JSON file with validation
  */
-export function safeLoadJsonFile(filePath: string, allowedDir: string): any {
+export function safeLoadJsonFile(filePath: string, allowedDir: string): unknown {
   if (!validateFilePath(filePath, allowedDir)) {
     throw new Error(`Invalid file path: ${filePath}`);
   }
@@ -47,7 +47,7 @@ export function safeLoadJsonFile(filePath: string, allowedDir: string): any {
     return JSON.parse(content);
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in file: ${filePath}`);
+      throw new Error(`Invalid JSON in file: ${filePath}`, { cause: error });
     }
     throw error;
   }

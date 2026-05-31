@@ -360,6 +360,7 @@ describe("Home Page", () => {
       const result = groupIntoWeekends(events);
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty("sessions");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((result[0] as any).sessions).toHaveLength(2);
     });
 

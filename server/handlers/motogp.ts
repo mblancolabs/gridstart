@@ -141,7 +141,7 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 export class MotoGPHandler implements FeedHandler {
   name = "motogp";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
+  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
     const cache = getCache();
     const cacheKey = `motogp-${series.id}-${year}`;
     const cached = await cache.get<CalendarEvent[]>(cacheKey);
@@ -149,7 +149,7 @@ export class MotoGPHandler implements FeedHandler {
       return cached.data;
     }
 
-    const className = params.class || "MotoGP";
+    const className = (params.class as string) || "MotoGP";
     const categoryId = MOTOGP_CATEGORY_IDS[className];
     if (!categoryId) {
       throw new Error(`Unknown MotoGP class: ${className}`);
@@ -243,7 +243,7 @@ export class MotoGPHandler implements FeedHandler {
         }
       }
 
-      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
       const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
 
       await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });

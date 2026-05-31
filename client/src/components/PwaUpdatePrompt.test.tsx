@@ -3,7 +3,8 @@ import { act } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderWithProviders, screen, waitFor, userEvent } from "../test/utils/test-utils";
 import { Toaster } from "@/components/ui/toaster";
-import { PwaUpdatePrompt, PwaInstallButton, captureInstallPrompt, resetInstallPrompt } from "./PwaUpdatePrompt";
+import { PwaUpdatePrompt, PwaInstallButton } from "./PwaUpdatePrompt";
+import { captureInstallPrompt, resetInstallPrompt } from "@/lib/pwa";
 
 const mockUpdateSW = vi.fn();
 

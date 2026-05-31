@@ -71,6 +71,7 @@ describe("RedisCache", () => {
     const entry = { data: "val", fetchedAt: 1 };
 
     let setKey = "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockFetch.mockImplementation(async (_url: string, opts: any) => {
       const body = JSON.parse(opts.body);
       if (body.command === "SET") {
@@ -87,7 +88,9 @@ describe("RedisCache", () => {
   it("ttl is set on key", async () => {
     const entry = { data: "val", fetchedAt: 1 };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let setArgs: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockFetch.mockImplementation(async (_url: string, opts: any) => {
       const body = JSON.parse(opts.body);
       if (body.command === "SET") {

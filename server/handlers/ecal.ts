@@ -8,7 +8,7 @@ import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames
 const IGNORED_TITLE_WORDS = ["calendar", "Welcome"];
 
 function removeEmojis(text: string): string {
-  return text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D\u20E3]/gu, "").trim();
+  return text.replace(/\p{Extended_Pictographic}|\uFE0F|\u200D|\u20E3/gu, "").trim();
 }
 
 export function parseICSEvents(icsData: string, series: SeriesInfo, fromDate?: Date, toDate?: Date): CalendarEvent[] {
@@ -133,8 +133,8 @@ function detectSessionType(title: string): string | undefined {
 export class ECALHandler implements FeedHandler {
   name = "ecal";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
-    const url = params.url;
+  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, _year: number): Promise<CalendarEvent[]> {
+    const url = params.url as string | undefined;
     if (!url) {
       throw new Error("ECAL handler requires 'url' parameter");
     }
@@ -142,7 +142,7 @@ export class ECALHandler implements FeedHandler {
     // For now, fetch current year only. Could be enhanced to fetch multiple years
     const icsData = await fetchICSData(series.id, url);
     const events = parseICSEvents(icsData, series);
-    const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+    const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
     return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
   }
 }

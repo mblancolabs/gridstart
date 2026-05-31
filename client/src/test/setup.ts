@@ -47,7 +47,7 @@ Object.defineProperty(window, "localStorage", {
 // Suppress console errors during tests (optional, for cleaner test output)
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === "string" &&
       (args[0].includes("Warning: ReactDOM.render") ||

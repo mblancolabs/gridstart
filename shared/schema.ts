@@ -51,7 +51,7 @@ export interface SeriesInfo {
   color: string;
   category: string;
   handler: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   enabled: boolean;
   sessionNames?: string[];
 }

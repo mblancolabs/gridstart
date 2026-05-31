@@ -29,6 +29,7 @@ const shortTzName =
     .formatToParts(new Date())
     .find((p) => p.type === "timeZoneName")?.value || userTz;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatLocalTime(isoString: string): string {
   const d = new Date(isoString);
   return d.toLocaleTimeString([], {
@@ -38,6 +39,7 @@ export function formatLocalTime(isoString: string): string {
   });
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatLocalDate(isoString: string): string {
   const d = new Date(isoString);
   return d.toLocaleDateString([], {
@@ -60,6 +62,7 @@ function formatLocalDay(isoString: string): string {
 
 // ---------- Color helpers ----------
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function lightenColor(hex: string, minLightness: number = 55): string {
   // Ensure calendar cell event text is readable on dark backgrounds
   // Parse hex -> hsl, boost lightness if too dark
@@ -98,6 +101,7 @@ export function lightenColor(hex: string, minLightness: number = 55): string {
 
 // ---------- Session type styling ----------
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function getSessionIcon(sessionType?: string): string {
   if (!sessionType) return "";
   const lower = sessionType.toLowerCase();
@@ -109,6 +113,7 @@ export function getSessionIcon(sessionType?: string): string {
   return "";
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function getSessionBadgeVariant(
   sessionType?: string,
 ): "default" | "secondary" | "outline-solid" | "destructive" {
@@ -132,6 +137,7 @@ interface RaceWeekend {
   sessions: CalendarEvent[];
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function groupIntoWeekends(events: CalendarEvent[]): (CalendarEvent | RaceWeekend)[] {
   // Group F1 (or other Jolpica-sourced) events by race name, keep others as singles
   //const result: (CalendarEvent | RaceWeekend)[] = [];

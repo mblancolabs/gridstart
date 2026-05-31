@@ -55,7 +55,7 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 export class JolpicaHandler implements FeedHandler {
   name = "jolpica";
 
-  async fetchEvents(series: SeriesInfo, params: Record<string, any>, year: number): Promise<CalendarEvent[]> {
+  async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
     const cache = getCache();
     const cacheKey = `jolpica-${series.id}-${year}`;
     const cached = await cache.get<CalendarEvent[]>(cacheKey);
@@ -162,7 +162,7 @@ export class JolpicaHandler implements FeedHandler {
         }
       }
 
-      const requestedSessionNames = normalizeSessionNames(params.sessionNames);
+      const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
       const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
 
       await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });

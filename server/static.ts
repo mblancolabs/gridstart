@@ -15,7 +15,7 @@ export function serveStatic(app: Express) {
   // Serve static files with security headers (includes landing page at /)
   app.use(
     express.static(distPath, {
-      setHeaders: (res, path) => {
+      setHeaders: (res, _path) => {
         // Prevent MIME type sniffing
         res.setHeader("X-Content-Type-Options", "nosniff");
         // Prevent clickjacking

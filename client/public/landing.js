@@ -1,3 +1,4 @@
+/* global document, window, matchMedia, IntersectionObserver */
 (function () {
   const t = document.querySelector("[data-theme-toggle]");
   const r = document.documentElement;

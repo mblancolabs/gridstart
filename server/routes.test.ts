@@ -13,6 +13,7 @@ describe("API routes", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.fetch = vi.fn() as any;
     clearCacheInstance();
     app = express();

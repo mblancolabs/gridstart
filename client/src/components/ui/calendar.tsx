@@ -49,6 +49,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         }: {
           orientation?: "left" | "right" | "up" | "down";
           className?: string;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           [key: string]: any;
         }) => {
           const Icon = orientation === "left" ? ChevronLeft : orientation === "right" ? ChevronRight : ChevronLeft;

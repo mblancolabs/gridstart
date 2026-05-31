@@ -18,8 +18,21 @@ import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
 export { fetchICSData } from "./icsFetcher";
 
+interface FeedsCategory {
+  name: string;
+  series: Array<{
+    id: string;
+    name: string;
+    shortName: string;
+    color: string;
+    handler: string;
+    params: Record<string, unknown>;
+    enabled: boolean;
+  }>;
+}
+
 // Load calendar feeds config with validation and merging
-function loadFeedsConfig() {
+function loadFeedsConfig(): { categories: FeedsCategory[] } {
   const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
 
@@ -34,13 +47,13 @@ function loadFeedsConfig() {
   const allFiles = [baseFile, ...patternFiles];
 
   // Initialize merged config
-  const mergedConfig: any = { categories: [] };
-  const categoryMap = new Map<string, any>();
-  const seriesMap = new Map<string, Map<string, any>>();
+  const mergedConfig: { categories: FeedsCategory[] } = { categories: [] };
+  const categoryMap = new Map<string, FeedsCategory>();
+  const seriesMap = new Map<string, Map<string, FeedsCategory["series"][number]>>();
 
   for (const file of allFiles) {
     const filePath = path.resolve(feedsDir, file);
-    const config = safeLoadJsonFile(filePath, feedsDir);
+    const config = safeLoadJsonFile(filePath, feedsDir) as { categories?: FeedsCategory[] };
 
     if (!config.categories || !Array.isArray(config.categories)) {
       throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
@@ -50,7 +63,7 @@ function loadFeedsConfig() {
       if (!categoryMap.has(category.name)) {
         categoryMap.set(category.name, { name: category.name, series: [] });
         seriesMap.set(category.name, new Map());
-        mergedConfig.categories.push(categoryMap.get(category.name));
+        mergedConfig.categories.push(categoryMap.get(category.name)!);
       }
 
       const catSeriesMap = seriesMap.get(category.name)!;
@@ -122,36 +135,6 @@ handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
 
 // ---------- Jolpica API (F1 session times) ----------
-
-interface JolpicaSession {
-  date: string;
-  time?: string;
-}
-
-interface JolpicaRace {
-  season: string;
-  round: string;
-  raceName: string;
-  Circuit: {
-    circuitId: string;
-    circuitName: string;
-    Location: {
-      lat: string;
-      long: string;
-      locality: string;
-      country: string;
-    };
-  };
-  date: string;
-  time?: string;
-  FirstPractice?: JolpicaSession;
-  SecondPractice?: JolpicaSession;
-  ThirdPractice?: JolpicaSession;
-  Qualifying?: JolpicaSession;
-  Sprint?: JolpicaSession;
-  SprintQualifying?: JolpicaSession;
-  SprintShootout?: JolpicaSession;
-}
 
 // ---------- ICS export ----------
 
