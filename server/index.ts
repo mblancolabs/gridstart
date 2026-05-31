@@ -68,7 +68,7 @@ export function createApp() {
               styleSrc: ["'self'", "https://api.fontshare.com"],
               fontSrc: ["'self'", "https://api.fontshare.com", "https://cdn.fontshare.com"],
               imgSrc: ["'self'", "data:"],
-              connectSrc: ["'self'"],
+              connectSrc: ["'self'", "https://api.fontshare.com"],
               workerSrc: ["'self'"],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],
@@ -80,7 +80,7 @@ export function createApp() {
               styleSrc: ["'self'", "'unsafe-inline'", "https://api.fontshare.com"],
               fontSrc: ["'self'", "https://api.fontshare.com", "https://cdn.fontshare.com"],
               imgSrc: ["'self'", "data:"],
-              connectSrc: ["'self'", devCspOrigin, devCspWsOrigin],
+              connectSrc: ["'self'", "https://api.fontshare.com", devCspOrigin, devCspWsOrigin],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],
               formAction: ["'self'"],
@@ -162,7 +162,9 @@ export async function startServer() {
 }
 
 const isMainModule = process.argv[1] && (
-  import.meta.url === `file://${process.argv[1]}`
+  typeof require !== "undefined"
+    ? require.main === module
+    : import.meta.url === `file://${process.argv[1]}`
 );
 
 if (isMainModule) {
