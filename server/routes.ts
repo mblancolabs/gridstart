@@ -122,10 +122,6 @@ handlerRegistry.register(new ECALHandler());
 handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
 
-// ---------- Caching ----------
-//const jolpicaCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
-//const motogpCache = new Map<string, { data: CalendarEvent[]; fetchedAt: number }>();
-
 // ---------- Jolpica API (F1 session times) ----------
 
 interface JolpicaSession {

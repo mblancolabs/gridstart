@@ -1,8 +1,11 @@
-const icsCache = new Map<string, { data: string; fetchedAt: number }>();
+import { getCache } from "./cache";
+
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 export async function fetchICSData(seriesId: string, icsUrl: string): Promise<string> {
-  const cached = icsCache.get(seriesId);
+  const cache = getCache();
+  const cacheKey = `ics-${seriesId}`;
+  const cached = await cache.get<string>(cacheKey);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
     return cached.data;
   }
@@ -18,7 +21,7 @@ export async function fetchICSData(seriesId: string, icsUrl: string): Promise<st
     }
 
     const text = await res.text();
-    icsCache.set(seriesId, { data: text, fetchedAt: Date.now() });
+    await cache.set(cacheKey, { data: text, fetchedAt: Date.now() });
     return text;
   } catch (err) {
     if (cached) {

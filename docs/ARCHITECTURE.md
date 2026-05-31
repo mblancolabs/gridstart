@@ -11,7 +11,7 @@ flowchart LR
     U[User Browser] --> C[React Client\nclient/]
     C -->|Preferences cookie| UC[(Browser Cookie)]
     C --> A[Express API\nserver/]
-    A --> K[In-memory Cache\n1-hour TTL]
+    A --> K[Configurable Cache\nMemory or Redis\n1-hour TTL]
     A --> F1[Jolpica API\nF1]
     A --> MG[PulseLive API\nMotoGP]
     A --> ICS[ICS Feeds\nMost series]
@@ -119,7 +119,14 @@ The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`
 
 There is a 1-hour cache TTL for all external data sources, with keys based on series ID or year depending on the feed type. When data is fresh, cached values are returned immediately; when data is stale, the backend refreshes it, and if a refresh fails, stale data can still be used as a fallback.
 
-This design reduces latency and upstream dependency pressure without introducing extra infrastructure. Current constraints: cache is in-memory only, is scoped to a single server instance, does not survive restarts, and has no manual invalidation path yet.
+Caching uses a `CacheProvider` interface with two implementations:
+
+- **MemoryCache** — in-memory `Map`, default when no Redis is configured. Same behavior as the original implementation. No external dependencies.
+- **RedisCache** — backed by Upstash Redis (HTTP REST API). Enabled via `REDIS_URL` + `REDIS_TOKEN` env vars. Persists across restarts and works in serverless environments.
+
+The cache backend is selected at startup and is a singleton across the application. Handlers interact only with the `CacheProvider` interface and are unaware of which backend is in use.
+
+This design reduces latency and upstream dependency pressure without introducing extra infrastructure. The Redis option adds persistence without introducing a TCP connection requirement (Upstash uses HTTPS). There is no manual invalidation path yet.
 
 ## Future: Premium Edition (Phase 2)
 
@@ -138,7 +145,8 @@ flowchart TD
     T -->|No| F
     F --> G{Fetch succeeded?}
     G -->|Yes| W[Write refreshed cache]
-    W --> Z[Return fresh data]
+    W --> Z[Write to active backend\nMemory or Redis]
+    Z --> D[Return fresh data]
     G -->|No| S{Stale cache available?}
     S -->|Yes| Y[Return stale cached data]
     S -->|No| E[Return error]
