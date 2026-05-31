@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MotoGPHandler } from "./motogp";
+import { clearCacheInstance } from "../cache";
 
 const year = new Date().getFullYear();
 const testSeries = {
@@ -19,6 +20,7 @@ describe("MotoGPHandler", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearCacheInstance();
   });
 
   afterEach(() => {

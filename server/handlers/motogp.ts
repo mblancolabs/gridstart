@@ -2,7 +2,7 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionNames } from "./sessionLabels";
-import { getCache } from "../cache";
+import { getOrSet, CACHE_TTL_MS } from "../cache";
 
 interface MotoGPSeason {
   id: string;
@@ -136,19 +136,11 @@ function parseMotoGPSessionDate(sessionDate: string, event: MotoGPEvent): string
   return new Date(candidateUtc.getTime() - offsetMs).toISOString();
 }
 
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
 export class MotoGPHandler implements FeedHandler {
   name = "motogp";
 
   async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
-    const cache = getCache();
     const cacheKey = `motogp-${series.id}-${year}`;
-    const cached = await cache.get<CalendarEvent[]>(cacheKey);
-    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-      return cached.data;
-    }
-
     const className = (params.class as string) || "MotoGP";
     const categoryId = MOTOGP_CATEGORY_IDS[className];
     if (!categoryId) {
@@ -156,7 +148,8 @@ export class MotoGPHandler implements FeedHandler {
     }
 
     try {
-      // 1. Find the season UUID for the year
+      return await getOrSet(cacheKey, CACHE_TTL_MS, async () => {
+        // 1. Find the season UUID for the year
       const seasonsRes = await fetch(`${MOTOGP_API_BASE}/results/seasons`);
       if (!seasonsRes.ok) throw new Error(`Seasons HTTP ${seasonsRes.status}`);
       const seasons: MotoGPSeason[] = await seasonsRes.json();
@@ -244,13 +237,10 @@ export class MotoGPHandler implements FeedHandler {
       }
 
       const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
-      const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
-
-      await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
-      return finalEvents;
+      return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
+    });
     } catch (err) {
       logger.error(err, "Failed to fetch MotoGP data", { seriesId: series.id });
-      if (cached) return cached.data;
       return [];
     }
   }

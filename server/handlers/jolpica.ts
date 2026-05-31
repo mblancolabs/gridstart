@@ -2,7 +2,7 @@ import type { FeedHandler } from "./types";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
-import { getCache } from "../cache";
+import { getOrSet, CACHE_TTL_MS } from "../cache";
 
 interface JolpicaSession {
   date: string;
@@ -50,28 +50,22 @@ function getDurationForSession(sessionKey: string): number {
 
 export { getDurationForSession };
 
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
 export class JolpicaHandler implements FeedHandler {
   name = "jolpica";
 
   async fetchEvents(series: SeriesInfo, params: Record<string, unknown>, year: number): Promise<CalendarEvent[]> {
-    const cache = getCache();
     const cacheKey = `jolpica-${series.id}-${year}`;
-    const cached = await cache.get<CalendarEvent[]>(cacheKey);
-    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
-      return cached.data;
-    }
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
+      return await getOrSet(cacheKey, CACHE_TTL_MS, async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
 
-      if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
+        if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
 
       const json = await res.json();
       const races: JolpicaRace[] = json?.MRData?.RaceTable?.Races || [];
@@ -163,13 +157,10 @@ export class JolpicaHandler implements FeedHandler {
       }
 
       const requestedSessionNames = normalizeSessionNames(params.sessionNames as string[] | undefined);
-      const finalEvents = requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
-
-      await cache.set(cacheKey, { data: finalEvents, fetchedAt: Date.now() });
-      return finalEvents;
+      return requestedSessionNames ? filterEventsBySessionNames(events, requestedSessionNames) : events;
+    });
     } catch (err) {
       logger.error(err, "Failed to fetch Jolpica data", { seriesId: series.id });
-      if (cached) return cached.data;
       return [];
     }
   }
