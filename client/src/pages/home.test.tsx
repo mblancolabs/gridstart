@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act, renderWithProviders, screen, userEvent } from "../test/utils/test-utils";
 import Home, * as home from "./home";
 import { createMockEvent, createMockPreferences } from "../test/utils/mocks";
@@ -59,6 +59,8 @@ describe("Home Page", () => {
   ];
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-15T12:00:00Z"));
     vi.clearAllMocks();
     // @ts-expect-error
     hooks.usePreferences.mockReturnValue({
@@ -72,6 +74,10 @@ describe("Home Page", () => {
       isLoading: false,
       error: null,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("should render home page without crashing", () => {
