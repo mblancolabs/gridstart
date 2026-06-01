@@ -33,6 +33,7 @@ jobs:
         run: npm ci
 
       - name: Install playwright browsers
+        if: github.event_name == 'pull_request'
         run: npx playwright install --with-deps
 
       - name: Lint
@@ -45,6 +46,7 @@ jobs:
         run: npm test --if-present
 
       - name: E2E tests
+        if: github.event_name == 'pull_request'
         run: npm run test:e2e
 
       - name: Build
