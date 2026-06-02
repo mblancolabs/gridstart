@@ -1,5 +1,4 @@
-import crypto from "crypto";
-import type { Request, Response, NextFunction } from "express";
+import type { Context, Next } from "hono";
 
 const COOKIE_NAME = "csrf-token";
 const HEADER_NAME = "x-csrf-token";
@@ -8,58 +7,100 @@ function getSecret(): string {
   return process.env.CSRF_SECRET || "fallback-csrf-secret-change-in-prod";
 }
 
-function generateToken(secret: string): { nonce: string; hmac: string } {
-  const nonce = crypto.randomBytes(32).toString("hex");
-  const hmac = crypto.createHmac("sha256", secret).update(nonce).digest("hex");
+async function generateToken(secret: string): Promise<{ nonce: string; hmac: string }> {
+  const nonceBytes = new Uint8Array(32);
+  crypto.getRandomValues(nonceBytes);
+  const nonce = Array.from(nonceBytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(nonce));
+  const hmac = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
   return { nonce, hmac };
 }
 
-function validateToken(secret: string, token: string): boolean {
+async function validateToken(secret: string, token: string): Promise<boolean> {
   const parts = token.split("|");
   if (parts.length !== 2) return false;
   const [nonce, hmac] = parts;
-  const expectedHmac = crypto.createHmac("sha256", secret).update(nonce).digest("hex");
-  try {
-    return crypto.timingSafeEqual(Buffer.from(expectedHmac, "hex"), Buffer.from(hmac, "hex"));
-  } catch {
-    return false;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(nonce));
+  const expectedHmac = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const hmacBuf = new TextEncoder().encode(hmac);
+  const expectedBuf = new TextEncoder().encode(expectedHmac);
+  if (hmacBuf.byteLength !== expectedBuf.byteLength) return false;
+  let result = 0;
+  for (let i = 0; i < hmacBuf.byteLength; i++) {
+    result |= hmacBuf[i] ^ expectedBuf[i];
   }
+  return result === 0;
 }
 
-export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
-  const secret = getSecret();
+function parseCookies(cookieHeader: string | null): Record<string, string> {
+  if (!cookieHeader) return {};
+  const cookies: Record<string, string> = {};
+  for (const part of cookieHeader.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    const name = part.slice(0, eq).trim();
+    const value = part.slice(eq + 1).trim();
+    if (name) cookies[name] = decodeURIComponent(value);
+  }
+  return cookies;
+}
 
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-    const { nonce, hmac } = generateToken(secret);
+export async function csrfProtection(c: Context, next: Next): Promise<Response | void> {
+  const secret = getSecret();
+  const method = c.req.method;
+
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) {
+    const { nonce, hmac } = await generateToken(secret);
     const token = `${nonce}|${hmac}`;
 
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: false,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    res.setHeader(HEADER_NAME, token);
+    c.res.headers.set("Set-Cookie", `${COOKIE_NAME}=${token}; Path=/; SameSite=Strict; HttpOnly=false; ${process.env.NODE_ENV === "production" ? "Secure;" : ""}`);
+    c.res.headers.set(HEADER_NAME, token);
     return next();
   }
 
-  const cookieToken = req.cookies?.[COOKIE_NAME];
-  const headerToken = req.headers[HEADER_NAME.toLowerCase()] as string | undefined;
+  const cookies = parseCookies(c.req.header("Cookie") || null);
+  const cookieToken = cookies[COOKIE_NAME];
+  const headerToken = c.req.header(HEADER_NAME);
 
   if (!cookieToken || !headerToken) {
-    res.status(403).json({ error: "Missing CSRF token" });
-    return;
+    c.status(403);
+    return c.json({ error: "Missing CSRF token" });
   }
 
   if (cookieToken !== headerToken) {
-    res.status(403).json({ error: "CSRF token mismatch" });
-    return;
+    c.status(403);
+    return c.json({ error: "CSRF token mismatch" });
   }
 
-  if (!validateToken(secret, cookieToken)) {
-    res.status(403).json({ error: "Invalid CSRF token" });
-    return;
+  const valid = await validateToken(secret, cookieToken);
+  if (!valid) {
+    c.status(403);
+    return c.json({ error: "Invalid CSRF token" });
   }
 
-  next();
+  return next();
 }

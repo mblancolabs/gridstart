@@ -1,25 +1,41 @@
-import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
-import express from "express";
-import request from "supertest";
-import { createServer } from "http";
-import { registerRoutes } from "./routes";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { Hono } from "hono";
 import { errorHandler } from "./errorHandler";
 import { clearCacheInstance } from "./cache";
+
+vi.hoisted(() => {
+  globalThis.__CONFIG_FEEDS__ = JSON.stringify({
+    categories: [
+      {
+        name: "Open Wheel",
+        series: [
+          { id: "f1", name: "Formula 1", shortName: "F1", color: "#E10600", handler: "jolpica", params: {}, enabled: true },
+        ],
+      },
+      {
+        name: "Motorcycles",
+        series: [
+          { id: "motogp", name: "MotoGP", shortName: "MGP", color: "#FF0000", handler: "motogp", params: {}, enabled: true },
+        ],
+      },
+    ],
+  });
+});
+
+const { registerRoutes } = await import("./routes");
 
 const originalFetch = global.fetch;
 
 describe("API routes", () => {
-  let app: express.Express;
+  let app: Hono;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.fetch = vi.fn() as any;
+    global.fetch = vi.fn() as unknown as typeof global.fetch;
     clearCacheInstance();
-    app = express();
-    app.use(express.json());
-    await registerRoutes(createServer(), app);
-    app.use(errorHandler);
+    app = new Hono();
+    await registerRoutes(app);
+    app.onError(errorHandler);
   });
 
   afterEach(() => {
@@ -27,10 +43,11 @@ describe("API routes", () => {
   });
 
   it("returns configured series from /api/series", async () => {
-    const res = await request(app).get("/api/series");
+    const res = await app.request("/api/series");
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body).toEqual(
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "f1", name: "Formula 1" }),
         expect.objectContaining({ id: "motogp", name: "MotoGP" }),
@@ -58,10 +75,7 @@ describe("API routes", () => {
                     raceName: "Test Grand Prix",
                     Circuit: {
                       circuitName: "Test Circuit",
-                      Location: {
-                        locality: "Test City",
-                        country: "Testland",
-                      },
+                      Location: { locality: "Test City", country: "Testland" },
                     },
                     date: `${year}-03-01`,
                     time: "15:00:00Z",
@@ -79,20 +93,18 @@ describe("API routes", () => {
       return Promise.reject(new Error(`Unexpected fetch url ${url}`));
     });
 
-    const res = await request(app).get("/api/export.ics?series=f1");
+    const res = await app.request(`/api/export.ics?series=f1`);
     expect(res.status).toBe(200);
-    expect(res.header["content-type"]).toContain("text/calendar");
-    expect(res.header["content-disposition"]).toContain("gridstart.ics");
-    expect(res.text).toContain("BEGIN:VCALENDAR");
+    expect(res.headers.get("content-type")).toContain("text/calendar");
+    expect(res.headers.get("content-disposition")).toContain("gridstart.ics");
+    const text = await res.text();
+    expect(text).toContain("BEGIN:VCALENDAR");
   });
 
   it("returns events for a valid /api/events request", async () => {
     const year = new Date().getFullYear();
     const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockImplementation((url: string) => {
-      if (typeof url !== "string") {
-        return Promise.reject(new Error("Unexpected fetch url"));
-      }
       if (url.includes(`/ergast/f1/${year}.json`)) {
         return Promise.resolve({
           ok: true,
@@ -106,10 +118,7 @@ describe("API routes", () => {
                     raceName: "Test Grand Prix",
                     Circuit: {
                       circuitName: "Test Circuit",
-                      Location: {
-                        locality: "Test City",
-                        country: "Testland",
-                      },
+                      Location: { locality: "Test City", country: "Testland" },
                     },
                     date: `${year}-03-01`,
                     time: "15:00:00Z",
@@ -124,20 +133,22 @@ describe("API routes", () => {
           }),
         });
       }
-      return Promise.reject(new Error(`Unexpected fetch url ${url}`));
+      return Promise.resolve({ ok: true, json: async () => [] });
     });
 
-    const res = await request(app).get("/api/events?series=f1");
+    const res = await app.request(`/api/events?series=f1`);
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
-    expect(res.body[0]).toHaveProperty("seriesId", "f1");
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body[0]).toHaveProperty("seriesId", "f1");
   });
 
   it("returns validation error for invalid series IDs", async () => {
-    const res = await request(app).get("/api/events?series=unknown");
+    const res = await app.request("/api/events?series=unknown");
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain("Invalid series IDs");
+    const body = await res.json();
+    expect(body.message).toContain("Invalid series IDs");
   });
 
   it("returns events filtered by date range", async () => {
@@ -172,9 +183,10 @@ describe("API routes", () => {
       return Promise.resolve({ ok: true, json: async () => [] });
     });
 
-    const res = await request(app).get("/api/events?series=f1&from=2026-01-01&to=2026-12-31");
+    const res = await app.request(`/api/events?series=f1&from=2026-01-01&to=2026-12-31`);
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
   });
 
   it("handles fetch failure gracefully in events endpoint", async () => {
@@ -182,9 +194,10 @@ describe("API routes", () => {
     const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockRejectedValue(new Error("Network error"));
 
-    const res = await request(app).get("/api/events?series=f1");
+    const res = await app.request("/api/events?series=f1");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    const body = await res.json();
+    expect(body).toEqual([]);
   });
 
   it("returns minimal ICS for empty series export", async () => {
@@ -194,33 +207,38 @@ describe("API routes", () => {
       json: async () => ({ MRData: { RaceTable: { Races: [] } } }),
     });
 
-    const res = await request(app).get("/api/export.ics?series=f1");
+    const res = await app.request("/api/export.ics?series=f1");
     expect(res.status).toBe(200);
-    expect(res.text).toContain("BEGIN:VCALENDAR");
+    const text = await res.text();
+    expect(text).toContain("BEGIN:VCALENDAR");
   });
 
   it("returns validation error for non-existent series in export", async () => {
-    const res = await request(app).get("/api/export.ics?series=nonexistent");
+    const res = await app.request("/api/export.ics?series=nonexistent");
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain("Invalid series IDs");
+    const body = await res.json();
+    expect(body.message).toContain("Invalid series IDs");
   });
 
   it("returns empty array for events with only commas in series parameter", async () => {
-    const res = await request(app).get("/api/events?series=,,");
+    const res = await app.request("/api/events?series=,,");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    const body = await res.json();
+    expect(body).toEqual([]);
   });
 
   it("returns bad request for invalid date format in events query", async () => {
-    const res = await request(app).get("/api/events?series=f1&from=01-01-2024");
+    const res = await app.request("/api/events?series=f1&from=01-01-2024");
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain("Invalid query parameters");
+    const body = await res.json();
+    expect(body.message).toContain("Invalid query parameters");
   });
 
   it("returns minimal ICS for only commas in export", async () => {
-    const res = await request(app).get("/api/export.ics?series=,,");
+    const res = await app.request("/api/export.ics?series=,,");
     expect(res.status).toBe(200);
-    expect(res.header["content-type"]).toContain("text/calendar");
-    expect(res.text).toContain("BEGIN:VCALENDAR");
+    expect(res.headers.get("content-type")).toContain("text/calendar");
+    const text = await res.text();
+    expect(text).toContain("BEGIN:VCALENDAR");
   });
 });

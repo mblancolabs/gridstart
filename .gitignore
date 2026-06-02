@@ -1,9 +1,11 @@
 # Dependencies
 /node_modules/
+/client/node_modules/
 
 # Build outputs
 /dist/
 /client/dev-dist/
+/dist/server/
 /build/
 /release/
 

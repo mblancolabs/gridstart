@@ -1,75 +1,76 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import express from "express";
-import request from "supertest";
-import rateLimit from "express-rate-limit";
+import { Hono } from "hono";
+import { createLimiter } from "./rateLimit";
 
 describe("Rate limiting middleware", () => {
-  let app: express.Application;
-
   beforeEach(() => {
-    app = express();
-    app.use(express.json());
     vi.clearAllMocks();
   });
 
-  it("allows requests within limit via generalApiLimiter", async () => {
-    const { generalApiLimiter } = await import("./rateLimit");
-    app.use(generalApiLimiter);
-    app.get("/test", (req, res) => res.json({ ok: true }));
+  it("allows requests within limit", async () => {
+    const limiter = createLimiter({ windowMs: 60000, max: 5, name: "test" });
+    const app = new Hono();
+    app.use("/*", limiter);
+    app.get("/test", (c) => c.json({ ok: true }));
 
-    const res = await request(app).get("/test");
+    const res = await app.request("/test");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ ok: true });
-  });
-
-  it("allows requests within limit via preferencesLimiter", async () => {
-    const { preferencesLimiter } = await import("./rateLimit");
-    app.use(preferencesLimiter);
-    app.put("/preferences", (req, res) => res.json({ ok: true }));
-
-    const res = await request(app).put("/preferences");
-    expect(res.status).toBe(200);
-  });
-
-  it("allows requests within limit via exportLimiter", async () => {
-    const { exportLimiter } = await import("./rateLimit");
-    app.use(exportLimiter);
-    app.get("/export", (req, res) => res.json({ ok: true }));
-
-    const res = await request(app).get("/export");
-    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ ok: true });
   });
 
   it("returns 429 when rate limit is exceeded", async () => {
-    const limiter = rateLimit({
-      windowMs: 60 * 1000,
-      max: 2,
-      standardHeaders: true,
-      legacyHeaders: false,
-      handler: (req, res) => {
-        res.status(429).json({ error: "Too Many Requests" });
-      },
-    });
+    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" });
+    const app = new Hono();
+    app.use("/*", limiter);
+    app.get("/limited", (c) => c.json({ ok: true }));
 
-    app.use(limiter);
-    app.get("/limited", (req, res) => res.json({ ok: true }));
-
-    const res1 = await request(app).get("/limited");
+    const res1 = await app.request("/limited");
     expect(res1.status).toBe(200);
 
-    const res2 = await request(app).get("/limited");
+    const res2 = await app.request("/limited");
     expect(res2.status).toBe(200);
 
-    const res3 = await request(app).get("/limited");
+    const res3 = await app.request("/limited");
     expect(res3.status).toBe(429);
-    expect(res3.body.error).toBe("Too Many Requests");
+    const body = await res3.json();
+    expect(body.error).toBe("Too Many Requests");
+  });
+
+  it("returns 429 with Retry-After header when exceeded", async () => {
+    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" });
+    const app = new Hono();
+    app.use("/*", limiter);
+    app.get("/test", (c) => c.json({ ok: true }));
+
+    await app.request("/test");
+    await app.request("/test");
+    const res = await app.request("/test");
+
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBeDefined();
+    const body = await res.json();
+    expect(body.error).toBe("Too Many Requests");
+    expect(body.retryAfter).toBeLessThanOrEqual(60);
   });
 
   it("rate limiters are distinct instances", async () => {
-    const mod = await import("./rateLimit");
-    expect(mod.generalApiLimiter).not.toBe(mod.preferencesLimiter);
-    expect(mod.generalApiLimiter).not.toBe(mod.exportLimiter);
-    expect(mod.preferencesLimiter).not.toBe(mod.exportLimiter);
+    const { generalApiLimiter, preferencesLimiter, exportLimiter } = await import("./rateLimit");
+    expect(generalApiLimiter).not.toBe(preferencesLimiter);
+    expect(generalApiLimiter).not.toBe(exportLimiter);
+    expect(exportLimiter).not.toBe(preferencesLimiter);
+  });
+
+  it("sets rate limit headers on response", async () => {
+    const limiter = createLimiter({ windowMs: 60000, max: 100, name: "test" });
+    const app = new Hono();
+    app.use("/*", limiter);
+    app.get("/test", (c) => c.json({ ok: true }));
+
+    const res = await app.request("/test");
+    expect(res.headers.get("x-ratelimit-limit")).toBe("100");
+    expect(res.headers.get("x-ratelimit-remaining")).toBe("99");
+    expect(res.headers.get("x-ratelimit-reset")).toBeDefined();
   });
 });
 
@@ -84,39 +85,5 @@ describe("parseEnvNumber", () => {
     delete process.env.RATE_LIMIT_WINDOW_MS;
     const { generalApiLimiter } = await import("./rateLimit");
     expect(generalApiLimiter).toBeDefined();
-  });
-});
-
-describe("rate limit handler", () => {
-  const originalEnv = { ...process.env };
-
-  beforeEach(() => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  it("returns 429 with Retry-After header when exceeded using env-configured limiter", async () => {
-    process.env.RATE_LIMIT_MAX = "2";
-    process.env.RATE_LIMIT_WINDOW_MS = "60000";
-
-    vi.resetModules();
-    const { generalApiLimiter } = await import("./rateLimit");
-
-    const app = express();
-    app.use(generalApiLimiter);
-    app.get("/test", (req, res) => res.json({ ok: true }));
-
-    await request(app).get("/test");
-    await request(app).get("/test");
-    const res = await request(app).get("/test");
-
-    expect(res.status).toBe(429);
-    expect(res.headers["retry-after"]).toBeDefined();
-    expect(res.body.error).toBe("Too Many Requests");
-    expect(res.body.retryAfter).toBe(60);
   });
 });

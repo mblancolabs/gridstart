@@ -53,7 +53,7 @@ To enable the Redis cache, set `REDIS_URL` and `REDIS_TOKEN` in your `.env` file
 
 ```text
 client/     Frontend application (React + TypeScript)
-server/     Express API, feed fetching, caching, export endpoints
+server/     Hono API, feed fetching, caching, export endpoints
 shared/     Shared types, schema, and cross-layer code
 script/     Utility or maintenance scripts
 ```

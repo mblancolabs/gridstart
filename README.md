@@ -4,10 +4,10 @@
 ![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=nodedotjs&logoColor=white)
 ![React 19](https://img.shields.io/badge/react-19-20232a?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Express](https://img.shields.io/badge/express-5.x-000000?style=flat-square&logo=express&logoColor=white)
+![Hono](https://img.shields.io/badge/hono-4.x-E36002?style=flat-square&logo=hono&logoColor=white)
 [![GitHub stars](https://img.shields.io/github/stars/mblancolabs/gridstart?style=flat-square)](https://github.com/mblancolabs/gridstart/stargazers)
 
-A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Express.
+A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Hono.
 
 GridStart is available in two editions:
 
@@ -128,8 +128,9 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 
 ### Backend
 
-- **Express.js** with TypeScript
+- **Hono** with TypeScript (Cloudflare Workers + VPS)
 - **ICAL.js** for calendar parsing/export
+- **Upstash Redis** (optional) for persistent caching
 
 ## Prerequisites
 
@@ -140,7 +141,7 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 
 The application supports the following environment variables:
 
-- `PORT`: Server port (default: 5000)
+- `PORT`: Server port (default: 5000 dev, 3000 VPS production)
 - `NODE_ENV`: Environment mode (`development` or `production`)
 - `CORS_ORIGIN`: CORS origin for development (default: `http://localhost:5173`)
 - `DEV_CSP_WS_ORIGIN`: WebSocket origin for development CSP (defaults to `CORS_ORIGIN` converted to `ws:`)
@@ -155,15 +156,32 @@ The application supports the following environment variables:
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
 - `REDIS_URL`: Redis/Upstash REST URL. Leave unset for in-memory cache (default).
 - `REDIS_TOKEN`: Redis/Upstash REST token. Required if `REDIS_URL` is set.
-- `KV_REST_API_URL`: Vercel KV REST URL (alternative to `REDIS_URL`, auto-injected by Vercel).
-- `KV_REST_API_TOKEN`: Vercel KV REST token (alternative to `REDIS_TOKEN`, auto-injected by Vercel).
+- `KV_REST_API_URL`: Cloudflare KV REST URL (alternative to `REDIS_URL`, for Workers).
+- `KV_REST_API_TOKEN`: Cloudflare KV REST token (alternative to `REDIS_TOKEN`, for Workers).
 - `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 
-### Vercel Deployment
+### Cloudflare Workers Deployment
 
-GridStart supports deployment on Vercel. See [`backlog/vercel.md`](backlog/vercel.md) for the implementation plan.
+GridStart deploys to Cloudflare Pages as a `_worker.js` bundle:
+
+```bash
+npm run deploy
+```
+
+This builds the Worker and runs `wrangler pages deploy dist --branch main`.
+
+### VPS Deployment
+
+For self-hosted VPS deployment:
+
+```bash
+npm run build:server
+npm start
+```
+
+The production server serves the built client from `dist/public/` and the Hono API on the configured `PORT` (default 3000). Run behind a reverse proxy (nginx, Caddy) or process manager (systemd, PM2) for production use.
 
 ## Installation
 
@@ -187,20 +205,28 @@ Start the development server:
 npm run dev
 ```
 
-The application will be available at `http://localhost:5000` (or the port specified in your `PORT` environment variable).
+This starts two servers concurrently:
+- **Vite dev server** on `http://localhost:5173` — React frontend with HMR
+- **Hono API server** on `http://localhost:5000` — API endpoints
+
+The Vite dev server proxies `/api/*` requests to the Hono server, so all development traffic goes through `http://localhost:5173`.
 
 ## Production Build
 
-1. Build the application:
+The project supports two deployment targets. Run both with:
 
-   ```bash
-   npm run build
-   ```
+```bash
+npm run build
+```
 
-2. Start the production server:
-   ```bash
-   npm start
-   ```
+Or build individually:
+
+```bash
+npm run build:worker   # Cloudflare Workers (dist/_worker.js)
+npm run build:server   # VPS Node.js (dist/server/index.js + dist/public/)
+```
+
+See [Deployment](#cloudflare-workers-deployment) for instructions on each target.
 
 ## API Endpoints
 

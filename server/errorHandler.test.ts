@@ -1,30 +1,7 @@
-import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { errorHandler } from "./errorHandler";
+import { Hono } from "hono";
 import { BadRequestError } from "./errors";
-
-function createMockResponse(headersSent = false) {
-  let statusCode = 200;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let jsonBody: any = null;
-  return {
-    headersSent,
-    status(code: number) {
-      statusCode = code;
-      return this;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    json(body: any) {
-      jsonBody = body;
-      return this;
-    },
-    get statusCode() {
-      return statusCode;
-    },
-    get body() {
-      return jsonBody;
-    },
-  };
-}
 
 describe("errorHandler", () => {
   const originalNodeEnv = process.env.NODE_ENV;
@@ -38,81 +15,45 @@ describe("errorHandler", () => {
     process.env.NODE_ENV = originalNodeEnv;
   });
 
-  it("returns generic production response without stack for unexpected errors", () => {
+  it("returns generic production response without stack for unexpected errors", async () => {
     process.env.NODE_ENV = "production";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const req: any = { requestId: "request-123" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = createMockResponse();
-    const next = () => {
-      throw new Error("next should not be called");
-    };
+    const app = new Hono();
+    app.get("/test", () => { throw new Error("secret error"); });
+    app.onError(errorHandler);
 
-    errorHandler(new Error("secret error"), req, res, next);
-
-    expect(res.statusCode).toBe(500);
-    expect(res.body).toEqual(
-      expect.objectContaining({
-        message: "Internal Server Error",
-      }),
-    );
-    expect(res.body.errorId).toEqual(expect.any(String));
-    expect(res.body.stack).toBeUndefined();
+    const res = await app.request("/test");
+    const body = await res.json();
+    expect(body.message).toBe("Internal Server Error");
+    expect(body.errorId).toEqual(expect.any(String));
+    expect(body.stack).toBeUndefined();
   });
 
-  it("returns exposed client error details in development", () => {
+  it("returns exposed client error details in development", async () => {
     process.env.NODE_ENV = "development";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const req: any = { requestId: "request-456" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = createMockResponse();
-    const next = () => {
-      throw new Error("next should not be called");
-    };
-    const error = new BadRequestError("Invalid series IDs");
+    const app = new Hono();
+    app.get("/test", () => { throw new BadRequestError("Invalid series IDs"); });
+    app.onError(errorHandler);
 
-    errorHandler(error, req, res, next);
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toEqual(
-      expect.objectContaining({
-        message: "Invalid series IDs",
-      }),
-    );
-    expect(res.body.errorId).toBeUndefined();
-    expect(res.body.stack).toEqual(expect.any(String));
+    const res = await app.request("/test");
+    const body = await res.json();
+    expect(body.message).toBe("Invalid series IDs");
+    expect(body.errorId).toBeUndefined();
+    expect(body.stack).toEqual(expect.any(String));
   });
 
-  it("handles non-AppError client errors in else branch", () => {
+  it("handles non-AppError errors with a status property", async () => {
     process.env.NODE_ENV = "development";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const req: any = { requestId: "req-789" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = createMockResponse();
-    const next = () => {
-      throw new Error("next should not be called");
-    };
+    const app = new Hono();
+    app.get("/test", () => {
+      const err = new Error("Not found");
+      (err as Record<string, unknown>).status = 404;
+      throw err;
+    });
+    app.onError(errorHandler);
 
-    const error = new Error("Not found");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (error as any).status = 404;
-
-    errorHandler(error, req, res, next);
-
-    expect(res.statusCode).toBe(404);
-    expect(res.body.message).toBe("Not found");
-  });
-
-  it("passes to next middleware when headers already sent", () => {
-    const next = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const req: any = { requestId: "req-101" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = createMockResponse(true);
-
-    errorHandler(new Error("late error"), req, res, next);
-
-    expect(next).toHaveBeenCalledOnce();
-    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+    const res = await app.request("/test");
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.message).toBe("Not found");
   });
 });

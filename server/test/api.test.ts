@@ -1,12 +1,18 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { fetchICSData } from "../routes";
+import { clearCacheInstance } from "../cache";
 import { getDurationForSession } from "../handlers/jolpica";
 import { JolpicaHandler } from "../handlers/jolpica";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "../handlers/sessionLabels";
 import { parseICSEvents } from "../handlers/ics";
-import { clearCacheInstance } from "../cache";
 
-// Mock fetch globally
+vi.hoisted(() => {
+  globalThis.__CONFIG_FEEDS__ = JSON.stringify({
+    categories: [{ name: "Test", series: [] }],
+  });
+});
+
+const { fetchICSData } = await import("../routes");
+
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
 
@@ -17,7 +23,7 @@ describe("API logic", () => {
   });
 
   afterEach(() => {
-    // Clear caches between tests
+    global.fetch = fetchMock;
   });
 
   describe("fetchICSData", () => {
@@ -43,9 +49,7 @@ describe("API logic", () => {
       };
       fetchMock.mockResolvedValue(mockResponse);
 
-      // First call
       await fetchICSData("f1-cache", "https://example.com/f1.ics");
-      // Second call should use cache
       const result = await fetchICSData("f1-cache", "https://example.com/f1.ics");
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -59,14 +63,13 @@ describe("API logic", () => {
       };
       fetchMock.mockResolvedValue(mockResponse);
 
-      // Mock Date.now to simulate time passing
       const originalNow = Date.now;
       const mockNow = vi.fn();
       Date.now = mockNow;
-      mockNow.mockReturnValue(0); // First call
+      mockNow.mockReturnValue(0);
       await fetchICSData("f1-stale", "https://example.com/f1.ics");
 
-      mockNow.mockReturnValue(61 * 60 * 1000); // 61 minutes later (past TTL)
+      mockNow.mockReturnValue(61 * 60 * 1000);
       const result = await fetchICSData("f1-stale", "https://example.com/f1.ics");
 
       expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -76,7 +79,6 @@ describe("API logic", () => {
     });
 
     it("returns stale cached data when fetch fails", async () => {
-      // First successful call
       const mockResponse = {
         ok: true,
         text: vi.fn().mockResolvedValue("CACHED ICS DATA"),
@@ -85,7 +87,6 @@ describe("API logic", () => {
 
       await fetchICSData("f1-fail", "https://example.com/f1.ics");
 
-      // Second call fails, should return cached data
       fetchMock.mockRejectedValueOnce(new Error("Network error"));
       const result = await fetchICSData("f1-fail", "https://example.com/f1.ics");
 
@@ -235,10 +236,7 @@ END:VCALENDAR`,
                 raceName: "Bahrain Grand Prix",
                 Circuit: {
                   circuitName: "Bahrain International Circuit",
-                  Location: {
-                    locality: "Sakhir",
-                    country: "Bahrain",
-                  },
+                  Location: { locality: "Sakhir", country: "Bahrain" },
                 },
                 date: "2024-03-02",
                 time: "15:00:00Z",
@@ -261,7 +259,7 @@ END:VCALENDAR`,
 
       const result = await handler.fetchEvents(mockSeries, {}, 2024);
 
-      expect(result).toHaveLength(5); // FP1, FP2, FP3, Quali, Race
+      expect(result).toHaveLength(5);
       expect(result[0]).toMatchObject({
         seriesId: "f1",
         title: "F1 | Bahrain GP Practice 1",
@@ -283,10 +281,7 @@ END:VCALENDAR`,
                 raceName: "Austrian Grand Prix",
                 Circuit: {
                   circuitName: "Red Bull Ring",
-                  Location: {
-                    locality: "Spielberg",
-                    country: "Austria",
-                  },
+                  Location: { locality: "Spielberg", country: "Austria" },
                 },
                 date: "2024-06-30",
                 time: "14:00:00Z",
@@ -306,7 +301,7 @@ END:VCALENDAR`,
 
       const result = await handler.fetchEvents(mockSeries, {}, 2025);
 
-      expect(result).toHaveLength(4); // FP1, Sprint Quali, Sprint, Race
+      expect(result).toHaveLength(4);
       const sprintQuali = result.find((e) => e.sessionType === "Sprint Qualifying");
       expect(sprintQuali).toBeDefined();
     });
@@ -322,14 +317,10 @@ END:VCALENDAR`,
                 raceName: "Test Race",
                 Circuit: {
                   circuitName: "Test Circuit",
-                  Location: {
-                    locality: "Test City",
-                    country: "Test Country",
-                  },
+                  Location: { locality: "Test City", country: "Test Country" },
                 },
                 date: "2024-03-02",
-                // No time for race
-                FirstPractice: { date: "2024-02-29" }, // No time
+                FirstPractice: { date: "2024-02-29" },
               },
             ],
           },
@@ -355,9 +346,7 @@ END:VCALENDAR`,
     it("returns cached data when available", async () => {
       const mockApiResponse = {
         MRData: {
-          RaceTable: {
-            Races: [],
-          },
+          RaceTable: { Races: [] },
         },
       };
 
@@ -368,9 +357,7 @@ END:VCALENDAR`,
         }),
       );
 
-      // First call
       await handler.fetchEvents(mockSeries, {}, 2027);
-      // Second call should use cache
       await handler.fetchEvents(mockSeries, {}, 2027);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -438,11 +425,9 @@ END:VCALENDAR`,
         json: vi.fn().mockResolvedValue(mockApiResponse),
       });
 
-      // First call populates cache
       const firstResult = await handler.fetchEvents(mockSeries, {}, 2031);
       expect(firstResult.length).toBeGreaterThan(0);
 
-      // Second call fails, should return stale cache
       fetchMock.mockRejectedValueOnce(new Error("Network error"));
       const secondResult = await handler.fetchEvents(mockSeries, {}, 2031);
 
@@ -450,7 +435,6 @@ END:VCALENDAR`,
     });
 
     it("filters events by session names when params.sessionNames is provided", async () => {
-      // Reset fetchMock to avoid interference from one-time implementations in previous tests
       fetchMock.mockReset();
 
       const mockApiResponse = {
@@ -480,7 +464,6 @@ END:VCALENDAR`,
         json: vi.fn().mockResolvedValue(mockApiResponse),
       });
 
-      // Only request "Practice" sessions — should filter out Qualifying and Race
       const result = await handler.fetchEvents(mockSeries, { sessionNames: ["Practice"] }, 2032);
 
       expect(result.length).toBeGreaterThan(0);

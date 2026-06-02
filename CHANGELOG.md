@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.9.0] - 2026-06-02
+
+### Added
+
+- Cloudflare Workers deployment via `_worker.js` bundle and `wrangler.toml`.
+- VPS deployment support via `@hono/node-server` and `server/production.ts`.
+- Dual build pipeline: `npm run build:worker` (esbuild → `dist/_worker.js`) and `npm run build:server` (Vite + esbuild → `dist/server/index.js`).
+- `server/prod-setup.ts` loads feeds config from filesystem at runtime for VPS production.
+- `script/build-server.ts` builds the Node.js server target.
+
+### Changed
+
+- Migrated backend from Express 5 to Hono 4 — same API surface, smaller Worker bundle, edge-native.
+- Dev workflow now runs two servers concurrently: Vite (`:5173`) for frontend HMR and Hono (`:5000`) for API, proxied through Vite.
+- `npm run build` runs both Worker and Server builds.
+- CSRF signing uses Web Crypto API (`crypto.subtle.sign`) instead of Node `crypto.createHmac`.
+- Playwright E2E config updated: `baseURL` points to Vite dev server (`:5173`), health check polls `/health`.
+- Updated README.md, CONTRIBUTING.md, and docs/ARCHITECTURE.md for Hono, dual deployment, and new dev workflow.
+
+### Removed
+
+- Vercel deployment (`vercel.json`, `server/vercel.ts`, `vercel-build` script).
+- `server/vite.ts`, `server/vite.test.ts` — Vite middleware is no longer embedded in the API server.
+
 ## [0.8.2] - 2026-05-31
 
 ### Chore
