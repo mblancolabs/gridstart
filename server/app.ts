@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { csrfProtection } from "./csrf";
 import { errorHandler } from "./errorHandler";
 import { requestComplete } from "./logger";
+import { generalApiLimiter } from "./middleware/rateLimit";
 
 export interface Fetcher {
   fetch(request: Request): Promise<Response>;
@@ -20,6 +21,8 @@ export interface Env {
   RATE_LIMIT_MAX?: string;
   EXPORT_RATE_LIMIT_WINDOW_MS?: string;
   EXPORT_RATE_LIMIT_MAX?: string;
+  STATIC_RATE_LIMIT_WINDOW_MS?: string;
+  STATIC_RATE_LIMIT_MAX?: string;
   [key: string]: unknown;
 }
 
@@ -77,6 +80,7 @@ app.use("*", async (c, next) => {
 });
 
 app.use("/api/*", csrfProtection);
+app.use("/api/*", generalApiLimiter);
 
 app.use("*", async (c, next) => {
   const requestId = crypto.randomUUID();

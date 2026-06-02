@@ -1,5 +1,12 @@
 import type { Context, Next } from "hono";
 
+function parseEnvNumber(key: string, fallback: number): number {
+  const val = process.env[key];
+  if (val === undefined || val === "") return fallback;
+  const parsed = parseInt(val, 10);
+  return isNaN(parsed) ? fallback : parsed;
+}
+
 interface LimiterConfig {
   windowMs: number;
   max: number;
@@ -22,14 +29,13 @@ export function createLimiter(config: LimiterConfig) {
 
     entry.count++;
 
-    c.res.headers.set("X-RateLimit-Limit", String(max));
-    c.res.headers.set("X-RateLimit-Remaining", String(Math.max(0, max - entry.count)));
-    c.res.headers.set("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
-
     if (entry.count > max) {
       const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
-      c.res.headers.set("Retry-After", String(retryAfterSeconds));
       c.status(429);
+      c.header("Retry-After", String(retryAfterSeconds));
+      c.header("X-RateLimit-Limit", String(max));
+      c.header("X-RateLimit-Remaining", "0");
+      c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
       return c.json({
         error: "Too Many Requests",
         message: "Rate limit exceeded. Please try again later.",
@@ -38,23 +44,27 @@ export function createLimiter(config: LimiterConfig) {
     }
 
     await next();
+
+    c.header("X-RateLimit-Limit", String(max));
+    c.header("X-RateLimit-Remaining", String(Math.max(0, max - entry.count)));
+    c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
   };
 }
 
 export const generalApiLimiter = createLimiter({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: parseEnvNumber("RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000),
+  max: parseEnvNumber("RATE_LIMIT_MAX", 100),
   name: "general-api",
 });
 
 export const exportLimiter = createLimiter({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
+  windowMs: parseEnvNumber("EXPORT_RATE_LIMIT_WINDOW_MS", 60 * 60 * 1000),
+  max: parseEnvNumber("EXPORT_RATE_LIMIT_MAX", 10),
   name: "export-api",
 });
 
 export const staticLimiter = createLimiter({
-  windowMs: 15 * 60 * 1000,
-  max: 1000,
+  windowMs: parseEnvNumber("STATIC_RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000),
+  max: parseEnvNumber("STATIC_RATE_LIMIT_MAX", 1000),
   name: "static",
 });

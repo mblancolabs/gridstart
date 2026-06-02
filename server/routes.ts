@@ -13,6 +13,7 @@ import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
 import { getOrSet, CACHE_TTL_MS } from "./cache";
+import { exportLimiter } from "./middleware/rateLimit";
 export { fetchICSData } from "./icsFetcher";
 
 interface FeedsCategory {
@@ -208,6 +209,7 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
     }
   });
 
+  app.use("/api/export.ics", exportLimiter);
   app.get("/api/export.ics", async (c: Context) => {
     try {
       const query = exportIcsQuerySchema.parse(c.req.query());

@@ -55,10 +55,10 @@ describe("Rate limiting middleware", () => {
   });
 
   it("rate limiters are distinct instances", async () => {
-    const { generalApiLimiter, preferencesLimiter, exportLimiter } = await import("./rateLimit");
-    expect(generalApiLimiter).not.toBe(preferencesLimiter);
+    const { generalApiLimiter, exportLimiter, staticLimiter } = await import("./rateLimit");
     expect(generalApiLimiter).not.toBe(exportLimiter);
-    expect(exportLimiter).not.toBe(preferencesLimiter);
+    expect(generalApiLimiter).not.toBe(staticLimiter);
+    expect(exportLimiter).not.toBe(staticLimiter);
   });
 
   it("sets rate limit headers on response", async () => {
