@@ -150,9 +150,7 @@ The application supports the following environment variables:
 - `RATE_LIMIT_MAX`: General API max requests per IP per window (default: 100)
 - `EXPORT_RATE_LIMIT_WINDOW_MS`: Export endpoint rate limit window in milliseconds (default: 3600000 / 1 hour)
 - `EXPORT_RATE_LIMIT_MAX`: Export endpoint max requests per IP per window (default: 10)
-- `PREFERENCES_RATE_LIMIT_WINDOW_MS`: Preferences update rate limit window in milliseconds (default: 300000 / 5 minutes)
-- `PREFERENCES_RATE_LIMIT_MAX`: Preferences update max requests per IP per window (default: 20)
-- `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes)
+- `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes, VPS only)
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
 - `REDIS_URL`: Redis/Upstash REST URL. Leave unset for in-memory cache (default).
 - `REDIS_TOKEN`: Redis/Upstash REST token. Required if `REDIS_URL` is set.
@@ -238,8 +236,9 @@ See [Deployment](#cloudflare-workers-deployment) for instructions on each target
 
 The backend applies rate limiting to protect the API and preserve service availability:
 
-- `GET /api/series`, `GET /api/events`: 100 requests per IP every 15 minutes
-- `GET /api/export.ics`: 10 requests per IP every 1 hour
+- `GET /api/series`, `GET /api/events`: 100 requests per IP every 15 minutes (configurable)
+- `GET /api/export.ics`: 10 requests per IP every 1 hour (configurable)
+- Static files (VPS only): 1000 requests per IP every 15 minutes (configurable)
 
 Rate-limited requests return HTTP `429 Too Many Requests` with a JSON payload and `Retry-After` header.
 
