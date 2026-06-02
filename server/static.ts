@@ -1,38 +1,25 @@
-import express, { type Express } from "express";
-import fs from "fs";
-import path from "path";
-import { staticLimiter } from "./middleware/rateLimit";
+import type { Context } from "hono";
 
-export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
-  if (!fs.existsSync(distPath)) {
-    throw new Error(`Could not find the build directory: ${distPath}, make sure to build the client first`);
+interface Fetcher {
+  fetch(request: Request): Promise<Response>;
+}
+
+export async function serveStaticAsset(c: Context): Promise<Response> {
+  const env = c.env as Record<string, unknown> | undefined;
+  const ASSETS = env?.ASSETS as Fetcher | undefined;
+  if (!ASSETS) {
+    return c.text("Not Found", 404);
   }
 
-  // Apply rate limiting to static file requests
-  app.use(staticLimiter);
+  const url = new URL(c.req.url);
+  const path = url.pathname;
 
-  // Serve static files with security headers (includes landing page at /)
-  app.use(
-    express.static(distPath, {
-      setHeaders: (res, _path) => {
-        // Prevent MIME type sniffing
-        res.setHeader("X-Content-Type-Options", "nosniff");
-        // Prevent clickjacking
-        res.setHeader("X-Frame-Options", "DENY");
-        // Enable XSS protection
-        res.setHeader("X-XSS-Protection", "1; mode=block");
-      },
-    }),
-  );
+  if (path === "/" || path === "/index.html") {
+    return ASSETS.fetch(new Request(`${url.origin}/index.html`, c.req.raw));
+  }
 
-  // Catch-all: serve landing page at /, SPA at all other paths
-  app.use("/{*path}", (req, res) => {
-    const url = req.originalUrl ?? "/";
-    if (url === "/" || url === "/index.html") {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    } else {
-      res.sendFile(path.resolve(distPath, "app.html"));
-    }
-  });
+  const asset = await ASSETS.fetch(c.req.raw);
+  if (asset.status !== 404) return asset;
+
+  return ASSETS.fetch(new Request(`${url.origin}/app.html`, c.req.raw));
 }

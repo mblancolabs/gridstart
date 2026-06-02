@@ -1,8 +1,9 @@
-import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
-import { rm, cp } from "fs/promises";
-import { readFileSync, readdirSync } from "fs";
+import fs from "fs";
 import path from "path";
+
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = "production";
+}
 
 interface FeedsCategory {
   name: string;
@@ -17,14 +18,13 @@ interface FeedsCategory {
   }>;
 }
 
-function loadMergedFeedsConfig(): { categories: FeedsCategory[] } {
+function loadFeedsConfigFromFS(): { categories: FeedsCategory[] } {
   const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
-
-  const patternFiles = readdirSync(feedsDir)
+  const patternFiles = fs
+    .readdirSync(feedsDir)
     .filter((f) => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
     .sort();
-
   const allFiles = [baseFile, ...patternFiles];
   const mergedConfig: { categories: FeedsCategory[] } = { categories: [] };
   const categoryMap = new Map<string, FeedsCategory>();
@@ -32,69 +32,29 @@ function loadMergedFeedsConfig(): { categories: FeedsCategory[] } {
 
   for (const file of allFiles) {
     const filePath = path.resolve(feedsDir, file);
-    const content = readFileSync(filePath, "utf-8");
+    const content = fs.readFileSync(filePath, "utf-8");
     const config = JSON.parse(content) as { categories?: FeedsCategory[] };
-
     if (!config.categories || !Array.isArray(config.categories)) {
       throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
     }
-
     for (const category of config.categories) {
       if (!categoryMap.has(category.name)) {
         categoryMap.set(category.name, { name: category.name, series: [] });
         seriesMap.set(category.name, new Map());
         mergedConfig.categories.push(categoryMap.get(category.name)!);
       }
-
       const catSeriesMap = seriesMap.get(category.name)!;
       for (const series of category.series) {
         catSeriesMap.set(series.id, series);
       }
     }
   }
-
   for (const category of mergedConfig.categories) {
     const catSeriesMap = seriesMap.get(category.name)!;
     category.series = Array.from(catSeriesMap.values());
   }
-
   return mergedConfig;
 }
 
-async function buildAll() {
-  await rm("dist", { recursive: true, force: true });
-
-  console.log("building client...");
-  await viteBuild();
-
-  // Copy landing page to build output
-  await cp("client/index.html", "dist/public/index.html");
-
-  console.log("building server (Workers)...");
-
-  // Load and merge feed configs, inject via esbuild define
-  const mergedConfig = loadMergedFeedsConfig();
-  const configJson = JSON.stringify(mergedConfig);
-  const configDefineValue = JSON.stringify(configJson);
-
-  await esbuild({
-    entryPoints: ["server/worker.ts"],
-    platform: "neutral",
-    bundle: true,
-    format: "esm",
-    outfile: "dist/_worker.js",
-    define: {
-      "globalThis.__CONFIG_FEEDS__": configDefineValue,
-      "process.env.NODE_ENV": '"production"',
-    },
-    minify: true,
-    logLevel: "info",
-  });
-
-  console.log("build complete: dist/public/ (static) + dist/_worker.js (server)");
-}
-
-buildAll().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const feedsConfig = loadFeedsConfigFromFS();
+(globalThis as unknown as Record<string, string>).__CONFIG_FEEDS__ = JSON.stringify(feedsConfig);

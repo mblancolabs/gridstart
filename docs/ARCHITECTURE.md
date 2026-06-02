@@ -1,6 +1,6 @@
 # GridStart Architecture
 
-GridStart is a full-stack motorsport calendar application that aggregates race schedules from multiple upstream sources into a single normalized calendar experience. The repository is organized around a React frontend, an Express backend, shared contracts, and configuration-driven series definitions. User preferences are stored client-side in a browser cookie.
+GridStart is a full-stack motorsport calendar application that aggregates race schedules from multiple upstream sources into a single normalized calendar experience. The repository is organized around a React frontend, a Hono backend (deployable to Cloudflare Workers or a VPS), shared contracts, and configuration-driven series definitions. User preferences are stored client-side in a browser cookie.
 
 ## System overview
 
@@ -10,7 +10,7 @@ At a high level, GridStart separates presentation, API orchestration, feed inges
 flowchart LR
     U[User Browser] --> C[React Client\nclient/]
     C -->|Preferences cookie| UC[(Browser Cookie)]
-    C --> A[Express API\nserver/]
+    C --> A[Hono API\nserver/]
     A --> K[Configurable Cache\nMemory or Redis\n1-hour TTL]
     A --> F1[Jolpica API\nF1]
     A --> MG[PulseLive API\nMotoGP]
@@ -24,14 +24,15 @@ The top-level repository includes `client/`, `server/`, `shared/`, and `script/`
 | Path                         | Purpose                                                                                             |
 | ---------------------------- | --------------------------------------------------------------------------------------------------- |
 | `client/`                    | React frontend, UI state, routing, event display, filtering, and theme behavior.                    |
-| `server/`                    | Express API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. |
+| `server/`                    | Hono API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. Dual deployment: Worker entry (`worker.ts`) and VPS entry (`production.ts`). |
 | `shared/`                    | Shared types, schemas, or contracts used across client and server boundaries.                       |
-| `script/`                    | Utility scripts and maintenance helpers outside the main runtime path.                              |
+| `script/`                    | Build scripts (esbuild Worker bundle, Node.js server bundle) and maintenance helpers.               |
 | `config/calendar-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters.        |
+| `wrangler.toml`              | Cloudflare Pages configuration — `nodejs_compat` flag, build command, deploy config.                 |
 
 ## Runtime components
 
-The frontend is React 19 with TypeScript, Vite, Tailwind CSS, Radix UI, Wouter, TanStack Query, and date-fns. The backend is Express 5 with TypeScript and ICAL.js, which makes the system a compact full-stack TypeScript application with no external infrastructure requirements.
+The frontend is React 19 with TypeScript, Vite, Tailwind CSS, Radix UI, Wouter, TanStack Query, and date-fns. The backend is Hono with TypeScript and ICAL.js, deployable to Cloudflare Workers or a Node.js VPS with no external infrastructure requirements.
 
 ### Client
 
@@ -40,6 +41,13 @@ The client is responsible for rendering the calendar experience, loading availab
 ### Server
 
 The server acts as the integration hub. It exposes API endpoints, fetches source data from ICS feeds and special APIs, applies cache lookups and refreshes, enforces endpoint-specific rate limits, and emits normalized responses to the client and ICS consumers.
+
+The Hono framework provides a single API surface that runs on both targets:
+
+- **Cloudflare Workers** — `server/worker.ts` exports a `fetch` handler mounted as a Pages `_worker.js` bundle. Config is injected at build time via esbuild `define` (`globalThis.__CONFIG_FEEDS__`). Static assets are served by Cloudflare Pages.
+- **Node.js VPS** — `server/production.ts` loads feeds config from the filesystem at startup (`server/prod-setup.ts`), registers `@hono/node-server/serve-static` as a catch-all, and starts an HTTP server via `@hono/node-server`.
+
+The dev server (`server/index.ts`) runs the same Hono app on `@hono/node-server` at port 5000, alongside Vite on port 5173 which proxies `/api` requests.
 
 ### Shared layer
 
@@ -51,7 +59,7 @@ User preferences are stored entirely client-side in a browser cookie (`gridstart
 
 ### Security
 
-CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (readable by client JS) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the cookie value in the `x-csrf-token` request header; the server validates that both values match and that the HMAC-SHA256 signature is valid. This design works across serverless instances with no shared state.
+CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (readable by client JS) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the cookie value in the `x-csrf-token` request header; the server validates that both values match and that the HMAC-SHA256 signature is valid. Signing uses the Web Crypto API (`crypto.subtle.sign("HMAC", ...)`) rather than Node's `crypto.createHmac`, ensuring compatibility with the Workers runtime. This design works across serverless instances with no shared state.
 
 ## Data sources and handlers
 
@@ -127,6 +135,43 @@ Caching uses a `CacheProvider` interface with two implementations:
 The cache backend is selected at startup and is a singleton across the application. Handlers interact only with the `CacheProvider` interface and are unaware of which backend is in use.
 
 This design reduces latency and upstream dependency pressure without introducing extra infrastructure. The Redis option adds persistence without introducing a TCP connection requirement (Upstash uses HTTPS). There is no manual invalidation path yet.
+
+## Build pipeline
+
+GridStart uses two separate build targets sharing the same source code:
+
+```
+npm run build  ──┬── build:worker ──┬── esbuild (platform: browser, target: es2022)
+                 │                  ├── define: __CONFIG_FEEDS__ ← merged config/calendar-feeds.*.json
+                 │                  └── dist/_worker.js
+                 │
+                 └── build:server ──┬── vite build → dist/public/
+                                    ├── esbuild (platform: node, target: node20)
+                                    └── dist/server/index.js
+```
+
+The feeds configuration is handled differently per target:
+
+- **Worker build** — `script/build.ts` reads all `config/calendar-feeds*.json` files, merges them by category/series ID, and injects the result into the bundle via esbuild's `define` option. The Worker references `globalThis.__CONFIG_FEEDS__` which is replaced at compile time, avoiding any `fs`/`path` calls in the edge bundle.
+- **Server build** — `script/build-server.ts` builds the Vite frontend to `dist/public/`, then esbuilds `server/production.ts` (with `server/prod-setup.ts`) to `dist/server/index.js`. At runtime, `prod-setup.ts` reads and merges `config/calendar-feeds*.json` from disk.
+
+## Deployment targets
+
+### Cloudflare Workers
+
+```bash
+npm run deploy   # build:worker + wrangler pages deploy dist --branch main
+```
+
+The `_worker.js` bundle handles all API routes. Static assets (`dist/public/`) are served by Cloudflare Pages infrastructure. Env vars (`CSRF_SECRET`, `REDIS_URL`, `REDIS_TOKEN`, `CORS_ORIGIN`) are configured in the Cloudflare dashboard. The `nodejs_compat` flag is enabled in `wrangler.toml` for `process.env` access.
+
+### VPS
+
+```bash
+npm run build:server && npm start
+```
+
+The Node.js server listens on the configured `PORT` (default 3000). All API routes from the same Hono app are registered first, then a catch-all `serveStatic` middleware serves `dist/public/`. For production, run behind a reverse proxy (nginx, Caddy) and a process manager (systemd, PM2).
 
 ## Future: Premium Edition (Phase 2)
 

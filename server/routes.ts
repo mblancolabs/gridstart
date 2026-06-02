@@ -1,15 +1,11 @@
+import type { Hono } from "hono";
+import type { Context } from "hono";
 import { z } from "zod";
-import type { Express, Request, Response, NextFunction } from "express";
-import { type Server } from "http";
-import { generalApiLimiter, exportLimiter } from "./middleware/rateLimit";
 import { eventsQuerySchema, exportIcsQuerySchema } from "@shared/schema";
 import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import { BadRequestError } from "./errors";
-import { safeLoadJsonFile } from "./utils";
 import * as logger from "./logger";
 import ICAL from "ical.js";
-import path from "path";
-import fs from "fs";
 import { HandlerRegistry } from "./handlers/registry";
 import { ICSHandler } from "./handlers/ics";
 import { ECALHandler } from "./handlers/ecal";
@@ -32,64 +28,19 @@ interface FeedsCategory {
   }>;
 }
 
-// Load calendar feeds config with validation and merging
-function loadFeedsConfig(): { categories: FeedsCategory[] } {
-  const feedsDir = path.resolve(process.cwd(), "config");
-  const baseFile = "calendar-feeds.json";
-
-  // Find all calendar-feeds.*.json files except the base one
-  const patternFiles = fs
-    .readdirSync(feedsDir)
-    .filter((f) => f.startsWith("calendar-feeds.") && f.endsWith(".json") && f !== baseFile)
-    .sort(); // alphabetical order
-
-  console.log("Pattern files:", patternFiles);
-
-  const allFiles = [baseFile, ...patternFiles];
-
-  // Initialize merged config
-  const mergedConfig: { categories: FeedsCategory[] } = { categories: [] };
-  const categoryMap = new Map<string, FeedsCategory>();
-  const seriesMap = new Map<string, Map<string, FeedsCategory["series"][number]>>();
-
-  for (const file of allFiles) {
-    const filePath = path.resolve(feedsDir, file);
-    const config = safeLoadJsonFile(filePath, feedsDir) as { categories?: FeedsCategory[] };
-
-    if (!config.categories || !Array.isArray(config.categories)) {
-      throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
-    }
-
-    for (const category of config.categories) {
-      if (!categoryMap.has(category.name)) {
-        categoryMap.set(category.name, { name: category.name, series: [] });
-        seriesMap.set(category.name, new Map());
-        mergedConfig.categories.push(categoryMap.get(category.name)!);
-      }
-
-      const catSeriesMap = seriesMap.get(category.name)!;
-
-      for (const series of category.series) {
-        catSeriesMap.set(series.id, series);
-      }
-    }
+function getFeedsConfig(): { categories: FeedsCategory[] } {
+  const raw = (globalThis as Record<string, unknown>).__CONFIG_FEEDS__;
+  if (typeof raw === "string") {
+    return JSON.parse(raw);
   }
-
-  // Build the final categories with merged series
-  for (const category of mergedConfig.categories) {
-    const catSeriesMap = seriesMap.get(category.name)!;
-    category.series = Array.from(catSeriesMap.values());
-  }
-
-  return mergedConfig;
+  throw new Error("Feeds configuration not loaded");
 }
 
-const feedsConfig = loadFeedsConfig();
+const feedsConfig = getFeedsConfig();
 
-// Build flat series list from categories
-function getAllSeries(): SeriesInfo[] {
+function buildAllSeries(config: { categories: FeedsCategory[] }): SeriesInfo[] {
   const result: SeriesInfo[] = [];
-  for (const category of feedsConfig.categories) {
+  for (const category of config.categories) {
     for (const series of category.series) {
       const rawSessionNames = series.params?.sessionNames;
       const normalizedSessionNames =
@@ -126,18 +77,13 @@ function getAllSeries(): SeriesInfo[] {
   return result;
 }
 
-const allSeries = getAllSeries();
+const allSeries = buildAllSeries(feedsConfig);
 
-// Initialize handler registry
 const handlerRegistry = new HandlerRegistry();
 handlerRegistry.register(new ICSHandler());
 handlerRegistry.register(new ECALHandler());
 handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
-
-// ---------- Jolpica API (F1 session times) ----------
-
-// ---------- ICS export ----------
 
 function generateICS(events: CalendarEvent[]): string {
   const cal = new ICAL.Component(["vcalendar", [], []]);
@@ -153,16 +99,10 @@ function generateICS(events: CalendarEvent[]): string {
     vevent.updatePropertyWithValue("summary", `${event.title}`);
 
     if (event.isAllDay) {
-      // All-day event — use VALUE=DATE
-      //const d = new Date(event.startDate);
-      //const dateStr = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
-      //const dtstart = vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(dateStr));
-
       const dEnd = new Date(event.endDate);
       const endDateStr = `${dEnd.getUTCFullYear()}${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}${String(dEnd.getUTCDate()).padStart(2, "0")}`;
       vevent.addPropertyWithValue("dtend", ICAL.Time.fromDateString(endDateStr));
     } else {
-      // Timed event in UTC
       const dtstart = ICAL.Time.fromJSDate(new Date(event.startDate), true);
       vevent.updatePropertyWithValue("dtstart", dtstart);
       const dtend = ICAL.Time.fromJSDate(new Date(event.endDate), true);
@@ -182,10 +122,7 @@ function generateICS(events: CalendarEvent[]): string {
   return cal.toString();
 }
 
-// ---------- Fetch events for a series ----------
-
 async function fetchEventsForSeries(series: SeriesInfo, fromDate?: Date, toDate?: Date): Promise<CalendarEvent[]> {
-  // Determine which years to fetch
   const years = new Set<number>();
   const currentYear = new Date().getFullYear();
   years.add(currentYear);
@@ -217,32 +154,29 @@ function filterByDateRange(events: CalendarEvent[], fromDate?: Date, toDate?: Da
   });
 }
 
-// ---------- Routes ----------
-
-export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
-  // GET /api/series — list all series
-  app.get("/api/series", generalApiLimiter, (_req: Request, res: Response) => {
-    res.json(allSeries);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
+  app.get("/api/series", async (c: Context) => {
+    c.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "*");
+    return c.json(allSeries);
   });
 
-  // GET /api/events?series=f1,motogp&from=2026-01-01&to=2026-12-31
-  app.get("/api/events", generalApiLimiter, async (req: Request, res: Response, next: NextFunction) => {
+  app.get("/api/events", async (c: Context) => {
     try {
-      const query = eventsQuerySchema.parse(req.query);
+      const query = eventsQuerySchema.parse(c.req.query());
       const seriesIds = query.series
         .split(",")
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .filter(Boolean);
 
-      // Validate series IDs exist
       const validSeriesIds = allSeries.map((s) => s.id);
-      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
+      const invalidSeries = seriesIds.filter((id: string) => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
-        return res.json([]);
+        return c.json([]);
       }
 
       const fromDate = query.from ? new Date(query.from) : undefined;
@@ -250,10 +184,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const allEvents: CalendarEvent[] = [];
 
-      const fetchPromises = seriesIds.map(async (seriesId) => {
+      const fetchPromises = seriesIds.map(async (seriesId: string) => {
         const series = allSeries.find((s) => s.id === seriesId);
         if (!series) return;
-
         try {
           const events = await fetchEventsForSeries(series, fromDate, toDate);
           allEvents.push(...events);
@@ -264,48 +197,44 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       await Promise.all(fetchPromises);
 
-      // Sort by start date
       allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-      res.json(allEvents);
+      return c.json(allEvents);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return next(new BadRequestError("Invalid query parameters"));
+        throw new BadRequestError("Invalid query parameters");
       }
-      next(err);
+      throw err;
     }
   });
 
-  // GET /api/export.ics?series=f1,motogp
-  app.get("/api/export.ics", exportLimiter, async (req: Request, res: Response, next: NextFunction) => {
+  app.get("/api/export.ics", async (c: Context) => {
     try {
-      const query = exportIcsQuerySchema.parse(req.query);
+      const query = exportIcsQuerySchema.parse(c.req.query());
       const seriesIds = query.series
         .split(",")
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .filter(Boolean);
 
-      // Validate series IDs exist
       const validSeriesIds = allSeries.map((s) => s.id);
-      const invalidSeries = seriesIds.filter((id) => !validSeriesIds.includes(id));
+      const invalidSeries = seriesIds.filter((id: string) => !validSeriesIds.includes(id));
       if (invalidSeries.length > 0) {
         throw new BadRequestError("Invalid series IDs: " + invalidSeries.join(", "));
       }
 
       if (seriesIds.length === 0) {
-        res.set("Content-Type", "text/calendar; charset=utf-8");
-        res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
-        return res.send("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
+        c.header("Content-Type", "text/calendar; charset=utf-8");
+        c.header("Content-Disposition", 'attachment; filename="gridstart.ics"');
+        return c.body("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
       }
 
       const sortedIds = [...seriesIds].sort().join(",");
       const icsString = await getOrSet(`ics-export-${sortedIds}`, CACHE_TTL_MS, async () => {
         const allEvents: CalendarEvent[] = [];
 
-        const fetchPromises = seriesIds.map(async (seriesId) => {
+        const fetchPromises = seriesIds.map(async (seriesId: string) => {
           const series = allSeries.find((s) => s.id === seriesId);
           if (!series) return;
-
           try {
             const events = await fetchEventsForSeries(series);
             allEvents.push(...events);
@@ -321,16 +250,18 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return generateICS(allEvents);
       });
 
-      res.set("Content-Type", "text/calendar; charset=utf-8");
-      res.set("Content-Disposition", 'attachment; filename="gridstart.ics"');
-      res.send(icsString);
+      c.header("Content-Type", "text/calendar; charset=utf-8");
+      c.header("Content-Disposition", 'attachment; filename="gridstart.ics"');
+      return c.body(icsString);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return next(new BadRequestError("Invalid query parameters"));
+        throw new BadRequestError("Invalid query parameters");
       }
-      next(err);
+      throw err;
     }
   });
+}
 
-  return httpServer;
+export function getSeriesList(): SeriesInfo[] {
+  return allSeries;
 }

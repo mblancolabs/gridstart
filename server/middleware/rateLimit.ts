@@ -1,81 +1,60 @@
-import rateLimit from "express-rate-limit";
-import type { Request, Response } from "express";
+import type { Context, Next } from "hono";
 
-function parseEnvNumber(key: string, fallback: number): number {
-  const value = Number(process.env[key]);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
+interface LimiterConfig {
+  windowMs: number;
+  max: number;
+  name: string;
 }
 
-function sanitizeLogValue(value: string): string {
-  return value
-    .replace(/[\r\n]+/g, " ")
-    .split("")
-    .map((c) => {
-      const code = c.charCodeAt(0);
-      return code <= 0x1f || code === 0x7f ? " " : c;
-    })
-    .join("");
-}
+export function createLimiter(config: LimiterConfig) {
+  const { windowMs, max } = config;
+  const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
-function encodeLogValue(value: string): string {
-  return JSON.stringify(sanitizeLogValue(value));
-}
+  return async function limiter(c: Context, next: Next): Promise<Response | void> {
+    const ip = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+    const now = Date.now();
 
-function createLimiter({ windowMs, max, name }: { windowMs: number; max: number; name: string }) {
-  return rateLimit({
-    windowMs,
-    max,
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: (req: Request, res: Response) => {
-      const retryAfterSeconds = Math.ceil(windowMs / 1000);
-      const ip = encodeLogValue(req.ip ?? "-");
-      const method = encodeLogValue(req.method);
-      const originalUrl = encodeLogValue(req.originalUrl);
-      const limiterName = encodeLogValue(name);
+    let entry = requestCounts.get(ip);
+    if (!entry || now > entry.resetAt) {
+      entry = { count: 0, resetAt: now + windowMs };
+      requestCounts.set(ip, entry);
+    }
 
-      console.warn(
-        `[rate-limit] ${ip} ${method} ${originalUrl} exceeded ${max} requests in ${windowMs / 1000}s (${limiterName})`,
-      );
-      res.setHeader("Retry-After", String(retryAfterSeconds));
-      res.status(429).json({
+    entry.count++;
+
+    c.res.headers.set("X-RateLimit-Limit", String(max));
+    c.res.headers.set("X-RateLimit-Remaining", String(Math.max(0, max - entry.count)));
+    c.res.headers.set("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
+
+    if (entry.count > max) {
+      const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
+      c.res.headers.set("Retry-After", String(retryAfterSeconds));
+      c.status(429);
+      return c.json({
         error: "Too Many Requests",
         message: "Rate limit exceeded. Please try again later.",
         retryAfter: retryAfterSeconds,
       });
-    },
-  });
+    }
+
+    await next();
+  };
 }
 
-const generalWindowMs = parseEnvNumber("RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000);
-const generalMax = parseEnvNumber("RATE_LIMIT_MAX", 100);
-const exportWindowMs = parseEnvNumber("EXPORT_RATE_LIMIT_WINDOW_MS", 60 * 60 * 1000);
-const exportMax = parseEnvNumber("EXPORT_RATE_LIMIT_MAX", 10);
-const preferencesWindowMs = parseEnvNumber("PREFERENCES_RATE_LIMIT_WINDOW_MS", 5 * 60 * 1000);
-const preferencesMax = parseEnvNumber("PREFERENCES_RATE_LIMIT_MAX", 20);
-const staticWindowMs = parseEnvNumber("STATIC_RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000);
-const staticMax = parseEnvNumber("STATIC_RATE_LIMIT_MAX", 1000);
-
 export const generalApiLimiter = createLimiter({
-  windowMs: generalWindowMs,
-  max: generalMax,
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   name: "general-api",
 });
 
-export const preferencesLimiter = createLimiter({
-  windowMs: preferencesWindowMs,
-  max: preferencesMax,
-  name: "preferences-update",
-});
-
 export const exportLimiter = createLimiter({
-  windowMs: exportWindowMs,
-  max: exportMax,
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   name: "export-api",
 });
 
 export const staticLimiter = createLimiter({
-  windowMs: staticWindowMs,
-  max: staticMax,
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   name: "static",
 });

@@ -1,52 +1,57 @@
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
-import express from "express";
-import request from "supertest";
-import path from "path";
-import fs from "fs";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Hono } from "hono";
+import { serveStaticAsset } from "./static";
 
-vi.mock("./middleware/rateLimit", () => ({
-  staticLimiter: (() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const m = (req: any, res: any, next: any) => next();
-    return m;
-  })(),
-}));
-
-describe("serveStatic", () => {
-  const publicDir = path.resolve(__dirname, "public");
-
-  beforeAll(() => {
-    fs.mkdirSync(publicDir, { recursive: true });
-    fs.writeFileSync(path.join(publicDir, "app.html"), "<html><body>GridStart</body></html>");
-    fs.writeFileSync(path.join(publicDir, "index.html"), "<html><body>Landing</body></html>");
-  });
-
-  afterAll(() => {
-    if (fs.existsSync(publicDir)) {
-      fs.rmSync(publicDir, { recursive: true, force: true });
-    }
-  });
-
+describe("serveStaticAsset", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("throws when dist directory does not exist", async () => {
-    vi.spyOn(fs, "existsSync").mockReturnValue(false);
+  it("returns 404 when ASSETS binding is not available", async () => {
+    const app = new Hono();
+    app.get("/*", serveStaticAsset);
 
-    const { serveStatic } = await import("./static");
-    const app = express();
-
-    expect(() => serveStatic(app)).toThrow("Could not find the build directory");
+    const res = await app.request("/some/path", {}, {});
+    expect(res.status).toBe(404);
   });
 
-  it("serves app.html for unknown paths (SPA fallback)", async () => {
-    const { serveStatic } = await import("./static");
-    const app = express();
-    serveStatic(app);
+  it("serves assets from ASSETS.fetch for root path", async () => {
+    const mockAssets = {
+      fetch: vi.fn().mockResolvedValue(new Response("index html", { status: 200 })),
+    };
+    const app = new Hono();
+    app.get("/*", serveStaticAsset);
 
-    const res = await request(app).get("/some/unknown/path");
+    const res = await app.request("http://example.com/", {}, { ASSETS: mockAssets });
     expect(res.status).toBe(200);
-    expect(res.text).toContain("GridStart");
+    expect(await res.text()).toBe("index html");
+  });
+
+  it("serves assets from ASSETS.fetch for known paths", async () => {
+    const mockAssets = {
+      fetch: vi.fn().mockResolvedValue(new Response("asset content", { status: 200 })),
+    };
+    const app = new Hono();
+    app.get("/*", serveStaticAsset);
+
+    const res = await app.request("http://example.com/assets/style.css", {}, { ASSETS: mockAssets });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("asset content");
+  });
+
+  it("falls back to app.html when ASSETS returns 404", async () => {
+    const mockAssets = {
+      fetch: vi
+        .fn()
+        .mockResolvedValueOnce(new Response("Not Found", { status: 404 }))
+        .mockResolvedValueOnce(new Response("app html", { status: 200 })),
+    };
+    const app = new Hono();
+    app.get("/*", serveStaticAsset);
+
+    const res = await app.request("http://example.com/unknown/path", {}, { ASSETS: mockAssets });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("app html");
+    expect(mockAssets.fetch).toHaveBeenCalledTimes(2);
   });
 });
