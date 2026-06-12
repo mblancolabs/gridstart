@@ -1,6 +1,7 @@
 name = "gridstart"
 pages_build_output_dir = "dist"
 
+compatibility_date = "2026-06-12"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
