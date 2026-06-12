@@ -5,7 +5,6 @@ compatibility_date = "2026-06-12"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-NODE_ENV = "production"
 RATE_LIMIT_MAX = 5000
 
 [env.production]
