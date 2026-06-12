@@ -68,7 +68,7 @@ async function buildAll() {
   await viteBuild();
 
   // Copy landing page to build output
-  await cp("client/index.html", "dist/public/index.html");
+  await cp("client/index.html", "dist/index.html");
 
   console.log("building server (Workers)...");
 
@@ -91,7 +91,7 @@ async function buildAll() {
     logLevel: "info",
   });
 
-  console.log("build complete: dist/public/ (static) + dist/_worker.js (server)");
+  console.log("build complete: dist/ (static) + dist/_worker.js (server)");
 }
 
 buildAll().catch((err) => {
