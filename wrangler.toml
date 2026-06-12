@@ -3,5 +3,9 @@ pages_build_output_dir = "dist"
 
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+NODE_ENV = "development"
+RATE_LIMIT_MAX = 5000
+
 [env.production]
-vars = { NODE_ENV = "production" }
+vars = { NODE_ENV = "production", RATE_LIMIT_MAX = 2000 }
