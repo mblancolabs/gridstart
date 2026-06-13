@@ -209,7 +209,7 @@ describe("SyncDialog Component", () => {
     await user.click(copyButton);
 
     // Should call clipboard API
-    expect(mockClipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("/api/export.ics?series=f1,f2"));
+    expect(mockClipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("/export.ics?series=f1,f2"));
 
     // Should show check icon
     await waitFor(() => {

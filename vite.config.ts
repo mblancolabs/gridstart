@@ -105,6 +105,10 @@ export default defineConfig({
         target: "http://localhost:5000",
         changeOrigin: true,
       },
+      "/export.ics": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
     },
     fs: {
       strict: true,

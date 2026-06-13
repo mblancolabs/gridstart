@@ -5,7 +5,7 @@ export default {
   async fetch(request: Request, env: Env, ctx: import("hono").Context['executionCtx']): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname.startsWith("/api") || url.pathname === "/health") {
+    if (url.pathname.startsWith("/api") || url.pathname === "/health" || url.pathname.startsWith("/export.ics")) {
       return app.fetch(request, env, ctx);
     }
 
