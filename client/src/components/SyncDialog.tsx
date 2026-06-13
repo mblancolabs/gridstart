@@ -27,7 +27,7 @@ export function SyncDialog() {
   const subscriptionUrl = useMemo(() => {
     const base = window.location.origin;
     const seriesParam = enabledSeries.join(",");
-    return `${base}/api/export.ics?series=${seriesParam}`;
+    return `${base}/export.ics?series=${seriesParam}`;
   }, [enabledSeries]);
 
   const googleCalUrl = useMemo(() => {
