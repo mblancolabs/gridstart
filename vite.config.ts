@@ -43,6 +43,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/app.html",
+        navigateFallbackDenylist: [/^\/export\.ics/],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         runtimeCaching: [
           {
