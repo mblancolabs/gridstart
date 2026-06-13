@@ -100,8 +100,11 @@ function generateICS(events: CalendarEvent[]): string {
     vevent.updatePropertyWithValue("summary", `${event.title}`);
 
     if (event.isAllDay) {
+      const dStart = new Date(event.startDate);
       const dEnd = new Date(event.endDate);
-      const endDateStr = `${dEnd.getUTCFullYear()}${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}${String(dEnd.getUTCDate()).padStart(2, "0")}`;
+      const startDateStr = `${dStart.getUTCFullYear()}-${String(dStart.getUTCMonth() + 1).padStart(2, "0")}-${String(dStart.getUTCDate()).padStart(2, "0")}`;
+      const endDateStr = `${dEnd.getUTCFullYear()}-${String(dEnd.getUTCMonth() + 1).padStart(2, "0")}-${String(dEnd.getUTCDate()).padStart(2, "0")}`;
+      vevent.addPropertyWithValue("dtstart", ICAL.Time.fromDateString(startDateStr));
       vevent.addPropertyWithValue("dtend", ICAL.Time.fromDateString(endDateStr));
     } else {
       const dtstart = ICAL.Time.fromJSDate(new Date(event.startDate), true);

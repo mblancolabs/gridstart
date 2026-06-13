@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.2] - 2026-06-13
+
+### Fixed
+
+- All-day events in ICS export produced invalid `DTEND` because `ICAL.Time.fromDateString()` expects `YYYY-MM-DD` format but the code passed `YYYYMMDD` (no separators), causing a crash. Also added the missing `DTSTART` for all-day events.
+
 ## [0.9.1] - 2026-06-13
 
 ### Fixed
