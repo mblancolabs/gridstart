@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.1] - 2026-06-13
+
+### Fixed
+
+- Calendar ICS export endpoint broken on Cloudflare Pages staging due to Cloudflare Access protecting `/api/*` paths. Added a duplicate route at `/export.ics` (outside `/api/`) that bypasses Access, and updated the SyncDialog to use the new URL.
+
+### Changed
+
+- **Wrangler/Pages deployment:** Output Vite build to `dist/` instead of `dist/public/` — fixes root URL serving `index.html` in production.
+- **Wrangler/Pages deployment:** Use `NODE_ENV=production` in Preview, inherit from `[vars]` in production.
+- **Wrangler/Pages deployment:** Remove `NODE_ENV` from `[vars]` — fixes `npm ci` skipping devDependencies.
+- **Wrangler/Pages deployment:** Add `compatibility_date` to `wrangler.toml`.
+- **Wrangler/Pages deployment:** Add wrangler preview vars, remove `.env.staging`.
+
+### Dependencies
+
+- Bumped production dependencies (31 updates) including Hono, React, and Radix UI.
+- Bumped development dependencies (8 updates) including esbuild to 0.28.1 and wrangler to 4.100.0.
+
 ## [0.9.0] - 2026-06-02
 
 ### Added

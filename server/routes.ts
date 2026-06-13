@@ -209,8 +209,7 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
     }
   });
 
-  app.use("/api/export.ics", exportLimiter);
-  app.get("/api/export.ics", async (c: Context) => {
+  const exportIcsHandler = async (c: Context) => {
     try {
       const query = exportIcsQuerySchema.parse(c.req.query());
       const seriesIds = query.series
@@ -261,7 +260,12 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
       }
       throw err;
     }
-  });
+  };
+
+  app.use("/api/export.ics", exportLimiter);
+  app.get("/api/export.ics", exportIcsHandler);
+  app.use("/export.ics", exportLimiter);
+  app.get("/export.ics", exportIcsHandler);
 }
 
 export function getSeriesList(): SeriesInfo[] {
