@@ -241,4 +241,41 @@ describe("API routes", () => {
     const text = await res.text();
     expect(text).toContain("BEGIN:VCALENDAR");
   });
+
+  it("handles all-day events in ICS export", async () => {
+    const year = new Date().getFullYear();
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes(`/ergast/f1/${year}.json`)) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            MRData: {
+              RaceTable: {
+                Races: [
+                  {
+                    season: `${year}`,
+                    round: "1",
+                    raceName: "All-Day Grand Prix",
+                    Circuit: {
+                      circuitName: "Circuit",
+                      Location: { locality: "City", country: "Country" },
+                    },
+                    date: `${year}-03-01`,
+                  },
+                ],
+              },
+            },
+          }),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected url ${url}`));
+    });
+
+    const res = await app.request(`/api/export.ics?series=f1`);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("DTSTART;VALUE=DATE");
+    expect(text).toContain("DTEND;VALUE=DATE");
+  });
 });
