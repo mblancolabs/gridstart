@@ -83,7 +83,7 @@
     "express": "^5.0.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
-    "hono": "^4.12.23",
+    "hono": "^4.12.25",
     "ical.js": "^2.2.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.17.0",
