@@ -137,6 +137,7 @@
     "wrangler": "^4.103.0"
   },
   "overrides": {
+    "@babel/core": "^7.29.6",
     "workbox-build": {
       "glob": "^13.0.6"
     },
