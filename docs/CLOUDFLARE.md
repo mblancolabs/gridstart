@@ -63,6 +63,19 @@ Paste the token when prompted.
 
 **Rotation:** Note the expiry date. Recreate and update the secret before it expires.
 
+### `CLOUDFLARE_ACCOUNT_ID` GitHub secret
+
+The token only has `Pages:Edit` scope (no `Account:Read`), so wrangler can't auto-detect your account ID. Pass it explicitly:
+
+1. Find your account ID at https://dash.cloudflare.com → top-right corner, or from the Workers & Pages URL: `https://dash.cloudflare.com/<account_id>/workers-and-pages`
+2. Set it as a GitHub secret:
+
+```bash
+gh secret set CLOUDFLARE_ACCOUNT_ID -R mblancolabs/gridstart
+```
+
+This is already referenced in `.github/workflows/deploy.yaml`.
+
 ### Generating secrets
 
 For `CSRF_SECRET` and `DAST_BYPASS_KEY`, generate a 64-character hex string:
