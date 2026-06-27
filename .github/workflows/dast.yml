@@ -44,3 +44,4 @@ jobs:
             -config replacer.full_list(2).matchstr=CF-Access-Client-Secret
             -config replacer.full_list(2).regex=false
             -config replacer.full_list(2).replacement=${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          allow_issue_writing: false
