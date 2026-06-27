@@ -38,6 +38,31 @@ Sensitive values set in **Pages → gridstart → Settings → Environment varia
 
 **Policy:** Non-sensitive configurable values go in `wrangler.toml`. Secrets go in the dashboard. `DAST_BYPASS_KEY` is never set in Production scope — the rate limiter ignores the bypass header when the env var is absent.
 
+### GitHub Actions deploy token
+
+Production deploys use `wrangler pages deploy` via `.github/workflows/deploy.yaml`, authenticated with a `CLOUDFLARE_API_TOKEN` GitHub secret.
+
+**Create the token:**
+
+1. Go to https://dash.cloudflare.com/profile/api-tokens → **Create Token**
+2. Use the **"Edit Cloudflare Workers"** template (covers Pages) or start from scratch
+3. Set these permissions only:
+   - `Cloudflare Pages` → `Edit`
+   - ❌ No `Workers`, `DNS`, `Zone`, or `Account` permissions
+4. Scope to your specific account (not all accounts)
+5. Set an expiration (e.g., 1 year) — avoid "no expiration"
+6. Create and copy the token
+
+**Set the GitHub secret:**
+
+```bash
+gh secret set CLOUDFLARE_API_TOKEN -R mblancolabs/gridstart
+```
+
+Paste the token when prompted.
+
+**Rotation:** Note the expiry date. Recreate and update the secret before it expires.
+
 ### Generating secrets
 
 For `CSRF_SECRET` and `DAST_BYPASS_KEY`, generate a 64-character hex string:
@@ -91,4 +116,5 @@ DAST traffic stays under the burst threshold or uses the `x-dast-bypass` header.
 | Branch | Method | Trigger |
 |---|---|---|
 | `staging` | Cloudflare Pages auto-build | Push to `staging` |
-| `main` | Cloudflare Pages auto-build | PR merge / push to `main` |
+| `main` | GitHub Actions (`deploy.yaml`) | Push to `main` |
+| `main` (future: release-please) | GitHub Actions (`deploy.yaml`) | Merge Release PR |
