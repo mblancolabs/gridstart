@@ -32,11 +32,26 @@ function loadMergedFeedsConfig(): { categories: FeedsCategory[] } {
 
   for (const file of allFiles) {
     const filePath = path.resolve(feedsDir, file);
-    const content = readFileSync(filePath, "utf-8");
-    const config = JSON.parse(content) as { categories?: FeedsCategory[] };
+    let content: string;
+    try {
+      content = readFileSync(filePath, "utf-8");
+    } catch {
+      console.warn(`Skipping unreadable feeds config file: ${file}`);
+      continue;
+    }
+    if (!content.trim()) continue;
+
+    let config: { categories?: FeedsCategory[] };
+    try {
+      config = JSON.parse(content);
+    } catch {
+      console.warn(`Skipping invalid JSON in feeds config file: ${file}`);
+      continue;
+    }
 
     if (!config.categories || !Array.isArray(config.categories)) {
-      throw new Error(`Invalid feeds configuration in ${file}: missing or invalid categories array`);
+      console.warn(`Skipping feeds config file with missing/invalid categories: ${file}`);
+      continue;
     }
 
     for (const category of config.categories) {

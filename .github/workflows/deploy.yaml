@@ -1,0 +1,52 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write calendar feeds override
+        env:
+          OVERRIDE: ${{ secrets.CALENDAR_FEEDS_LOCAL_JSON }}
+        run: |
+          if [ -n "$OVERRIDE" ]; then
+            cat > config/calendar-feeds.local.json << 'EOF'
+          ${{ secrets.CALENDAR_FEEDS_LOCAL_JSON }}
+          EOF
+            echo "Override written to config/calendar-feeds.local.json"
+          else
+            echo "No override secret set — using default public config"
+          fi
+
+      - name: Build worker
+        run: npm run build:worker
+
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy dist --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
