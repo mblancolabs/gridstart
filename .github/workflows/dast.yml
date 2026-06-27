@@ -25,22 +25,22 @@ jobs:
           target: ${{ steps.deploy.outputs.url }}
           token: ${{ secrets.GITHUB_TOKEN }}
           cmd_options: >
-            --config globalexclusionurl.url=${{ steps.deploy.outputs.url }}/health
-            --config replacer.full_list(0).description=dast-bypass
-            --config replacer.full_list(0).enabled=true
-            --config replacer.full_list(0).matchtype=REQ_HEADER
-            --config replacer.full_list(0).matchstr=x-dast-bypass
-            --config replacer.full_list(0).regex=false
-            --config replacer.full_list(0).replacement=${{ secrets.DAST_BYPASS_KEY }}
-            --config replacer.full_list(1).description=cf-access-client-id
-            --config replacer.full_list(1).enabled=true
-            --config replacer.full_list(1).matchtype=REQ_HEADER
-            --config replacer.full_list(1).matchstr=CF-Access-Client-Id
-            --config replacer.full_list(1).regex=false
-            --config replacer.full_list(1).replacement=${{ secrets.CF_ACCESS_CLIENT_ID }}
-            --config replacer.full_list(2).description=cf-access-client-secret
-            --config replacer.full_list(2).enabled=true
-            --config replacer.full_list(2).matchtype=REQ_HEADER
-            --config replacer.full_list(2).matchstr=CF-Access-Client-Secret
-            --config replacer.full_list(2).regex=false
-            --config replacer.full_list(2).replacement=${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+            -z "-config globalexclusionurl.url=${{ steps.deploy.outputs.url }}/health
+            -config replacer.full_list(0).description=dast-bypass
+            -config replacer.full_list(0).enabled=true
+            -config replacer.full_list(0).matchtype=REQ_HEADER
+            -config replacer.full_list(0).matchstr=x-dast-bypass
+            -config replacer.full_list(0).regex=false
+            -config replacer.full_list(0).replacement=${{ secrets.DAST_BYPASS_KEY }}
+            -config replacer.full_list(1).description=cf-access-client-id
+            -config replacer.full_list(1).enabled=true
+            -config replacer.full_list(1).matchtype=REQ_HEADER
+            -config replacer.full_list(1).matchstr=CF-Access-Client-Id
+            -config replacer.full_list(1).regex=false
+            -config replacer.full_list(1).replacement=${{ secrets.CF_ACCESS_CLIENT_ID }}
+            -config replacer.full_list(2).description=cf-access-client-secret
+            -config replacer.full_list(2).enabled=true
+            -config replacer.full_list(2).matchtype=REQ_HEADER
+            -config replacer.full_list(2).matchstr=CF-Access-Client-Secret
+            -config replacer.full_list(2).regex=false
+            -config replacer.full_list(2).replacement=${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
