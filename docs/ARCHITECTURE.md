@@ -173,6 +173,31 @@ npm run build:server && npm start
 
 The Node.js server listens on the configured `PORT` (default 3000). All API routes from the same Hono app are registered first, then a catch-all `serveStatic` middleware serves `dist/public/`. For production, run behind a reverse proxy (nginx, Caddy) and a process manager (systemd, PM2).
 
+### CI/CD pipeline
+
+```
+Push to staging
+  └─▶ Cloudflare Pages auto-build ──▶ staging deploy
+                                      └─▶ (public feeds config only)
+
+Push to main
+  └─▶ deploy.yaml ──▶ wrangler pages deploy --branch main
+                      └─▶ (with CALENDAR_FEEDS_LOCAL_JSON override)
+```
+
+Key workflows (`.github/workflows/`):
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `ci.yaml` | PR + push to `main` | Lint, typecheck, test, build |
+| `deploy.yaml` | Push to `main` | Build + deploy production with `CALENDAR_FEEDS_LOCAL_JSON` override |
+| `release.yaml` | Tag push `v*.*.*` | `npm pack` + upload tarball to release |
+| `dast.yml` | Weekly + manual | ZAP full scan against staging |
+| `codeql.yaml` | Push + schedule | CodeQL security analysis |
+| `dependency-review.yaml` | PR | Block PRs with vulnerable dependencies |
+
+`CALENDAR_FEEDS_LOCAL_JSON` is a GitHub secret containing the production-only feed overrides (gitignored `config/calendar-feeds.local.json`). It is written to disk before the build so `script/build.ts` picks it up alongside the public config.
+
 ## Future: Premium Edition (Phase 2)
 
 The Premium Edition will reintroduce server-side persistence using the `IStorage` interface preserved in the `phase2/database` branch. Key additions:
