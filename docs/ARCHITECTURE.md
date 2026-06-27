@@ -180,15 +180,9 @@ Push to staging
   └─▶ Cloudflare Pages auto-build ──▶ staging deploy
                                       └─▶ (public feeds config only)
 
-Push to main (conventional commit)
-  ├─▶ deploy.yaml ──▶ wrangler pages deploy --branch main
-  │                   └─▶ (with CALENDAR_FEEDS_LOCAL_JSON override)
-  └─▶ release-please.yaml ──▶ creates/updates Release PR
-
-Merge Release PR to main
-  ├─▶ deploy.yaml ──▶ deploys bumped version with override
-  ├─▶ release-please.yaml ──▶ creates GitHub release + tag
-  └─▶ release.yaml ──▶ npm pack + upload tarball
+Push to main
+  └─▶ deploy.yaml ──▶ wrangler pages deploy --branch main
+                      └─▶ (with CALENDAR_FEEDS_LOCAL_JSON override)
 ```
 
 Key workflows (`.github/workflows/`):
@@ -197,7 +191,6 @@ Key workflows (`.github/workflows/`):
 |---|---|---|
 | `ci.yaml` | PR + push to `main` | Lint, typecheck, test, build |
 | `deploy.yaml` | Push to `main` | Build + deploy production with `CALENDAR_FEEDS_LOCAL_JSON` override |
-| `release-please.yaml` | Push to `main` | Conventional commit scanning → Release PR → GitHub release |
 | `release.yaml` | Tag push `v*.*.*` | `npm pack` + upload tarball to release |
 | `dast.yml` | Weekly + manual | ZAP full scan against staging |
 | `codeql.yaml` | Push + schedule | CodeQL security analysis |
