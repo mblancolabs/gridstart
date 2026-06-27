@@ -16,8 +16,14 @@ interface LimiterConfig {
 export function createLimiter(config: LimiterConfig) {
   const { windowMs, max } = config;
   const requestCounts = new Map<string, { count: number; resetAt: number }>();
+  const bypassKey = process.env.DAST_BYPASS_KEY;
 
   return async function limiter(c: Context, next: Next): Promise<Response | void> {
+    if (bypassKey && c.req.header("x-dast-bypass") === bypassKey) {
+      await next();
+      return;
+    }
+
     const ip = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
     const now = Date.now();
 

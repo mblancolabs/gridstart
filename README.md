@@ -157,6 +157,7 @@ The application supports the following environment variables:
 - `KV_REST_API_URL`: Cloudflare KV REST URL (alternative to `REDIS_URL`, for Workers).
 - `KV_REST_API_TOKEN`: Cloudflare KV REST token (alternative to `REDIS_TOKEN`, for Workers).
 - `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
+- `DAST_BYPASS_KEY`: Shared secret for DAST scanner to bypass rate limiting (staging Preview only; never set in production).
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 
