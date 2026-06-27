@@ -24,6 +24,7 @@ jobs:
         with:
           target: ${{ steps.deploy.outputs.url }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          rules_file_name: .zap/rules.tsv
           cmd_options: >
             -z "-config globalexclusionurl.url=${{ steps.deploy.outputs.url }}/health
             -config replacer.full_list(0).description=dast-bypass
