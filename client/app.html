@@ -18,11 +18,8 @@
       href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&f[]=cabinet-grotesk@500,700,800&display=swap"
       rel="stylesheet"
     />
-  </head>
-  <body>
-    <div id="root"></div>
-    <p
-      style="
+    <style>
+      .cookie-notice {
         position: fixed;
         bottom: 0;
         left: 0;
@@ -38,8 +35,12 @@
         letter-spacing: 0.04em;
         margin: 0;
         line-height: 1.5;
-      "
-    >
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <p class="cookie-notice">
       This site uses a cookie for security and one to remember your series preferences.
     </p>
     <script type="module" src="/src/main.tsx"></script>

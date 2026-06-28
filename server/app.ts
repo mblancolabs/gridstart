@@ -4,7 +4,7 @@ import { csrfProtection } from "./csrf";
 import { errorHandler } from "./errorHandler";
 import { requestComplete } from "./logger";
 import { generalApiLimiter } from "./middleware/rateLimit";
-import { setSecurityHeaders } from "./security-headers";
+import { getProductionCsp, setSecurityHeaders } from "./security-headers";
 
 export interface Fetcher {
   fetch(request: Request): Promise<Response>;
@@ -52,18 +52,7 @@ app.use("*", async (c, next) => {
   setSecurityHeaders(c.res.headers);
 
   const csp = isProduction
-    ? [
-        "default-src 'self'",
-        "script-src 'self'",
-        "style-src 'self' https://api.fontshare.com",
-        "font-src 'self' https://api.fontshare.com https://cdn.fontshare.com",
-        "img-src 'self' data:",
-        "connect-src 'self' https://api.fontshare.com",
-        "worker-src 'self'",
-        "object-src 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-      ].join("; ")
+    ? getProductionCsp()
     : [
         "default-src 'self'",
         `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${devCspOrigin}`,

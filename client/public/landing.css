@@ -911,3 +911,68 @@ button,
 .reveal-delay-3 {
   transition-delay: 0.3s;
 }
+
+/* ===== SERIES DOT COLORS ===== */
+.series-dot--f1     { background: #e8201c }
+.series-dot--motogp { background: #ff6900 }
+.series-dot--fe     { background: #0090ff }
+.series-dot--wec    { background: #f5c400 }
+.series-dot--indycar  { background: #0090ff }
+.series-dot--nascar   { background: #00b140 }
+.series-dot--f2     { background: #e8201c }
+.series-dot--f3     { background: #e8201c }
+.series-dot--wsbk   { background: #6c3eb8 }
+.series-dot--imsa   { background: #f5c400 }
+.series-dot--wrc    { background: #0090ff }
+.series-dot--mxgp   { background: #ff6900 }
+.series-dot--dtm    { background: #e8201c }
+.series-dot--btcc   { background: #0090ff }
+.series-dot--elms   { background: #f5c400 }
+.series-dot--more   { background: #6c3eb8 }
+
+/* ===== MOCK FLAG ===== */
+.mock-flag--f1 { background: #e8201c }
+
+/* ===== UTILITY ===== */
+.u-pi-0  { padding-inline: 0 }
+.u-mt-3  { margin-top: var(--space-3) }
+.u-mt-4  { margin-top: var(--space-4) }
+.u-fs-sm { font-size: var(--text-sm) }
+
+/* ===== HERO EM ===== */
+.hero-em {
+  color: var(--color-primary);
+  font-style: normal;
+}
+
+/* ===== FOOTER COOKIE ===== */
+.footer-cookie {
+  margin-top: var(--space-6);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  text-align: center;
+  max-width: var(--content-wide);
+  margin-inline: auto;
+  border-top: 1px solid oklch(from var(--color-text) l c h / 0.06);
+  padding-top: var(--space-6);
+  letter-spacing: 0.04em;
+}
+
+/* ===== COOKIE NOTICE (app) ===== */
+.cookie-notice {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: #8a8885;
+  text-align: center;
+  background: color-mix(in oklch, #09090b 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid oklch(from #e8e6e3 l c h / 0.06);
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.5;
+}

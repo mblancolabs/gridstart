@@ -78,7 +78,7 @@ describe("createApp", () => {
     expect(res.headers.get("content-security-policy")).toBeDefined();
     const csp = res.headers.get("content-security-policy") as string;
     expect(csp).toContain("script-src 'self'");
-    expect(csp).not.toContain("'unsafe-inline'");
+    expect(csp).toContain("style-src 'self' https://api.fontshare.com");
     expect(csp).not.toContain("http://localhost:5173");
     process.env.NODE_ENV = originalEnv;
   });
