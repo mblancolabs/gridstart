@@ -18,7 +18,25 @@
       href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&f[]=cabinet-grotesk@500,700,800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/landing.css" />
+    <style>
+      .cookie-notice {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+        color: #8a8885;
+        text-align: center;
+        background: color-mix(in oklch, #09090b 85%, transparent);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid oklch(from #e8e6e3 l c h / 0.06);
+        letter-spacing: 0.04em;
+        margin: 0;
+        line-height: 1.5;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
