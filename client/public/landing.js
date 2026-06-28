@@ -1,4 +1,4 @@
-/* global document, window, matchMedia, IntersectionObserver, navigator */
+/* global document, window, matchMedia, IntersectionObserver, navigator, setInterval */
 
 window.addEventListener("beforeinstallprompt", (e) => e.preventDefault());
 
