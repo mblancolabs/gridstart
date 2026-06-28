@@ -27,6 +27,7 @@ describe("createApp", () => {
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("x-frame-options")).toBe("DENY");
     expect(res.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(res.headers.get("permissions-policy")).toBe("geolocation=(), microphone=(), camera=()");
   });
 
   it("sets CORS origin header when Origin header matches", async () => {
