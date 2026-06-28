@@ -1,13 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import sri from "vite-plugin-sri";
 import path from "path";
 
 export default defineConfig({
   plugins: [
     react(),
-    sri(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "favicon.png", "apple-touch-icon.png"],
@@ -45,7 +43,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/app.html",
-        navigateFallbackDenylist: [/^\/export\.ics/],
+        navigateFallbackDenylist: [/^\/export\.ics/, /^\/$/],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         runtimeCaching: [
           {
@@ -58,17 +56,6 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24,
               },
               networkTimeoutSeconds: 5,
-            },
-          },
-          {
-            urlPattern: /^https:\/\/api\.fontshare\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "font-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
             },
           },
         ],
@@ -93,7 +80,7 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
-  base: "./",
+  base: "/",
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
