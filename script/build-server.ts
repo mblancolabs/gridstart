@@ -1,15 +1,13 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
-import { rm, cp } from "fs/promises";
+import { rm, cp, mkdir } from "fs/promises";
 
 async function buildServer() {
   await rm("dist/server", { recursive: true, force: true });
 
-  console.log("building client...");
-  await viteBuild();
-  await cp("client/index.html", "dist/public/index.html");
-
   console.log("building server (Node.js)...");
+
+  await mkdir("dist/public", { recursive: true });
+  await cp("client/index.html", "dist/public/index.html");
 
   await esbuild({
     entryPoints: ["server/production.ts"],
@@ -21,7 +19,7 @@ async function buildServer() {
     logLevel: "info",
   });
 
-  console.log("build complete: dist/public/ (static) + dist/server/index.js (server)");
+  console.log("build complete: dist/server/index.js (server)");
 }
 
 buildServer().catch((err) => {
