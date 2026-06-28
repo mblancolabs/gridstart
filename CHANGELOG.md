@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.4] - 2026-06-28
+
+### Added
+
+- **`getProductionCsp()`** — new function in `server/security-headers.ts` that returns a strict Content-Security-Policy string with no `'unsafe-inline'`, enabling production CSP enforcement across all responses. ([#102](https://github.com/mblancolabs/gridstart/issues/102))
+- **CSS classes for refactored inline styles** — added 22 rules to `client/public/landing.css` including series dot colors, mock flag color, layout utilities, hero em accent, footer cookie notice, and app cookie notice. ([#102](https://github.com/mblancolabs/gridstart/issues/102))
+- **`server/security-headers.test.ts`** — dedicated unit tests for `setSecurityHeaders` and `getProductionCsp`.
+
+### Changed
+
+- **No more inline `style` attributes** — removed all 23 inline styles from `client/index.html` and `client/app.html`, replacing them with CSS classes. Page rendering is visually identical. ([#102](https://github.com/mblancolabs/gridstart/issues/102))
+- **Production CSP now uses `getProductionCsp()`** — `server/app.ts` delegates to the new shared function instead of an inline array. ([#102](https://github.com/mblancolabs/gridstart/issues/102))
+- **CSP applied to static pages** — `server/worker.ts` now sets `Content-Security-Policy` on all three static asset response paths (direct asset fetch, `/` → `index.html` fallback, and `/app` → `app.html` fallback). ([#102](https://github.com/mblancolabs/gridstart/issues/102))
+- **Bumped version** to 0.9.4.
+
 ## [0.9.3] - 2026-06-28
 
 ### Added
