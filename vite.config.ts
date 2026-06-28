@@ -1,13 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import sri from "vite-plugin-sri";
 import path from "path";
 
 export default defineConfig({
   plugins: [
     react(),
-    sri(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "favicon.png", "apple-touch-icon.png"],
@@ -58,17 +56,6 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 60 * 24,
               },
               networkTimeoutSeconds: 5,
-            },
-          },
-          {
-            urlPattern: /^https:\/\/api\.fontshare\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "font-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
             },
           },
         ],
