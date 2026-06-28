@@ -2,4 +2,5 @@
 10098	IGNORE	(Cross-Domain - Cloudflare pages.dev platform behavior)
 40025	IGNORE	(Proxy Disclosure - Cloudflare proxy headers expected)
 40040	IGNORE	(CORS - explicitly configured per environment)
+90003	IGNORE	(SRI - Fontshare external CSS we don't control; local Vite bundles have SRI via vite-plugin-sri)
 90004	IGNORE	(COEP - blocks cross-origin font CDNs (Fontshare) that don't support CORP headers; infeasible without dropping external fonts)
