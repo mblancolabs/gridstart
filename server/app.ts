@@ -4,6 +4,7 @@ import { csrfProtection } from "./csrf";
 import { errorHandler } from "./errorHandler";
 import { requestComplete } from "./logger";
 import { generalApiLimiter } from "./middleware/rateLimit";
+import { setSecurityHeaders } from "./security-headers";
 
 export interface Fetcher {
   fetch(request: Request): Promise<Response>;
@@ -48,9 +49,7 @@ app.use(
 
 app.use("*", async (c, next) => {
   await next();
-  c.res.headers.set("X-Content-Type-Options", "nosniff");
-  c.res.headers.set("X-Frame-Options", "DENY");
-  c.res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  setSecurityHeaders(c.res.headers);
 
   const csp = isProduction
     ? [
