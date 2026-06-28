@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+window.addEventListener('beforeinstallprompt',e=>e.preventDefault());
+navigator.serviceWorker?.addEventListener('controllerchange',()=>window.location.reload());
+setInterval(()=>{navigator.serviceWorker?.getRegistration()?.then(r=>r?.update())},3600000);
+</script>
     <title>GridStart — Your Motorsport Calendar</title>
     <link
       href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&f[]=cabinet-grotesk@300,500,700,800,900&display=swap"
