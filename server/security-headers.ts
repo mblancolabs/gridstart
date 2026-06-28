@@ -9,7 +9,7 @@ export function getProductionCsp(): string {
   return [
     "default-src 'self'",
     "script-src 'self'",
-    "style-src 'self' https://api.fontshare.com",
+    "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
     "font-src 'self' https://api.fontshare.com https://cdn.fontshare.com",
     "img-src 'self' data:",
     "connect-src 'self'",

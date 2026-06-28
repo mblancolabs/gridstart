@@ -36,12 +36,12 @@ describe("getProductionCsp", () => {
     expect(getProductionCsp()).toContain("script-src 'self'");
   });
 
-  it("contains style-src 'self' https://api.fontshare.com", () => {
-    expect(getProductionCsp()).toContain("style-src 'self' https://api.fontshare.com");
+  it("contains style-src with 'unsafe-inline' and Fontshare", () => {
+    expect(getProductionCsp()).toContain("style-src 'self' 'unsafe-inline' https://api.fontshare.com");
   });
 
-  it("does not contain 'unsafe-inline'", () => {
-    expect(getProductionCsp()).not.toContain("'unsafe-inline'");
+  it("contains 'unsafe-inline' for inline React styles", () => {
+    expect(getProductionCsp()).toContain("'unsafe-inline'");
   });
 
   it("contains all required directives", () => {
