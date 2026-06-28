@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.3] - 2026-06-28
+
+### Added
+
+- **Permissions-Policy header** — added `Permissions-Policy: geolocation=(), microphone=(), camera=()` to all server responses via `setSecurityHeaders()`. Resolves ZAP DAST alert ID 10063-1. ([#101](https://github.com/mblancolabs/gridstart/issues/101))
+- **Subresource Integrity (SRI) hashes** — added `vite-plugin-sri` to inject `sha384` integrity attributes on all Vite-built JS/CSS bundles at build time. Resolves ZAP DAST alert ID 90003. ([#103](https://github.com/mblancolabs/gridstart/issues/103))
+
+### Dependencies
+
+- Added `vite-plugin-sri` (dev dependency).
+
 ## [0.9.2] - 2026-06-13
 
 ### Fixed
