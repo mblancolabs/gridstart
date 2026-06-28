@@ -1,4 +1,16 @@
-/* global document, window, matchMedia, IntersectionObserver */
+/* global document, window, matchMedia, IntersectionObserver, navigator, setInterval */
+
+window.addEventListener("beforeinstallprompt", (e) => e.preventDefault());
+
+navigator.serviceWorker?.addEventListener("controllerchange", () => {
+  window.location.reload();
+});
+
+setInterval(() => {
+  navigator.serviceWorker
+    ?.getRegistration()
+    ?.then((r) => r?.update());
+}, 60 * 60 * 1000);
 (function () {
   const t = document.querySelector("[data-theme-toggle]");
   const r = document.documentElement;
