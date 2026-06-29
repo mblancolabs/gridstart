@@ -2,6 +2,44 @@ import app from "./app";
 import type { Env } from "./app";
 import { getProductionCsp, setSecurityHeaders } from "./security-headers";
 
+const MIME_TYPES: Record<string, string> = {
+  ".js": "application/javascript",
+  ".css": "text/css",
+  ".html": "text/html",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".webmanifest": "application/manifest+json",
+  ".json": "application/json",
+};
+
+function inferContentType(pathname: string): string | null {
+  const ext = pathname.match(/\.[\w.]+$/)?.[0];
+  return ext ? MIME_TYPES[ext] ?? null : null;
+}
+
+function ensureContentType(headers: Headers, pathname: string): void {
+  if (!headers.get("Content-Type")) {
+    const inferred = inferContentType(pathname);
+    if (inferred) headers.set("Content-Type", inferred);
+  }
+}
+
+function isHtml(pathname: string): boolean {
+  return pathname === "/" || pathname.endsWith(".html");
+}
+
+async function serveAsset(url: URL, request: Request, env: Env): Promise<Response> {
+  const asset = await env.ASSETS.fetch(new Request(url, request));
+  const headers = new Headers(asset.headers);
+  ensureContentType(headers, url.pathname);
+  setSecurityHeaders(headers);
+  if (isHtml(url.pathname)) {
+    headers.set("Content-Security-Policy", getProductionCsp());
+  }
+  return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: import("hono").Context['executionCtx']): Promise<Response> {
     const url = new URL(request.url);
@@ -10,25 +48,14 @@ export default {
       return app.fetch(request, env, ctx);
     }
 
-    const asset = await env.ASSETS.fetch(request);
-    const assetHeaders = new Headers(asset.headers);
-    setSecurityHeaders(assetHeaders);
-    assetHeaders.set("Content-Security-Policy", getProductionCsp());
-    if (asset.status !== 404) return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers: assetHeaders });
+    const asset = await serveAsset(url, request, env);
+    if (asset.status !== 404) return asset;
 
     const urlPath = url.pathname;
     if (urlPath === "/" || urlPath === "/index.html") {
-      const index = await env.ASSETS.fetch(new Request(`${url.origin}/index.html`, request));
-      const indexHeaders = new Headers(index.headers);
-      setSecurityHeaders(indexHeaders);
-      indexHeaders.set("Content-Security-Policy", getProductionCsp());
-      return new Response(index.body, { status: index.status, statusText: index.statusText, headers: indexHeaders });
+      return serveAsset(new URL(`${url.origin}/index.html`), request, env);
     }
 
-    const appRes = await env.ASSETS.fetch(new Request(`${url.origin}/app.html`, request));
-    const appHeaders = new Headers(appRes.headers);
-    setSecurityHeaders(appHeaders);
-    appHeaders.set("Content-Security-Policy", getProductionCsp());
-    return new Response(appRes.body, { status: appRes.status, statusText: appRes.statusText, headers: appHeaders });
+    return serveAsset(new URL(`${url.origin}/app.html`), request, env);
   },
 };
