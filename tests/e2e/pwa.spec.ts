@@ -25,6 +25,10 @@ test("manifest is served and valid", async ({ page }) => {
 test("service worker is registered after page load", async ({ page }) => {
   await page.goto("/app");
 
+  // Wait for app to render fully — this also handles any SW-triggered reload
+  // from the controllerchange → window.location.reload() in main.tsx
+  await expect(page.locator('[data-testid="text-month-title"]')).toBeVisible({ timeout: 15000 });
+
   const hasSw = await page.evaluate(() => {
     return "serviceWorker" in navigator;
   });
