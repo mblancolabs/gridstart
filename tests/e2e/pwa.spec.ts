@@ -29,17 +29,21 @@ test("service worker is registered after page load", async ({ page }) => {
   // from the controllerchange → window.location.reload() in main.tsx
   await expect(page.locator('[data-testid="text-month-title"]')).toBeVisible({ timeout: 15000 });
 
-  const hasSw = await page.evaluate(() => {
-    return "serviceWorker" in navigator;
-  });
-  expect(hasSw).toBeTruthy();
+  // SW activation may trigger a page reload (controllerchange → reload in main.tsx),
+  // which destroys the execution context mid-evaluate. Retry to handle that race.
+  await expect(async () => {
+    const hasSw = await page.evaluate(() => "serviceWorker" in navigator);
+    expect(hasSw).toBeTruthy();
+  }).toPass({ timeout: 15000 });
 
   // Wait for SW to be active (dev mode uses async HMR-based registration)
-  const swReady = await page.evaluate(async () => {
-    const reg = await navigator.serviceWorker.ready;
-    return !!reg.active;
-  });
-  expect(swReady).toBeTruthy();
+  await expect(async () => {
+    const swReady = await page.evaluate(async () => {
+      const reg = await navigator.serviceWorker.ready;
+      return !!reg.active;
+    });
+    expect(swReady).toBeTruthy();
+  }).toPass({ timeout: 15000 });
 });
 
 test("PWA icons are served", async ({ request }) => {
