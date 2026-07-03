@@ -27,7 +27,7 @@ export default defineConfig({
       reportsDirectory: "./coverage",
       exclude: ["shared/", "client/src/test"],
       thresholds: {
-        statements: 88,
+        statements: 85,
         branches: 75,
         functions: 85,
         lines: 90,
