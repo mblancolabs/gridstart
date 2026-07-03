@@ -12,7 +12,7 @@ export default defineConfig({
     root: path.resolve(import.meta.dirname, "."),
     environment: "node",
     globals: true,
-    include: ["server/**/*.{test,spec}.{ts,tsx}"],
+    include: ["server/**/*.{test,spec}.{ts,tsx}", "script/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
