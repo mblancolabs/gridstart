@@ -17,7 +17,7 @@ interface FeedsCategory {
   }>;
 }
 
-function loadMergedFeedsConfig(): { categories: FeedsCategory[] } {
+export function loadMergedFeedsConfig(): { categories: FeedsCategory[] } {
   const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
 
