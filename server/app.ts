@@ -69,6 +69,7 @@ app.use("*", async (c, next) => {
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
+        "frame-ancestors 'none'",
       ].join("; ");
   c.res.headers.set("Content-Security-Policy", csp);
 });

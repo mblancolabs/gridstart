@@ -25,6 +25,12 @@ describe("setSecurityHeaders", () => {
     setSecurityHeaders(headers);
     expect(headers.get("Permissions-Policy")).toBe("geolocation=(), microphone=(), camera=()");
   });
+
+  it("sets Strict-Transport-Security header", () => {
+    const headers = new Headers();
+    setSecurityHeaders(headers);
+    expect(headers.get("Strict-Transport-Security")).toBe("max-age=31536000; includeSubDomains");
+  });
 });
 
 describe("getProductionCsp", () => {
@@ -53,5 +59,6 @@ describe("getProductionCsp", () => {
     expect(csp).toContain("worker-src 'self'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
+    expect(csp).toContain("frame-ancestors 'none'");
   });
 });
