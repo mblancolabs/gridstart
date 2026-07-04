@@ -30,6 +30,10 @@ function isHtml(pathname: string): boolean {
   return pathname === "/" || pathname.endsWith(".html");
 }
 
+function isServiceWorker(pathname: string): boolean {
+  return pathname === "/sw.js";
+}
+
 function isHashedAsset(pathname: string): boolean {
   return (
     pathname.startsWith("/assets/") ||
@@ -42,7 +46,9 @@ async function serveAsset(url: URL, request: Request, env: Env): Promise<Respons
   const headers = new Headers(asset.headers);
   ensureContentType(headers, url.pathname);
   const isHtmlPage = isHtml(url.pathname) || headers.get("Content-Type")?.startsWith("text/html");
-  if (isHashedAsset(url.pathname)) {
+  if (isServiceWorker(url.pathname)) {
+    headers.set("Cache-Control", "no-cache");
+  } else if (isHashedAsset(url.pathname)) {
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
   } else if (isHtmlPage) {
     headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
