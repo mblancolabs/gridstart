@@ -82,8 +82,9 @@ async function buildAll() {
   console.log("building client...");
   await viteBuild();
 
-  // Copy landing page to build output
+  // Copy landing page and _headers to build output
   await cp("client/index.html", "dist/index.html");
+  await cp("client/_headers", "dist/_headers");
 
   console.log("building server (Workers)...");
 
