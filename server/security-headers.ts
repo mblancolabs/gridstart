@@ -3,6 +3,7 @@ export function setSecurityHeaders(headers: Headers): void {
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 }
 
 export function getProductionCsp(): string {
@@ -18,5 +19,6 @@ export function getProductionCsp(): string {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    "frame-ancestors 'none'",
   ].join("; ");
 }

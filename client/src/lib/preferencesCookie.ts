@@ -19,5 +19,6 @@ export function getEnabledSeriesFromCookie(): string[] | null {
 
 export function setEnabledSeriesCookie(series: string[]): void {
   const value = encodeURIComponent(JSON.stringify(series));
-  document.cookie = `${COOKIE_NAME}=${value};path=/;max-age=${YEAR_SECONDS}`;
+  const secure = location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${COOKIE_NAME}=${value}; path=/; max-age=${YEAR_SECONDS}; SameSite=Lax${secure}`;
 }
