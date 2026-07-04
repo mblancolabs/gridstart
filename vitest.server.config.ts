@@ -16,7 +16,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      reportsDirectory: "./coverage",
+      reportsDirectory: "./test-results/coverage",
       exclude: ["server/test"],
       thresholds: {
         statements: 85,

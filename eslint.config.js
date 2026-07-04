@@ -20,7 +20,7 @@ const tsRules = tseslint.configs.recommended.flatMap((cfg) => {
 });
 
 export default tseslint.config(
-  { ignores: ["dist/**", "coverage/**", "client/dev-dist/**", "playwright-report/**", "test-results/**", "release/**", "*.config.ts"] },
+  { ignores: ["dist/**", "client/dev-dist/**", "test-results/**", "release/**", "*.config.ts"] },
   js.configs.recommended,
   ...tsRules,
   {
