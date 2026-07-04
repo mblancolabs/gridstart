@@ -314,6 +314,20 @@ describe("Worker — Cache-Control headers", () => {
     const res = await worker.fetch(new Request("http://example.com/app.js"), env, mockCtx);
     expect(res.headers.get("cache-control")).toBe("public, max-age=3600");
   });
+
+  it("sets no-cache and CSP for SPA route /app via Content-Type detection", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("spa shell", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/app"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("no-cache, no-store, must-revalidate");
+    expect(res.headers.get("content-security-policy")).toBeDefined();
+  });
 });
 
 function responseWithoutContentType(body: string, status = 200): Response {
