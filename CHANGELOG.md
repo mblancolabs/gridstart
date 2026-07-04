@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.7] - 2026-07-04
+
+### Added
+
+- **CI triggers deploy only after validation** — merged the deploy job into `ci.yaml` with `needs: [validate]` and `if: github.ref == 'refs/heads/main'`, preventing broken commits from reaching production before tests finish. `deploy.yaml` retained as `workflow_dispatch` manual fallback. ([#142](https://github.com/mblancolabs/gridstart/issues/142))
+- **Sync staging with main workflow** — new `.github/workflows/sync-staging.yml` as a `workflow_dispatch` action that temporarily disables staging branch protection, force-pushes `main` → `staging`, then re-enables protection. `script/sync-staging.sh` retained as offline fallback. ([#90](https://github.com/mblancolabs/gridstart/issues/90))
+
+### Fixed
+
+- **Secret interpolation in deploy** — replaced heredoc with `node -e writeFileSync` to avoid shell corruption of `calendar-feeds.local.json`. Validates JSON immediately after writing. ([#143](https://github.com/mblancolabs/gridstart/issues/143))
+
+### Changed
+
+- **Bumped version** to 0.9.7.
+
 ## [0.9.6] - 2026-07-04
 
 ### Added
