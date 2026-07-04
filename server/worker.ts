@@ -19,7 +19,8 @@ function inferContentType(pathname: string): string | null {
 }
 
 function ensureContentType(headers: Headers, pathname: string): void {
-  if (!headers.get("Content-Type")) {
+  const existing = headers.get("Content-Type");
+  if (!existing || !existing.trim()) {
     const inferred = inferContentType(pathname);
     if (inferred) headers.set("Content-Type", inferred);
   }
