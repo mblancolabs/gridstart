@@ -89,6 +89,19 @@ async function buildAll() {
 
   // Load and merge feed configs, inject via esbuild define
   const mergedConfig = loadMergedFeedsConfig();
+  if (!mergedConfig.categories || mergedConfig.categories.length === 0) {
+    throw new Error(
+      "[gridstart] Build failed: feeds config is empty. " +
+      "Ensure config/calendar-feeds.json exists and contains at least one category with series."
+    );
+  }
+  for (const cat of mergedConfig.categories) {
+    if (!cat.series || cat.series.length === 0) {
+      throw new Error(
+        `[gridstart] Build failed: category "${cat.name}" has no series defined.`
+      );
+    }
+  }
   const configJson = JSON.stringify(mergedConfig);
   const configDefineValue = JSON.stringify(configJson);
 
