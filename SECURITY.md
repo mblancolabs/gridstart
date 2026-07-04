@@ -76,7 +76,8 @@ GridStart already includes several security-related mechanisms:
 - **Rate limiting** across key API endpoints to reduce abuse and protect availability.
 - **CSRF protection** for state-changing requests.
 - **Hardened error handling** to reduce information leakage through error messages and logs.
-- Use of established middleware and libraries for HTTP security headers and CSRF controls.
+- **HTTP security headers** set via `server/security-headers.ts` — including Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and Permissions-Policy.
+- **DAST bypass key** (`DAST_BYPASS_KEY`) — a shared secret that disables rate limiting for automated DAST scans. Intended only for staging Preview deployments; must never be set in production.
 
 These measures are continuously reviewed and may evolve over time.
 

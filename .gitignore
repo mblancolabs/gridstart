@@ -10,8 +10,6 @@
 /release/
 
 # Test outputs
-/coverage/
-/playwright-report/
 /test-results/
 
 # Environment variables

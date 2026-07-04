@@ -125,6 +125,7 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 - **Wouter** for routing
 - **TanStack Query** for data fetching
 - **date-fns** for date handling
+- **Vite PWA** for Progressive Web App support (offline-capable install)
 
 ### Backend
 
@@ -157,7 +158,7 @@ The application supports the following environment variables:
 - `KV_REST_API_URL`: Cloudflare KV REST URL (alternative to `REDIS_URL`, for Workers).
 - `KV_REST_API_TOKEN`: Cloudflare KV REST token (alternative to `REDIS_TOKEN`, for Workers).
 - `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
-- `DAST_BYPASS_KEY`: Shared secret for DAST scanner to bypass rate limiting (staging Preview only; never set in production).
+- `DAST_BYPASS_KEY`: Shared secret for DAST scanner to bypass rate limiting (staging Preview only; **never set this in production — it disables rate limiting**).
 
 Create a `.env` file in the root directory to override these defaults. See `.env.example` for reference.
 
@@ -208,7 +209,31 @@ This starts two servers concurrently:
 - **Vite dev server** on `http://localhost:5173` — React frontend with HMR
 - **Hono API server** on `http://localhost:5000` — API endpoints
 
+For isolated debugging, you can also start each server separately:
+
+```bash
+npm run dev:server   # Hono API server only
+npm run dev:client   # Vite frontend only
+```
+
 The Vite dev server proxies `/api/*` requests to the Hono server, so all development traffic goes through `http://localhost:5173`.
+
+### Preview production build
+
+```bash
+npm run preview
+```
+
+This builds the Worker bundle and serves it locally via `wrangler pages dev` for end-to-end testing of the production Worker path.
+
+### Testing
+
+```bash
+npm run test                  # Unit and integration tests (Vitest)
+npm run test:e2e              # Playwright end-to-end tests
+npm run test:e2e:ui           # Playwright with interactive UI mode
+npm run test:e2e:performance  # Performance benchmark tests
+```
 
 ## Production Build
 

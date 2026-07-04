@@ -33,6 +33,7 @@ Useful contributions include:
 
 - Node.js 18+
 - npm
+- Redis (optional) — only required to test the Redis cache path locally. A free instance can be obtained from [Upstash](https://upstash.com/). Set `REDIS_URL` and `REDIS_TOKEN` in your `.env` file to enable it. The app runs fully without Redis using the in-memory cache.
 
 ### Install
 
@@ -84,6 +85,13 @@ When opening a pull request:
 6. Link related issues if they exist.
 
 Small, focused pull requests are easier to review and merge than large mixed changes.
+
+### Target branch
+
+All pull requests should target `main` unless you have been explicitly asked to target `staging`.
+
+- `main` — production branch; all normal contributions go here
+- `staging` — used for pre-release validation; only used when explicitly coordinating a staged rollout
 
 ## Coding Guidelines
 
@@ -226,6 +234,23 @@ Before opening a pull request, please verify:
 - Documentation is updated if needed.
 
 If you add parsing logic or feed integrations, include a clear reproduction case in the PR description.
+
+Before pushing, also run the code quality checks locally to avoid avoidable CI failures:
+
+```bash
+npm run lint   # ESLint + TypeScript check across client, server, and shared
+npm run test   # Unit and integration tests
+```
+
+Both must pass before opening a pull request.
+
+## Changelog
+
+`CHANGELOG.md` is maintained by the project owner and updated as part of each release. Contributors do **not** need to edit it directly.
+
+If your PR fixes a notable bug or adds a meaningful feature, mention it clearly in the PR description — the relevant entry will be written at release time.
+
+> Once Conventional Commits are adopted, `CHANGELOG.md` will be generated automatically from commit history and this section will be updated accordingly.
 
 ## Reporting Bugs
 
