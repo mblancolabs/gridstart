@@ -93,6 +93,43 @@ All pull requests should target `main` unless you have been explicitly asked to 
 - `main` — production branch; all normal contributions go here
 - `staging` — used for pre-release validation; only used when explicitly coordinating a staged rollout
 
+### Syncing staging with main
+
+After a `staging → main` merge, `staging` falls behind `main` and needs to be
+reset to the new `main`. To trigger the sync:
+
+1. Go to **Actions** → **Sync staging with main** → **Run workflow**
+2. Leave `remote` as `origin` and click **Run workflow**
+
+The workflow temporarily disables the staging branch protection, force-pushes
+`main → staging`, and re-enables protection.
+
+#### Pre-requisites
+
+These must be set in **Settings → Secrets and variables → Actions**:
+
+| Type | Name | Value |
+|------|------|-------|
+| Secret | `SYNC_PAT` | PAT with `repo` scope (see below) |
+| Variable | `STAGING_RULESET_ID` | `17083082` |
+
+#### Creating the PAT
+
+1. Go to https://github.com/settings/tokens → **Fine-grained tokens** → **Generate new token**
+2. Repository access: **Only select repositories** → `mblancolabs/gridstart`
+3. Permissions: **Contents: Write** (for force push), **Metadata: Read** (auto-granted)
+4. Generate and copy the token
+
+```bash
+gh secret set SYNC_PAT -R mblancolabs/gridstart
+gh variable set STAGING_RULESET_ID -R mblancolabs/gridstart --body 17083082
+```
+
+#### Offline fallback
+
+If GitHub Actions is unavailable, run `script/sync-staging.sh` locally — it
+requires the `gh` CLI and the same variables in `.env`.
+
 ## Coding Guidelines
 
 ### General

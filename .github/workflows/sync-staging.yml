@@ -1,0 +1,40 @@
+name: Sync staging with main
+
+on:
+  workflow_dispatch:
+    inputs:
+      remote:
+        description: Remote name
+        default: origin
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Disable staging branch protection
+        run: >
+          gh api -X PUT
+          "repos/${{ github.repository }}/rulesets/${{ vars.STAGING_RULESET_ID }}"
+          -f enforcement=disabled
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_PAT }}
+
+      - name: Force push main -> staging
+        run: git push "${{ inputs.remote }}" main:staging --force
+
+      - name: Re-enable staging branch protection
+        run: >
+          gh api -X PUT
+          "repos/${{ github.repository }}/rulesets/${{ vars.STAGING_RULESET_ID }}"
+          -f enforcement=active
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_PAT }}
