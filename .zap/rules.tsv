@@ -1,3 +1,4 @@
+10038	IGNORE	(CSP header - not applicable to non-HTML static files like robots.txt, sitemap.xml)
 10054	IGNORE	(SameSite=None - intentional for CSRF cookie)
 10098	IGNORE	(Cross-Domain - Cloudflare pages.dev platform behavior)
 40025	IGNORE	(Proxy Disclosure - Cloudflare proxy headers expected)
