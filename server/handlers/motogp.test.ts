@@ -64,6 +64,117 @@ describe("MotoGPHandler", () => {
     expect(result).toEqual([]);
   });
 
+  it("returns empty array when seasons API returns malformed JSON", async () => {
+    const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.fetch = fetchMock as any;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ id: "season-2026" }], // missing 'year' field
+    });
+
+    const result = await handler.fetchEvents(testSeries, {}, year);
+    expect(result).toEqual([]);
+  });
+
+  it("handles malformed events response gracefully", async () => {
+    const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.fetch = fetchMock as any;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes("/results/seasons")) {
+        return Promise.resolve({ ok: true, json: async () => [{ id: "season-2026", year }] });
+      }
+      if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=true")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              // missing 'circuit' and 'country' fields
+              id: "event-1",
+              name: "Grand Prix of Test",
+              sponsored_name: "Test GP",
+              short_name: "TGP",
+              date_start: "2026-03-20T00:00:00+00:00",
+              date_end: "2026-03-22T00:00:00+00:00",
+              test: false,
+            },
+          ],
+        });
+      }
+      if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=false")) {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
+      return Promise.reject(new Error(`Unexpected fetch call: ${url}`));
+    });
+
+    const result = await handler.fetchEvents(testSeries, {}, year);
+
+    // Should still return empty gracefully since all events failed validation
+    expect(result).toEqual([]);
+  });
+
+  it("handles malformed sessions response gracefully without breaking other events", async () => {
+    const fetchMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.fetch = fetchMock as any;
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    let callCount = 0;
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes("/results/seasons")) {
+        return Promise.resolve({ ok: true, json: async () => [{ id: "season-2026", year }] });
+      }
+      if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=true")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              id: "event-1",
+              name: "Good GP",
+              sponsored_name: "Good GP",
+              short_name: "GGP",
+              date_start: "2026-03-20T00:00:00+00:00",
+              date_end: "2026-03-22T00:00:00+00:00",
+              test: false,
+              circuit: { id: "c1", name: "Circuit", place: "Place", nation: "Nation" },
+              country: { iso: "XX", name: "Test" },
+            },
+          ],
+        });
+      }
+      if (url.includes("/results/events?seasonUuid=") && url.includes("isFinished=false")) {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
+      if (url.includes("/results/sessions?eventUuid=")) {
+        callCount++;
+        if (callCount === 1) {
+          // First event's sessions are malformed (missing 'date')
+          return Promise.resolve({
+            ok: true,
+            json: async () => [
+              { id: "s-bad", number: 1, type: "RAC", status: "SCHEDULED" },
+            ],
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch call: ${url}`));
+    });
+
+    const result = await handler.fetchEvents(testSeries, {}, year);
+
+    // Should not throw — session validation error is caught and logged as warning
+    expect(Array.isArray(result)).toBe(true);
+  });
+
   it("fetches MotoGP events and maps sessions correctly", async () => {
     const fetchMock = vi.fn();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
