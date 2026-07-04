@@ -2,6 +2,17 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 
+// In non-production environments, automatically provide a CSRF secret
+// if none is configured.  This ensures the e2e tests (which run in CI
+// without a tracked .env file) don't fail.
+if (process.env.NODE_ENV !== "production" && !process.env.CSRF_SECRET) {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  process.env.CSRF_SECRET = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function loadFeedsConfigFromFS(): { categories: FeedsCategory[] } {
   const feedsDir = path.resolve(process.cwd(), "config");
   const baseFile = "calendar-feeds.json";
