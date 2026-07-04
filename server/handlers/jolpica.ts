@@ -3,36 +3,8 @@ import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionName, normalizeSessionNames } from "./sessionLabels";
 import { getOrSet, CACHE_TTL_MS } from "../cache";
-
-interface JolpicaSession {
-  date: string;
-  time?: string;
-}
-
-interface JolpicaRace {
-  season: string;
-  round: string;
-  raceName: string;
-  Circuit: {
-    circuitId: string;
-    circuitName: string;
-    Location: {
-      lat: string;
-      long: string;
-      locality: string;
-      country: string;
-    };
-  };
-  date: string;
-  time?: string;
-  FirstPractice?: JolpicaSession;
-  SecondPractice?: JolpicaSession;
-  ThirdPractice?: JolpicaSession;
-  Qualifying?: JolpicaSession;
-  Sprint?: JolpicaSession;
-  SprintQualifying?: JolpicaSession;
-  SprintShootout?: JolpicaSession;
-}
+import { jolpicaResponseSchema } from "./feed-schemas";
+import type { JolpicaSession } from "./feed-schemas";
 
 const JOLPICA_SESSION_DURATIONS: Record<string, number> = {
   fp1: 60,
@@ -68,7 +40,8 @@ export class JolpicaHandler implements FeedHandler {
         if (!res.ok) throw new Error(`Jolpica HTTP ${res.status}`);
 
       const json = await res.json();
-      const races: JolpicaRace[] = json?.MRData?.RaceTable?.Races || [];
+      const parsed = jolpicaResponseSchema.parse(json);
+      const races = parsed.MRData.RaceTable.Races;
 
       const events: CalendarEvent[] = [];
 

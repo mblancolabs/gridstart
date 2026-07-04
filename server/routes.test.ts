@@ -74,8 +74,9 @@ describe("API routes", () => {
                     round: "1",
                     raceName: "Test Grand Prix",
                     Circuit: {
+                      circuitId: "test_circuit",
                       circuitName: "Test Circuit",
-                      Location: { locality: "Test City", country: "Testland" },
+                      Location: { lat: "0.0000", long: "0.0000", locality: "Test City", country: "Testland" },
                     },
                     date: `${year}-03-01`,
                     time: "15:00:00Z",
@@ -117,8 +118,9 @@ describe("API routes", () => {
                     round: "1",
                     raceName: "Test Grand Prix",
                     Circuit: {
+                      circuitId: "test_circuit",
                       circuitName: "Test Circuit",
-                      Location: { locality: "Test City", country: "Testland" },
+                      Location: { lat: "0.0000", long: "0.0000", locality: "Test City", country: "Testland" },
                     },
                     date: `${year}-03-01`,
                     time: "15:00:00Z",
@@ -167,8 +169,9 @@ describe("API routes", () => {
                     round: "1",
                     raceName: "Test Grand Prix",
                     Circuit: {
+                      circuitId: "test_circuit",
                       circuitName: "Test Circuit",
-                      Location: { locality: "City", country: "Country" },
+                      Location: { lat: "0.0000", long: "0.0000", locality: "City", country: "Country" },
                     },
                     date: `${year}-03-01`,
                     time: "15:00:00Z",
@@ -258,8 +261,9 @@ describe("API routes", () => {
                     round: "1",
                     raceName: "All-Day Grand Prix",
                     Circuit: {
+                      circuitId: "circuit",
                       circuitName: "Circuit",
-                      Location: { locality: "City", country: "Country" },
+                      Location: { lat: "0.0000", long: "0.0000", locality: "City", country: "Country" },
                     },
                     date: `${year}-03-01`,
                   },
