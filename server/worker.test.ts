@@ -299,7 +299,7 @@ describe("Worker — Cache-Control headers", () => {
     );
     const env = { ASSETS: { fetch: assetsFetch } };
     const res = await worker.fetch(new Request("http://example.com/manifest.webmanifest"), env, mockCtx);
-    expect(res.headers.get("cache-control")).toBe("public, max-age=3600");
+    expect(res.headers.get("cache-control")).toBe("private, max-age=3600");
   });
 
   it("sets short public cache for non-hashed /app.js", async () => {
@@ -312,7 +312,7 @@ describe("Worker — Cache-Control headers", () => {
     );
     const env = { ASSETS: { fetch: assetsFetch } };
     const res = await worker.fetch(new Request("http://example.com/app.js"), env, mockCtx);
-    expect(res.headers.get("cache-control")).toBe("public, max-age=3600");
+    expect(res.headers.get("cache-control")).toBe("private, max-age=3600");
   });
 
   it("sets no-cache and CSP for SPA route /app via Content-Type detection", async () => {
