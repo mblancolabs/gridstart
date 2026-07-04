@@ -10,6 +10,7 @@ vi.mock("./routes", () => ({
 let app: Hono;
 
 beforeAll(async () => {
+  process.env.CSRF_SECRET = "test-csrf-secret";
   const mod = await import("./app");
   app = mod.default;
 });
@@ -71,6 +72,7 @@ describe("createApp", () => {
 
   it("uses production CSP directives when NODE_ENV=production", async () => {
     const originalEnv = process.env.NODE_ENV;
+    process.env.CSRF_SECRET = "test-csrf-secret";
     process.env.NODE_ENV = "production";
     vi.resetModules();
     const prodMod = await import("./app");

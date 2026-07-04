@@ -161,7 +161,7 @@ function filterByDateRange(events: CalendarEvent[], fromDate?: Date, toDate?: Da
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
   app.get("/api/series", async (c: Context) => {
-    c.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "*");
+    c.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "");
     return c.json(allSeries);
   });
 

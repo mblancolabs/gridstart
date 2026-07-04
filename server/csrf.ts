@@ -4,7 +4,11 @@ const COOKIE_NAME = "csrf-token";
 const HEADER_NAME = "x-csrf-token";
 
 function getSecret(): string {
-  return process.env.CSRF_SECRET || "fallback-csrf-secret-change-in-prod";
+  const secret = process.env.CSRF_SECRET;
+  if (!secret) {
+    throw new Error("CSRF_SECRET environment variable is not set");
+  }
+  return secret;
 }
 
 async function generateToken(secret: string): Promise<{ nonce: string; hmac: string }> {

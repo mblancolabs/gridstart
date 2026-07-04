@@ -36,16 +36,22 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 const isProduction = process.env.NODE_ENV === "production";
 const devCspOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
 
-app.use(
-  "/api/*",
-  cors({
-    origin: isProduction ? (process.env.CORS_ORIGIN as string | undefined) || "*" : devCspOrigin,
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
-    credentials: false,
-    maxAge: 86400,
-  }),
-);
+const corsOrigin = isProduction
+  ? (process.env.CORS_ORIGIN as string | undefined)
+  : devCspOrigin;
+
+if (corsOrigin) {
+  app.use(
+    "/api/*",
+    cors({
+      origin: corsOrigin,
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+      credentials: false,
+      maxAge: 86400,
+    }),
+  );
+}
 
 app.use("*", async (c, next) => {
   await next();
