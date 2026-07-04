@@ -56,6 +56,7 @@ if (corsOrigin) {
 app.use("*", async (c, next) => {
   await next();
   setSecurityHeaders(c.res.headers);
+  c.res.headers.set("Cache-Control", "private, no-store");
 
   const csp = isProduction
     ? getProductionCsp()
