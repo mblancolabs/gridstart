@@ -54,3 +54,47 @@ jobs:
 
       - name: Pack smoke test
         run: npm pack --dry-run
+
+  deploy:
+    needs: [validate]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write calendar feeds config
+        env:
+          FEEDS_JSON: ${{ secrets.CALENDAR_FEEDS_LOCAL_JSON }}
+        run: |
+          if [ -n "$FEEDS_JSON" ]; then
+            node -e "require('fs').writeFileSync('config/calendar-feeds.local.json', process.env.FEEDS_JSON)"
+            echo "Override written to config/calendar-feeds.local.json"
+          else
+            echo "No override secret set — using default public config"
+          fi
+
+      - name: Validate feeds config
+        env:
+          FEEDS_JSON: ${{ secrets.CALENDAR_FEEDS_LOCAL_JSON }}
+        if: env.FEEDS_JSON != ''
+        run: node -e "JSON.parse(require('fs').readFileSync('config/calendar-feeds.local.json', 'utf8'))" && echo "JSON valid"
+
+      - name: Build worker
+        run: npm run build:worker
+
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy dist --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
