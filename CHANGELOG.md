@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.6] - 2026-07-04
+
+### Added
+
+- **Redis-backed rate limiter** — extracted rate limiting into a `RateLimitStore` provider pattern with `MemoryRateLimitStore` (fallback) and `RedisRateLimitStore` (Upstash REST API via `INCR` + `EXPIRE`). Rate limiting now works across Worker instances. ([#141](https://github.com/mblancolabs/gridstart/issues/141))
+
+### Fixed
+
+- **PWA icons 192×192 and 512×512 now precached** — added missing icon files to `includeAssets` in `vite.config.ts` so the service worker serves them reliably instead of returning 404s from the manifest. ([#118](https://github.com/mblancolabs/gridstart/issues/118))
+- **Dev favicon 404** — added `<link rel="icon">` tags (SVG + PNG) to landing page `index.html` so dev server no longer returns 404 for `/favicon.ico`. ([#114](https://github.com/mblancolabs/gridstart/issues/114))
+- **Cache-Control prevents stale edge cache** — non-hashed, non-HTML static assets now use `private, max-age=3600` instead of `public`. This prevents Cloudflare's edge from serving stale responses if headers are reclassified in the future, while keeping the browser cache at 1 hour. ([#136](https://github.com/mblancolabs/gridstart/issues/136))
+- **feedsConfig validated at build time** — build script now throws a descriptive error if `feedsConfig` is missing or malformed, preventing silent Worker startup failures. ([#148](https://github.com/mblancolabs/gridstart/issues/148))
+- **Deterministic event ordering** — refactored `/api/events` and ICS export to use `Promise.all` return values with `.flat()` instead of shared array mutation, guaranteeing events appear in `seriesIds` declaration order. ([#147](https://github.com/mblancolabs/gridstart/issues/147))
+
+### Changed
+
+- **Bumped version** to 0.9.6.
+
 ## [0.9.5] - 2026-07-04
 
 ### Added
