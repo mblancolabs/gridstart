@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.5] - 2026-07-04
+
+### Added
+
+- **Cache-Control headers** — explicit cache directives on all responses. HTML pages: `no-cache, no-store, must-revalidate`. Hashed static assets (JS/CSS in `/assets/` or matching hash pattern): `public, max-age=31536000, immutable`. Other static assets: `public, max-age=3600`. API/health/export responses: `private, no-store`. Resolves ZAP DAST alerts 10015 and 10049. ([#155](https://github.com/mblancolabs/gridstart/issues/155), [#157](https://github.com/mblancolabs/gridstart/issues/157))
+
+### Changed
+
+- **Bumped version** to 0.9.5.
+
 ## [0.9.4] - 2026-06-28
 
 ### Added
