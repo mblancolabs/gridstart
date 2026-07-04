@@ -245,6 +245,77 @@ describe("Worker — security headers & CSP", () => {
   });
 });
 
+describe("Worker — Cache-Control headers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sets no-cache for HTML pages", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("html", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("no-cache, no-store, must-revalidate");
+  });
+
+  it("sets immutable cache for hashed assets in /assets/", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("console.log('hi')", {
+        status: 200,
+        headers: { "content-type": "application/javascript" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/assets/index-a1b2c3d4.js"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+  });
+
+  it("sets immutable cache for hashed assets outside /assets/ via regex", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("body { color: red; }", {
+        status: 200,
+        headers: { "content-type": "text/css" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/some-chunk.a1b2c3d4.css"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+  });
+
+  it("sets short public cache for other static assets", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("{}", {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/manifest.webmanifest"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("public, max-age=3600");
+  });
+
+  it("sets short public cache for non-hashed /app.js", async () => {
+    mockAppFetch.mockReset();
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response("console.log('hi')", {
+        status: 200,
+        headers: { "content-type": "application/javascript" },
+      }),
+    );
+    const env = { ASSETS: { fetch: assetsFetch } };
+    const res = await worker.fetch(new Request("http://example.com/app.js"), env, mockCtx);
+    expect(res.headers.get("cache-control")).toBe("public, max-age=3600");
+  });
+});
+
 function responseWithoutContentType(body: string, status = 200): Response {
   const res = new Response(body, { status });
   res.headers.delete("Content-Type");
