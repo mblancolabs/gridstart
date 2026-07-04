@@ -34,7 +34,11 @@ function getFeedsConfig(): { categories: FeedsCategory[] } {
   if (typeof raw === "string") {
     return JSON.parse(raw);
   }
-  throw new Error("Feeds configuration not loaded");
+  throw new Error(
+    "[gridstart] __CONFIG_FEEDS__ is not defined. " +
+    "Ensure the esbuild 'define' step injects the feeds config at build time. " +
+    "Check script/build.ts (esbuild define) and .github/workflows/deploy.yaml (CALENDAR_FEEDS_LOCAL_JSON)."
+  );
 }
 
 const feedsConfig = getFeedsConfig();
@@ -186,20 +190,20 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
       const fromDate = query.from ? new Date(query.from) : undefined;
       const toDate = query.to ? new Date(query.to) : undefined;
 
-      const allEvents: CalendarEvent[] = [];
+      const results = await Promise.all(
+        seriesIds.map(async (seriesId: string) => {
+          const series = allSeries.find((s) => s.id === seriesId);
+          if (!series) return [];
+          try {
+            return await fetchEventsForSeries(series, fromDate, toDate);
+          } catch (err) {
+            logger.error(err, `Failed to fetch events for ${seriesId}`, { seriesId });
+            return [];
+          }
+        })
+      );
 
-      const fetchPromises = seriesIds.map(async (seriesId: string) => {
-        const series = allSeries.find((s) => s.id === seriesId);
-        if (!series) return;
-        try {
-          const events = await fetchEventsForSeries(series, fromDate, toDate);
-          allEvents.push(...events);
-        } catch (err) {
-          logger.error(err, `Failed to fetch events for ${seriesId}`, { seriesId });
-        }
-      });
-
-      await Promise.all(fetchPromises);
+      const allEvents = results.flat();
 
       allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
@@ -234,20 +238,20 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
 
       const sortedIds = [...seriesIds].sort().join(",");
       const icsString = await getOrSet(`ics-export-${sortedIds}`, CACHE_TTL_MS, async () => {
-        const allEvents: CalendarEvent[] = [];
+        const results = await Promise.all(
+          seriesIds.map(async (seriesId: string) => {
+            const series = allSeries.find((s) => s.id === seriesId);
+            if (!series) return [];
+            try {
+              return await fetchEventsForSeries(series);
+            } catch (err) {
+              logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
+              return [];
+            }
+          })
+        );
 
-        const fetchPromises = seriesIds.map(async (seriesId: string) => {
-          const series = allSeries.find((s) => s.id === seriesId);
-          if (!series) return;
-          try {
-            const events = await fetchEventsForSeries(series);
-            allEvents.push(...events);
-          } catch (err) {
-            logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
-          }
-        });
-
-        await Promise.all(fetchPromises);
+        const allEvents = results.flat();
 
         allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
