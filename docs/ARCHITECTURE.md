@@ -24,7 +24,7 @@ The top-level repository includes `client/`, `server/`, `shared/`, and `script/`
 | Path                         | Purpose                                                                                             |
 | ---------------------------- | --------------------------------------------------------------------------------------------------- |
 | `client/`                    | React frontend, UI state, routing, event display, filtering, and theme behavior.                    |
-| `server/`                    | Hono API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. Dual deployment: Worker entry (`worker.ts`) and VPS entry (`production.ts`). |
+| `server/`                    | Hono API endpoints, feed fetching, caching, normalization, export generation, and rate limiting. Core app definition (`app.ts`) shared across entry points. Dual deployment: Worker entry (`worker.ts`) and VPS entry (`production.ts`). Dev entry (`index.ts` with `dev-setup.ts`) and production setup (`prod-setup.ts`) handle environment-specific configuration. Subdirectories: `middleware/` (rate limiting), `types/` (type declarations). |
 | `shared/`                    | Shared types, schemas, or contracts used across client and server boundaries.                       |
 | `script/`                    | Build scripts (esbuild Worker bundle, Node.js server bundle) and maintenance helpers.               |
 | `config/calendar-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters.        |
@@ -47,17 +47,21 @@ The Hono framework provides a single API surface that runs on both targets:
 - **Cloudflare Workers** — `server/worker.ts` exports a `fetch` handler mounted as a Pages `_worker.js` bundle. Config is injected at build time via esbuild `define` (`globalThis.__CONFIG_FEEDS__`). Static assets are served by Cloudflare Pages.
 - **Node.js VPS** — `server/production.ts` loads feeds config from the filesystem at startup (`server/prod-setup.ts`), registers `@hono/node-server/serve-static` as a catch-all, and starts an HTTP server via `@hono/node-server`.
 
-The dev server (`server/index.ts`) runs the same Hono app on `@hono/node-server` at port 5000, alongside Vite on port 5173 which proxies `/api` requests.
+The dev server (`server/index.ts`) loads environment with `server/dev-setup.ts` (auto-generates a CSRF secret in non-production environments, loads feeds config from disk), then runs the same Hono app on `@hono/node-server` at port 5000, alongside Vite on port 5173 which proxies `/api` requests.
+
+Cross-cutting server modules include `server/logger.ts` (structured JSON logging with request IDs) and `server/errorHandler.ts` (normalized error responses with safe error IDs in production).
 
 ### Shared layer
 
-The `shared/` directory is a strong indicator that core contracts are reused across the stack. In practice, this includes database schema definitions, TypeScript models, validation contracts, and shared constants that help keep the client and server aligned as features evolve.
+The `shared/` directory is a strong indicator that core contracts are reused across the stack. In practice, this includes shared types (`CalendarEvent`, `SeriesInfo`), Zod validation schemas for API query parameters, and shared constants that help keep the client and server aligned as features evolve. No database schemas — persistence on the Free Edition is handled client-side via browser cookies.
 
 ### Persistence (Free Edition)
 
 User preferences are stored entirely client-side in a browser cookie (`gridstart_enabled_series`) with a one-year expiry. The server is stateless — no database is needed. The `IStorage` interface and SQLite-backed `DatabaseStorage` implementation are preserved in the `phase2/database` branch for the upcoming Premium Edition.
 
 ### Security
+
+Security headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy) are set by `server/security-headers.ts` via a middleware applied to all routes in `app.ts`. CSP varies between development (allows dev server origins and `'unsafe-eval'`) and production (strict policy).
 
 CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (readable by client JS) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the cookie value in the `x-csrf-token` request header; the server validates that both values match and that the HMAC-SHA256 signature is valid. Signing uses the Web Crypto API (`crypto.subtle.sign("HMAC", ...)`) rather than Node's `crypto.createHmac`, ensuring compatibility with the Workers runtime. This design works across serverless instances with no shared state.
 
@@ -175,10 +179,13 @@ The Node.js server listens on the configured `PORT` (default 3000). All API rout
 
 ### CI/CD pipeline
 
+**Staging** auto-deploys via Cloudflare Pages (configured in the dashboard).  
+**Production** auto-deploy is disabled in Cloudflare — it is driven by the `deploy.yaml` workflow, triggered by pushes to `main`.
+
 ```
 Push to staging
-  └─▶ Cloudflare Pages auto-build ──▶ staging deploy
-                                      └─▶ (public feeds config only)
+  └─▶ Cloudflare Pages auto-build ──▶ staging Preview
+                                       └─▶ (public feeds config only)
 
 Push to main
   └─▶ deploy.yaml ──▶ wrangler pages deploy --branch main
