@@ -31,6 +31,16 @@ describe("createApp", () => {
     expect(res.headers.get("permissions-policy")).toBe("geolocation=(), microphone=(), camera=()");
   });
 
+  it("sets Cache-Control no-store on API responses", async () => {
+    const res = await app.request("/api/series");
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("sets Cache-Control no-store on health endpoint", async () => {
+    const res = await app.request("/health");
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+  });
+
   it("sets CORS origin header when Origin header matches", async () => {
     const res = await app.request("http://localhost:5173/api/series", {
       method: "OPTIONS",

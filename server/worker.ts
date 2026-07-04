@@ -29,10 +29,24 @@ function isHtml(pathname: string): boolean {
   return pathname === "/" || pathname.endsWith(".html");
 }
 
+function isHashedAsset(pathname: string): boolean {
+  return (
+    pathname.startsWith("/assets/") ||
+    /[a-f0-9]{8,}\.(js|css|woff2?|png|svg)$/.test(pathname)
+  );
+}
+
 async function serveAsset(url: URL, request: Request, env: Env): Promise<Response> {
   const asset = await env.ASSETS.fetch(new Request(url, request));
   const headers = new Headers(asset.headers);
   ensureContentType(headers, url.pathname);
+  if (isHashedAsset(url.pathname)) {
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  } else if (isHtml(url.pathname)) {
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  } else {
+    headers.set("Cache-Control", "public, max-age=3600");
+  }
   setSecurityHeaders(headers);
   if (isHtml(url.pathname)) {
     headers.set("Content-Security-Policy", getProductionCsp());
