@@ -40,15 +40,16 @@ async function serveAsset(url: URL, request: Request, env: Env): Promise<Respons
   const asset = await env.ASSETS.fetch(new Request(url, request));
   const headers = new Headers(asset.headers);
   ensureContentType(headers, url.pathname);
+  const isHtmlPage = isHtml(url.pathname) || headers.get("Content-Type")?.startsWith("text/html");
   if (isHashedAsset(url.pathname)) {
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
-  } else if (isHtml(url.pathname)) {
+  } else if (isHtmlPage) {
     headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
   } else {
     headers.set("Cache-Control", "public, max-age=3600");
   }
   setSecurityHeaders(headers);
-  if (isHtml(url.pathname)) {
+  if (isHtmlPage) {
     headers.set("Content-Security-Policy", getProductionCsp());
   }
   return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
