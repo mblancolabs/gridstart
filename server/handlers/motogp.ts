@@ -3,39 +3,12 @@ import type { CalendarEvent, SeriesInfo } from "@shared/schema";
 import * as logger from "../logger";
 import { filterEventsBySessionNames, normalizeSessionNames } from "./sessionLabels";
 import { getOrSet, CACHE_TTL_MS } from "../cache";
-
-interface MotoGPSeason {
-  id: string;
-  year: number;
-}
-
-interface MotoGPEvent {
-  id: string;
-  name: string;
-  sponsored_name: string;
-  short_name: string;
-  date_start: string;
-  date_end: string;
-  test: boolean;
-  circuit: {
-    id: string;
-    name: string;
-    place: string;
-    nation: string;
-  };
-  country: {
-    iso: string;
-    name: string;
-  };
-}
-
-interface MotoGPSession {
-  id: string;
-  date: string; // ISO 8601 with timezone, often reported as +00:00 even when the time is local
-  number: number | null;
-  type: string; // "FP", "PR", "Q", "SPR", "WUP", "RAC"
-  status: string;
-}
+import {
+  motogpSeasonSchema,
+  motogpEventSchema,
+  motogpSessionSchema,
+} from "./feed-schemas";
+import type { MotoGPEvent } from "./feed-schemas";
 
 const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
 const MOTOGP_CATEGORY_IDS: Record<string, string> = {
@@ -152,7 +125,7 @@ export class MotoGPHandler implements FeedHandler {
         // 1. Find the season UUID for the year
       const seasonsRes = await fetch(`${MOTOGP_API_BASE}/results/seasons`);
       if (!seasonsRes.ok) throw new Error(`Seasons HTTP ${seasonsRes.status}`);
-      const seasons: MotoGPSeason[] = await seasonsRes.json();
+      const seasons = motogpSeasonSchema.array().parse(await seasonsRes.json());
       const season = seasons.find((s) => s.year === year);
       if (!season) {
         console.log(`No MotoGP season found for ${year}`);
@@ -167,12 +140,10 @@ export class MotoGPHandler implements FeedHandler {
 
       let allMotoGPEvents: MotoGPEvent[] = [];
       if (finishedRes.ok) {
-        const finished: MotoGPEvent[] = await finishedRes.json();
-        allMotoGPEvents.push(...finished);
+        allMotoGPEvents.push(...motogpEventSchema.array().parse(await finishedRes.json()));
       }
       if (upcomingRes.ok) {
-        const upcoming: MotoGPEvent[] = await upcomingRes.json();
-        allMotoGPEvents.push(...upcoming);
+        allMotoGPEvents.push(...motogpEventSchema.array().parse(await upcomingRes.json()));
       }
 
       // Filter out test events
@@ -191,7 +162,7 @@ export class MotoGPHandler implements FeedHandler {
           );
           if (!sessionsRes.ok) continue;
 
-          const sessions: MotoGPSession[] = await sessionsRes.json();
+          const sessions = motogpSessionSchema.array().parse(await sessionsRes.json());
           const raceName = mgpEvent.sponsored_name || mgpEvent.name;
           const location = `${mgpEvent.circuit.name}, ${mgpEvent.circuit.place}, ${mgpEvent.country.name}`;
 
