@@ -1,14 +1,19 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { Hono } from "hono";
 import { createLimiter } from "./rateLimit";
+import { MemoryRateLimitStore, clearRateLimitStore } from "./rateLimitStore";
 
 describe("Rate limiting middleware", () => {
+  let store: MemoryRateLimitStore;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    clearRateLimitStore();
+    store = new MemoryRateLimitStore();
   });
 
   it("allows requests within limit", async () => {
-    const limiter = createLimiter({ windowMs: 60000, max: 5, name: "test" });
+    const limiter = createLimiter({ windowMs: 60000, max: 5, name: "test" }, store);
     const app = new Hono();
     app.use("/*", limiter);
     app.get("/test", (c) => c.json({ ok: true }));
@@ -20,7 +25,7 @@ describe("Rate limiting middleware", () => {
   });
 
   it("returns 429 when rate limit is exceeded", async () => {
-    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" });
+    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" }, store);
     const app = new Hono();
     app.use("/*", limiter);
     app.get("/limited", (c) => c.json({ ok: true }));
@@ -38,7 +43,7 @@ describe("Rate limiting middleware", () => {
   });
 
   it("returns 429 with Retry-After header when exceeded", async () => {
-    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" });
+    const limiter = createLimiter({ windowMs: 60000, max: 2, name: "test" }, store);
     const app = new Hono();
     app.use("/*", limiter);
     app.get("/test", (c) => c.json({ ok: true }));
@@ -55,6 +60,7 @@ describe("Rate limiting middleware", () => {
   });
 
   it("rate limiters are distinct instances", async () => {
+    clearRateLimitStore();
     const { generalApiLimiter, exportLimiter, staticLimiter } = await import("./rateLimit");
     expect(generalApiLimiter).not.toBe(exportLimiter);
     expect(generalApiLimiter).not.toBe(staticLimiter);
@@ -62,7 +68,7 @@ describe("Rate limiting middleware", () => {
   });
 
   it("sets rate limit headers on response", async () => {
-    const limiter = createLimiter({ windowMs: 60000, max: 100, name: "test" });
+    const limiter = createLimiter({ windowMs: 60000, max: 100, name: "test" }, store);
     const app = new Hono();
     app.use("/*", limiter);
     app.get("/test", (c) => c.json({ ok: true }));
@@ -83,6 +89,7 @@ describe("parseEnvNumber", () => {
 
   it("uses fallback when env var is not set", async () => {
     delete process.env.RATE_LIMIT_WINDOW_MS;
+    clearRateLimitStore();
     const { generalApiLimiter } = await import("./rateLimit");
     expect(generalApiLimiter).toBeDefined();
   });

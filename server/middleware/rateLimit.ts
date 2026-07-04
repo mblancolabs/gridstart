@@ -1,4 +1,6 @@
 import type { Context, Next } from "hono";
+import type { RateLimitStore } from "./rateLimitStore";
+import { getRateLimitStore } from "./rateLimitStore";
 
 function parseEnvNumber(key: string, fallback: number): number {
   const val = process.env[key];
@@ -13,9 +15,9 @@ interface LimiterConfig {
   name: string;
 }
 
-export function createLimiter(config: LimiterConfig) {
+export function createLimiter(config: LimiterConfig, store?: RateLimitStore) {
   const { windowMs, max } = config;
-  const requestCounts = new Map<string, { count: number; resetAt: number }>();
+  const resolvedStore = store ?? getRateLimitStore();
   const bypassKey = process.env.DAST_BYPASS_KEY;
 
   return async function limiter(c: Context, next: Next): Promise<Response | void> {
@@ -25,23 +27,16 @@ export function createLimiter(config: LimiterConfig) {
     }
 
     const ip = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
-    const now = Date.now();
 
-    let entry = requestCounts.get(ip);
-    if (!entry || now > entry.resetAt) {
-      entry = { count: 0, resetAt: now + windowMs };
-      requestCounts.set(ip, entry);
-    }
+    const { count, resetAt } = await resolvedStore.increment(ip, windowMs);
 
-    entry.count++;
-
-    if (entry.count > max) {
-      const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
+    if (count > max) {
+      const retryAfterSeconds = Math.ceil((resetAt - Date.now()) / 1000);
       c.status(429);
       c.header("Retry-After", String(retryAfterSeconds));
       c.header("X-RateLimit-Limit", String(max));
       c.header("X-RateLimit-Remaining", "0");
-      c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
+      c.header("X-RateLimit-Reset", String(Math.ceil(resetAt / 1000)));
       return c.json({
         error: "Too Many Requests",
         message: "Rate limit exceeded. Please try again later.",
@@ -52,8 +47,8 @@ export function createLimiter(config: LimiterConfig) {
     await next();
 
     c.header("X-RateLimit-Limit", String(max));
-    c.header("X-RateLimit-Remaining", String(Math.max(0, max - entry.count)));
-    c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
+    c.header("X-RateLimit-Remaining", String(Math.max(0, max - count)));
+    c.header("X-RateLimit-Reset", String(Math.ceil(resetAt / 1000)));
   };
 }
 
