@@ -46,7 +46,7 @@ async function serveAsset(url: URL, request: Request, env: Env): Promise<Respons
   } else if (isHtmlPage) {
     headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
   } else {
-    headers.set("Cache-Control", "public, max-age=3600");
+    headers.set("Cache-Control", "private, max-age=3600");
   }
   setSecurityHeaders(headers);
   if (isHtmlPage) {
