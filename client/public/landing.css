@@ -226,6 +226,7 @@ button,
   justify-content: space-between;
   padding: var(--space-4) clamp(var(--space-4), 4vw, var(--space-12));
   background: color-mix(in oklch, var(--color-bg) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.06);
 }
@@ -970,6 +971,7 @@ button,
   color: #8a8885;
   text-align: center;
   background: color-mix(in oklch, #09090b 85%, transparent);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-top: 1px solid oklch(from #e8e6e3 l c h / 0.06);
   letter-spacing: 0.04em;

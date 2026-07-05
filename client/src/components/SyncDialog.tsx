@@ -80,7 +80,7 @@ export function SyncDialog() {
               >
                 {subscriptionUrl}
               </div>
-              <Button variant="outline" size="icon" onClick={handleCopy} data-testid="button-copy-url">
+              <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy calendar URL" data-testid="button-copy-url">
                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>

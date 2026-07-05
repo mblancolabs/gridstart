@@ -35,7 +35,7 @@ function Header() {
       <div className="flex items-center gap-2">
         <PwaInstallButton />
         <SyncDialog />
-        <Button variant="ghost" size="icon" onClick={toggleTheme} data-testid="button-theme-toggle">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" data-testid="button-theme-toggle">
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
