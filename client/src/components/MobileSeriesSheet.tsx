@@ -38,7 +38,7 @@ export function MobileSeriesSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="lg:hidden" data-testid="mobile-series-trigger">
+        <Button variant="outline" size="icon" className="lg:hidden" aria-label="Series filters" data-testid="mobile-series-trigger">
           <SlidersHorizontal className="h-4 w-4" />
         </Button>
       </SheetTrigger>
