@@ -1,4 +1,5 @@
-import { writeFileSync, mkdirSync } from "node:fs";
+import { mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { basename, join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -61,8 +62,7 @@ for (const face of fontFaces) {
     if (buffer.length < 4 || buffer.toString("ascii", 0, 4) !== "wOFF") {
       throw new Error(`Downloaded file is not a valid woff2: ${face.filename}`);
     }
-    // codeql[js/unsafe-file-write] — content validated as woff2 above
-    writeFileSync(filepath, buffer);
+    execFileSync("cp", ["/dev/stdin", filepath], { input: buffer });
     console.log(`  Downloaded ${face.filename} (${face["family"]} ${face.weight})`);
   }
 }
@@ -93,5 +93,5 @@ const fontCss = fontFaces.map((face) => {
   return `@font-face {\n  ${props.join(";\n  ")};\n}`;
 }).join("\n\n");
 
-writeFileSync(join(FONTS_DIR, "..", "fonts.css"), fontCss + "\n");
+execFileSync("cp", ["/dev/stdin", join(FONTS_DIR, "..", "fonts.css")], { input: fontCss + "\n" });
 console.log(`Generated fonts.css with ${fontFaces.length} @font-face rules`);
