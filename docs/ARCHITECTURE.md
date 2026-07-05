@@ -61,9 +61,13 @@ User preferences are stored entirely client-side in a browser cookie (`gridstart
 
 ### Security
 
-Security headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy) are set by `server/security-headers.ts` via a middleware applied to all routes in `app.ts`. CSP varies between development (allows dev server origins and `'unsafe-eval'`) and production (strict policy).
+Security headers (CSP, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) are set by `server/security-headers.ts`. CSP is applied to HTML pages only (skipped on `/api/*` routes via `server/app.ts`) and varies between development (allows dev server origins and `'unsafe-eval'`) and production (strict policy). `X-Frame-Options` was removed as redundant — CSP `frame-ancestors 'none'` provides equivalent protection in all modern browsers.
 
-CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (readable by client JS) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the cookie value in the `x-csrf-token` request header; the server validates that both values match and that the HMAC-SHA256 signature is valid. Signing uses the Web Crypto API (`crypto.subtle.sign("HMAC", ...)`) rather than Node's `crypto.createHmac`, ensuring compatibility with the Workers runtime. This design works across serverless instances with no shared state.
+CSRF protection uses a stateless double-submit cookie pattern (no server-side session required). On GET requests, the server sets a cryptographically signed `csrf-token` cookie (`HttpOnly`, `SameSite=Strict`) and echoes the token in the `X-CSRF-Token` response header. On mutating requests, the client sends the stored token in the `x-csrf-token` request header (captured from the GET response header, not from `document.cookie`); the server validates that both values match and that the HMAC-SHA256 signature is valid. Signing uses the Web Crypto API (`crypto.subtle.sign("HMAC", ...)`) rather than Node's `crypto.createHmac`, ensuring compatibility with the Workers runtime. This design works across serverless instances with no shared state.
+
+### Fonts
+
+Cabinet Grotesk and General Sans are self-hosted as `woff2` files in `client/public/fonts/` with `@font-face` rules in `client/public/fonts.css`. Both HTML entry points (`index.html`, `app.html`) reference `/fonts.css` as a render-blocking stylesheet. Font files are precached by the service worker via the `woff2` glob pattern in `vite.config.ts`.
 
 ## Data sources and handlers
 
