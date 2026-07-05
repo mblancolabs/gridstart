@@ -1,16 +1,18 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { getCache, clearCacheInstance } from "./index";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { getCache, clearCacheInstance, getOrSet, setKvNamespace } from "./index";
 
 describe("getCache", () => {
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
     clearCacheInstance();
+    delete process.env.CACHE_PROVIDER;
     delete process.env.REDIS_URL;
     delete process.env.REDIS_TOKEN;
     delete process.env.KV_REST_API_URL;
     delete process.env.KV_REST_API_TOKEN;
     delete process.env.CACHE_TTL;
+    delete globalThis.__GRIDSTART_CACHE_KV;
   });
 
   afterEach(() => {
@@ -18,12 +20,19 @@ describe("getCache", () => {
     clearCacheInstance();
   });
 
-  it("returns MemoryCache when REDIS_URL not set", () => {
+  it("returns MemoryCache when CACHE_PROVIDER is unset", () => {
     const cache = getCache();
     expect(cache.constructor.name).toBe("MemoryCache");
   });
 
-  it("returns RedisCache when REDIS_URL is set", () => {
+  it("returns MemoryCache when CACHE_PROVIDER=memory", () => {
+    process.env.CACHE_PROVIDER = "memory";
+    const cache = getCache();
+    expect(cache.constructor.name).toBe("MemoryCache");
+  });
+
+  it("returns RedisCache when CACHE_PROVIDER=redis and env vars are set", () => {
+    process.env.CACHE_PROVIDER = "redis";
     process.env.REDIS_URL = "https://mock.redis.io";
     process.env.REDIS_TOKEN = "test-token";
     process.env.CACHE_TTL = "3600";
@@ -33,6 +42,49 @@ describe("getCache", () => {
     expect(cache.constructor.name).toBe("RedisCache");
   });
 
+  it("returns MemoryCache and warns when CACHE_PROVIDER=redis but vars are missing", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    process.env.CACHE_PROVIDER = "redis";
+    clearCacheInstance();
+
+    const cache = getCache();
+    expect(cache.constructor.name).toBe("MemoryCache");
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("returns KVCache when CACHE_PROVIDER=kv and binding is set", () => {
+    const mockKV = {} as KVNamespace;
+    setKvNamespace(mockKV);
+    process.env.CACHE_PROVIDER = "kv";
+    clearCacheInstance();
+
+    const cache = getCache();
+    expect(cache.constructor.name).toBe("KVCache");
+  });
+
+  it("returns MemoryCache and warns when CACHE_PROVIDER=kv but no binding", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    process.env.CACHE_PROVIDER = "kv";
+    clearCacheInstance();
+
+    const cache = getCache();
+    expect(cache.constructor.name).toBe("MemoryCache");
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it("warns and falls back for unknown CACHE_PROVIDER value", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    process.env.CACHE_PROVIDER = "mongodb";
+    clearCacheInstance();
+
+    const cache = getCache();
+    expect(cache.constructor.name).toBe("MemoryCache");
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
   it("returns same instance on repeated calls", () => {
     clearCacheInstance();
     const a = getCache();
@@ -40,39 +92,42 @@ describe("getCache", () => {
     expect(a).toBe(b);
   });
 
-  it("returns MemoryCache after clearing env and clearing instance", () => {
-    process.env.REDIS_URL = "https://mock.redis.io";
-    process.env.REDIS_TOKEN = "test-token";
+  it("switches after clearing instance", () => {
     clearCacheInstance();
-
-    const redisCache = getCache();
-    expect(redisCache.constructor.name).toBe("RedisCache");
-
-    delete process.env.REDIS_URL;
-    delete process.env.REDIS_TOKEN;
-    clearCacheInstance();
-
+    process.env.CACHE_PROVIDER = "memory";
     const memoryCache = getCache();
     expect(memoryCache.constructor.name).toBe("MemoryCache");
-  });
 
-  it("returns RedisCache when Vercel KV vars are set without REDIS_ vars", () => {
-    process.env.KV_REST_API_URL = "https://mock.vercel-kv.io";
-    process.env.KV_REST_API_TOKEN = "kv-token";
+    const mockKV = {} as KVNamespace;
+    setKvNamespace(mockKV);
+    process.env.CACHE_PROVIDER = "kv";
     clearCacheInstance();
 
-    const cache = getCache();
-    expect(cache.constructor.name).toBe("RedisCache");
+    const kvCache = getCache();
+    expect(kvCache.constructor.name).toBe("KVCache");
+  });
+});
+
+describe("getOrSet", () => {
+  beforeEach(() => {
+    clearCacheInstance();
+    delete process.env.CACHE_PROVIDER;
   });
 
-  it("prefers REDIS_ vars over KV_REST_API_ vars when both are set", () => {
-    process.env.REDIS_URL = "https://redis.example.com";
-    process.env.REDIS_TOKEN = "redis-token";
-    process.env.KV_REST_API_URL = "https://kv.example.com";
-    process.env.KV_REST_API_TOKEN = "kv-token";
-    clearCacheInstance();
+  it("fetches and caches data on cache miss", async () => {
+    const fetcher = vi.fn().mockResolvedValue("fresh-data");
+    const result = await getOrSet("test-key", 1000, fetcher);
 
-    const cache = getCache();
-    expect(cache.constructor.name).toBe("RedisCache");
+    expect(result).toBe("fresh-data");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns cached data on cache hit", async () => {
+    const fetcher = vi.fn().mockResolvedValue("fresh-data");
+    await getOrSet("test-key", 1000, fetcher);
+    const result = await getOrSet("test-key", 1000, fetcher);
+
+    expect(result).toBe("fresh-data");
+    expect(fetcher).toHaveBeenCalledTimes(1);
   });
 });

@@ -11,7 +11,7 @@ flowchart LR
     U[User Browser] --> C[React Client\nclient/]
     C -->|Preferences cookie| UC[(Browser Cookie)]
     C --> A[Hono API\nserver/]
-    A --> K[Configurable Cache\nMemory or Redis\n1-hour TTL]
+    A --> K[Configurable Cache\nMemory • Redis • KV\n1-hour TTL]
     A --> F1[Jolpica API\nF1]
     A --> MG[PulseLive API\nMotoGP]
     A --> ICS[ICS Feeds\nMost series]
@@ -135,14 +135,15 @@ The API includes `GET /api/series`, `GET /api/events`, and `GET /api/export.ics`
 
 There is a 1-hour cache TTL for all external data sources, with keys based on series ID or year depending on the feed type. When data is fresh, cached values are returned immediately; when data is stale, the backend refreshes it, and if a refresh fails, stale data can still be used as a fallback.
 
-Caching uses a `CacheProvider` interface with two implementations:
+Caching uses a `CacheProvider` interface with three implementations selected via the `CACHE_PROVIDER` env var:
 
-- **MemoryCache** — in-memory `Map`, default when no Redis is configured. Same behavior as the original implementation. No external dependencies.
-- **RedisCache** — backed by Upstash Redis (HTTP REST API). Enabled via `REDIS_URL` + `REDIS_TOKEN` env vars. Persists across restarts and works in serverless environments.
+- **MemoryCache** — in-memory `Map`. Default when unset or `CACHE_PROVIDER=memory`. No external dependencies.
+- **RedisCache** — backed by Upstash Redis (HTTP REST API). Enabled via `CACHE_PROVIDER=redis` with `REDIS_URL` + `REDIS_TOKEN`. Persists across restarts and works in serverless environments.
+- **KVCache** — backed by Cloudflare KV. Enabled via `CACHE_PROVIDER=kv` with a `CACHE_KV` binding in `wrangler.toml`. Same key prefix (`cache:`) and TTL buffering pattern as RedisCache. Only available in Workers runtime; falls back to MemoryCache with a warning if the binding is unavailable (e.g. local Node.js dev).
 
 The cache backend is selected at startup and is a singleton across the application. Handlers interact only with the `CacheProvider` interface and are unaware of which backend is in use.
 
-This design reduces latency and upstream dependency pressure without introducing extra infrastructure. The Redis option adds persistence without introducing a TCP connection requirement (Upstash uses HTTPS). There is no manual invalidation path yet.
+This design reduces latency and upstream dependency pressure without introducing extra infrastructure. Both Redis and KV options add persistence without TCP connections (Upstash uses HTTPS, KV uses Cloudflare's edge storage). There is no manual invalidation path yet.
 
 ## Build pipeline
 
@@ -171,7 +172,7 @@ The feeds configuration is handled differently per target:
 npm run deploy   # build:worker + wrangler pages deploy dist --branch main
 ```
 
-The `_worker.js` bundle handles all API routes. Static assets (`dist/public/`) are served by Cloudflare Pages infrastructure. Env vars (`CSRF_SECRET`, `REDIS_URL`, `REDIS_TOKEN`, `CORS_ORIGIN`) are configured in the Cloudflare dashboard. The `nodejs_compat` flag is enabled in `wrangler.toml` for `process.env` access.
+The `_worker.js` bundle handles all API routes. Static assets (`dist/public/`) are served by Cloudflare Pages infrastructure. Env vars (`CSRF_SECRET`, `CORS_ORIGIN`, `CACHE_PROVIDER`, `REDIS_URL`, `REDIS_TOKEN`) and KV bindings (`CACHE_KV`) are configured in the Cloudflare dashboard and `wrangler.toml`. The `nodejs_compat` flag is enabled in `wrangler.toml` for `process.env` access.
 
 ### VPS
 
@@ -226,7 +227,7 @@ flowchart TD
     T -->|No| F
     F --> G{Fetch succeeded?}
     G -->|Yes| W[Write refreshed cache]
-    W --> Z[Write to active backend\nMemory or Redis]
+    W --> Z[Write to active backend\nMemory • Redis • KV]
     Z --> D[Return fresh data]
     G -->|No| S{Stale cache available?}
     S -->|Yes| Y[Return stale cached data]

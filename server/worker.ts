@@ -1,6 +1,8 @@
 import app from "./app";
 import type { Env } from "./app";
+import type { KVNamespace } from "@cloudflare/workers-types";
 import { getProductionCsp, setSecurityHeaders } from "./security-headers";
+import { setKvNamespace } from "./cache";
 
 const MIME_TYPES: Record<string, string> = {
   ".js": "application/javascript; charset=utf-8",
@@ -65,6 +67,10 @@ async function serveAsset(url: URL, request: Request, env: Env): Promise<Respons
 export default {
   async fetch(request: Request, env: Env, ctx: import("hono").Context['executionCtx']): Promise<Response> {
     const url = new URL(request.url);
+
+    if (env.CACHE_KV) {
+      setKvNamespace(env.CACHE_KV as KVNamespace);
+    }
 
     if (url.pathname.startsWith("/api") || url.pathname === "/health" || url.pathname.startsWith("/export.ics")) {
       return app.fetch(request, env, ctx);

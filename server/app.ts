@@ -18,6 +18,7 @@ export interface Env {
   REDIS_URL?: string;
   REDIS_TOKEN?: string;
   CACHE_TTL?: string;
+  CACHE_KV?: unknown;
   RATE_LIMIT_WINDOW_MS?: string;
   RATE_LIMIT_MAX?: string;
   EXPORT_RATE_LIMIT_WINDOW_MS?: string;
