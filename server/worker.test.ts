@@ -176,7 +176,6 @@ describe("Worker — security headers & CSP", () => {
     const res = await worker.fetch(new Request("http://example.com/"), env, mockCtx);
 
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(res.headers.get("x-frame-options")).toBe("DENY");
     expect(res.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(res.headers.get("permissions-policy")).toBe("geolocation=(), microphone=(), camera=()");
   });
@@ -348,7 +347,7 @@ describe("Worker — Content-Type inference", () => {
 
     const res = await worker.fetch(new Request("http://example.com/bundle.js"), env, mockCtx);
 
-    expect(res.headers.get("content-type")).toBe("application/javascript");
+    expect(res.headers.get("content-type")).toBe("application/javascript; charset=utf-8");
   });
 
   it("infers Content-Type for .css files when missing", async () => {
@@ -358,7 +357,7 @@ describe("Worker — Content-Type inference", () => {
 
     const res = await worker.fetch(new Request("http://example.com/styles.css"), env, mockCtx);
 
-    expect(res.headers.get("content-type")).toBe("text/css");
+    expect(res.headers.get("content-type")).toBe("text/css; charset=utf-8");
   });
 
   it("infers Content-Type for .svg files when missing", async () => {

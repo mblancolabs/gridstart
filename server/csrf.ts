@@ -81,7 +81,7 @@ export async function csrfProtection(c: Context, next: Next): Promise<Response |
     const { nonce, hmac } = await generateToken(secret);
     const token = `${nonce}|${hmac}`;
 
-    c.res.headers.set("Set-Cookie", `${COOKIE_NAME}=${token}; Path=/; SameSite=Strict${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+    c.res.headers.set("Set-Cookie", `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
     c.res.headers.set(HEADER_NAME, token);
     return next();
   }
