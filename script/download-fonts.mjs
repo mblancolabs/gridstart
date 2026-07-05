@@ -59,10 +59,10 @@ for (const face of fontFaces) {
     const resp = await fetch(face.url);
     if (!resp.ok) throw new Error(`Failed to download ${face.url}: ${resp.status}`);
     const buffer = Buffer.from(await resp.arrayBuffer());
-    if (buffer.length < 4 || buffer.toString("ascii", 0, 4) !== "wOFF") {
+    if (buffer.length < 4 || buffer.toString("ascii", 0, 4) !== "wOF2") {
       throw new Error(`Downloaded file is not a valid woff2: ${face.filename}`);
     }
-    execFileSync("cp", ["/dev/stdin", filepath], { input: buffer });
+    execFileSync("dd", [`of=${filepath}`, "status=none"], { input: buffer });
     console.log(`  Downloaded ${face.filename} (${face["family"]} ${face.weight})`);
   }
 }
@@ -93,5 +93,5 @@ const fontCss = fontFaces.map((face) => {
   return `@font-face {\n  ${props.join(";\n  ")};\n}`;
 }).join("\n\n");
 
-execFileSync("cp", ["/dev/stdin", join(FONTS_DIR, "..", "fonts.css")], { input: fontCss + "\n" });
+execFileSync("dd", [`of=${join(FONTS_DIR, "..", "fonts.css")}`, "status=none"], { input: fontCss + "\n" });
 console.log(`Generated fonts.css with ${fontFaces.length} @font-face rules`);
