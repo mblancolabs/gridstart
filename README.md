@@ -101,9 +101,11 @@ The application uses **1-hour caching** for all external data feeds:
 
 ### Cache Storage
 
-- **MemoryCache** (default): In-memory storage, lost on restart — no dependencies
-- **RedisCache** (optional): Persistent cache via Redis/Upstash — survives restarts and cold starts
-- Configurable via `REDIS_URL` + `REDIS_TOKEN` env vars. Falls back to MemoryCache when unset.
+Three selectable backends via the `CACHE_PROVIDER` env var:
+
+- **MemoryCache** (default): In-memory Map, lost on restart — no dependencies. Set `CACHE_PROVIDER=memory` or unset.
+- **RedisCache**: Persistent cache via Upstash Redis (HTTP REST API). Set `CACHE_PROVIDER=redis` with `REDIS_URL` + `REDIS_TOKEN`.
+- **KVCache**: Persistent cache via Cloudflare KV. Set `CACHE_PROVIDER=kv` with `CACHE_KV` binding in `wrangler.toml`.
 
 ### Manual Refresh
 
@@ -126,7 +128,7 @@ Currently, there's no manual cache invalidation - data refreshes automatically b
 
 - **Hono** with TypeScript (Cloudflare Workers + VPS)
 - **ICAL.js** for calendar parsing/export
-- **Upstash Redis** (optional) for persistent caching
+- **Cloudflare KV** or **Upstash Redis** (optional) for persistent caching
 
 ## Prerequisites
 
@@ -148,10 +150,9 @@ The application supports the following environment variables:
 - `EXPORT_RATE_LIMIT_MAX`: Export endpoint max requests per IP per window (default: 10)
 - `STATIC_RATE_LIMIT_WINDOW_MS`: Static files rate limit window in milliseconds (default: 900000 / 15 minutes, VPS only)
 - `STATIC_RATE_LIMIT_MAX`: Static files max requests per IP per window (default: 1000)
-- `REDIS_URL`: Redis/Upstash REST URL. Leave unset for in-memory cache (default).
-- `REDIS_TOKEN`: Redis/Upstash REST token. Required if `REDIS_URL` is set.
-- `KV_REST_API_URL`: Cloudflare KV REST URL (alternative to `REDIS_URL`, for Workers).
-- `KV_REST_API_TOKEN`: Cloudflare KV REST token (alternative to `REDIS_TOKEN`, for Workers).
+- `CACHE_PROVIDER`: Cache backend selection (`memory` | `redis` | `kv`). Defaults to `memory` if unset.
+- `REDIS_URL`: Upstash Redis REST URL. Required when `CACHE_PROVIDER=redis`.
+- `REDIS_TOKEN`: Upstash Redis REST token. Required when `CACHE_PROVIDER=redis`.
 - `CACHE_TTL`: Cache TTL in seconds (default: 3600 / 1 hour).
 - `DAST_BYPASS_KEY`: Shared secret for DAST scanner to bypass rate limiting (staging Preview only; **never set this in production — it disables rate limiting**).
 
