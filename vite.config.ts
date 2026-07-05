@@ -15,7 +15,7 @@ export default defineConfig({
         webManifestUrl: "/manifest.webmanifest",
       },
       manifest: {
-        name: "GridStart — Motorsport Calendar",
+        name: "GridStart Motorsport Calendar",
         short_name: "GridStart",
         description: "Track every motorsport series in one calendar",
         start_url: "/app",

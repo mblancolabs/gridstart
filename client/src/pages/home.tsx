@@ -308,6 +308,7 @@ export default function Home() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+              aria-label="Previous month"
               data-testid="button-prev-month"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -316,6 +317,7 @@ export default function Home() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              aria-label="Next month"
               data-testid="button-next-month"
             >
               <ChevronRight className="h-4 w-4" />
