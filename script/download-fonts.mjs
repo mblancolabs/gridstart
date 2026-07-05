@@ -1,5 +1,5 @@
 import { writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { basename, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,18 @@ while ((match = fontFaceRegex.exec(css)) !== null) {
   }
 
   const url = urlMatch[1].startsWith("//") ? "https:" + urlMatch[1] : urlMatch[1];
-  const filename = url.split("/").pop();
+
+  const parsedUrl = new URL(url);
+  const FONT_DOMAINS = ["cdn.fontshare.com"];
+  if (!FONT_DOMAINS.some((d) => parsedUrl.hostname === d || parsedUrl.hostname.endsWith("." + d))) {
+    throw new Error(`Untrusted font URL domain: ${parsedUrl.hostname}`);
+  }
+
+  const rawFilename = basename(parsedUrl.pathname);
+  if (!/^[\w.-]+\.woff2$/.test(rawFilename)) {
+    throw new Error(`Invalid font filename: ${rawFilename}`);
+  }
+  const filename = rawFilename;
   fontFaces.push({ ...props, url, filename });
 }
 
@@ -40,7 +51,11 @@ for (const face of fontFaces) {
   if (process.argv.includes("--download")) {
     const resp = await fetch(face.url);
     if (!resp.ok) throw new Error(`Failed to download ${face.url}: ${resp.status}`);
-    writeFileSync(filepath, Buffer.from(await resp.arrayBuffer()));
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    if (buffer.length < 4 || buffer.toString("ascii", 0, 4) !== "wOFF") {
+      throw new Error(`Downloaded file is not a valid woff2: ${face.filename}`);
+    }
+    writeFileSync(filepath, buffer);
     console.log(`  Downloaded ${face.filename} (${face["family"]} ${face.weight})`);
   }
 }
