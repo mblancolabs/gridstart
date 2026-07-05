@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.8] - 2026-07-05
+
+### Changed
+
+- **Removed unused dependencies** — uninstalled `cors`, `@types/cors`, `cookie-parser`, and `@types/cookie-parser` from `package.json` and deleted the redundant `Access-Control-Allow-Origin` header from the server. ([#183](https://github.com/mblancolabs/gridstart/issues/183))
+- **Improved browser accessibility** — removed `maximum-scale=1` from the viewport meta to allow pinch-to-zoom; added `-webkit-backdrop-filter` vendor prefix; added `aria-label` attributes to six icon-only buttons; replaced deprecated `apple-mobile-web-app-capable` with `mobile-web-app-capable`; shortened PWA manifest name to fit display limits. ([#184](https://github.com/mblancolabs/gridstart/issues/184))
+- **Bumped version** to 0.9.8.
+
 ## [0.9.7] - 2026-07-04
 
 ### Added
