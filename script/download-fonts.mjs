@@ -60,6 +60,21 @@ for (const face of fontFaces) {
   }
 }
 
+const EXPECTED_FAMILIES = ["General Sans", "Cabinet Grotesk"];
+const EXPECTED_WEIGHTS = ["300", "400", "500", "600", "700", "800", "900"];
+
+for (const face of fontFaces) {
+  if (!EXPECTED_FAMILIES.includes(face.family)) {
+    throw new Error(`Unexpected font family: ${face.family}`);
+  }
+  if (!/^(normal|italic)$/.test(face.style)) {
+    throw new Error(`Unexpected font style: ${face.style}`);
+  }
+  if (!EXPECTED_WEIGHTS.includes(face.weight)) {
+    throw new Error(`Unexpected font weight: ${face.weight}`);
+  }
+}
+
 const fontCss = fontFaces.map((face) => {
   const props = [
     `font-family: '${face.family}'`,
