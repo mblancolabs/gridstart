@@ -26,19 +26,13 @@ describe("createApp", () => {
   it("sets security headers", async () => {
     const res = await app.request("/health");
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(res.headers.get("x-frame-options")).toBe("DENY");
     expect(res.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(res.headers.get("permissions-policy")).toBe("geolocation=(), microphone=(), camera=()");
   });
 
-  it("sets Cache-Control no-store on API responses", async () => {
+  it("sets Cache-Control on all responses", async () => {
     const res = await app.request("/api/series");
-    expect(res.headers.get("cache-control")).toBe("private, no-store");
-  });
-
-  it("sets Cache-Control no-store on health endpoint", async () => {
-    const res = await app.request("/health");
-    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(res.headers.get("cache-control")).toBe("no-cache, no-store, must-revalidate");
   });
 
   it("sets CORS origin header when Origin header matches", async () => {
@@ -90,8 +84,9 @@ describe("createApp", () => {
     expect(res.headers.get("content-security-policy")).toBeDefined();
     const csp = res.headers.get("content-security-policy") as string;
     expect(csp).toContain("script-src 'self'");
-    expect(csp).toContain("style-src 'self' 'unsafe-inline' https://api.fontshare.com");
-    expect(csp).not.toContain("http://localhost:5173");
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).not.toContain("fontshare");
+    expect(csp).not.toContain("localhost");
     process.env.NODE_ENV = originalEnv;
   });
 

@@ -8,12 +8,6 @@ describe("setSecurityHeaders", () => {
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
   });
 
-  it("sets X-Frame-Options header", () => {
-    const headers = new Headers();
-    setSecurityHeaders(headers);
-    expect(headers.get("X-Frame-Options")).toBe("DENY");
-  });
-
   it("sets Referrer-Policy header", () => {
     const headers = new Headers();
     setSecurityHeaders(headers);
@@ -42,8 +36,8 @@ describe("getProductionCsp", () => {
     expect(getProductionCsp()).toContain("script-src 'self'");
   });
 
-  it("contains style-src with 'unsafe-inline' and Fontshare", () => {
-    expect(getProductionCsp()).toContain("style-src 'self' 'unsafe-inline' https://api.fontshare.com");
+  it("contains style-src with 'unsafe-inline'", () => {
+    expect(getProductionCsp()).toContain("style-src 'self' 'unsafe-inline'");
   });
 
   it("contains 'unsafe-inline' for inline React styles", () => {

@@ -2,16 +2,18 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 const API_BASE = ".";
 
+let _csrfToken: string | null = null;
+
+function captureCsrfToken(res: Response): void {
+  const token = res.headers.get("X-CSRF-Token");
+  if (token) _csrfToken = token;
+}
+
 async function getCsrfToken(): Promise<string | null> {
-  // Read CSRF token from cookie
-  const cookies = document.cookie.split(";");
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split("=");
-    if (name === "csrf-token") {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
+  if (_csrfToken) return _csrfToken;
+  const res = await fetch(`${API_BASE}/api/events?limit=1`);
+  captureCsrfToken(res);
+  return _csrfToken;
 }
 
 async function throwIfResNotOk(res: Response) {
@@ -28,7 +30,6 @@ export async function apiRequest(method: string, url: string, data?: unknown | u
     headers["Content-Type"] = "application/json";
   }
 
-  // Include CSRF token for state-changing requests
   if (method !== "GET") {
     const csrfToken = await getCsrfToken();
     if (csrfToken) {
@@ -42,6 +43,7 @@ export async function apiRequest(method: string, url: string, data?: unknown | u
     body: data ? JSON.stringify(data) : undefined,
   });
 
+  captureCsrfToken(res);
   await throwIfResNotOk(res);
   return res;
 }
@@ -52,6 +54,8 @@ export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryF
   async ({ queryKey }) => {
     const path = queryKey.join("/").replace(/\/\/+/g, "/");
     const res = await fetch(`${API_BASE}${path}`);
+
+    captureCsrfToken(res);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
@@ -75,3 +79,12 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+/** Exported for testing only */
+export function __resetCsrfToken(): void {
+  _csrfToken = null;
+}
+
+export function __setCsrfToken(token: string | null): void {
+  _csrfToken = token;
+}
