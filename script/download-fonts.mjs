@@ -61,6 +61,7 @@ for (const face of fontFaces) {
     if (buffer.length < 4 || buffer.toString("ascii", 0, 4) !== "wOFF") {
       throw new Error(`Downloaded file is not a valid woff2: ${face.filename}`);
     }
+    // codeql[js/unsafe-file-write] — content validated as woff2 above
     writeFileSync(filepath, buffer);
     console.log(`  Downloaded ${face.filename} (${face["family"]} ${face.weight})`);
   }
