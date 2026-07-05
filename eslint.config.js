@@ -22,6 +22,14 @@ const tsRules = tseslint.configs.recommended.flatMap((cfg) => {
 export default tseslint.config(
   { ignores: ["dist/**", "client/dev-dist/**", "test-results/**", "release/**", "*.config.ts"] },
   js.configs.recommended,
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   ...tsRules,
   {
     files: ["**/*.{ts,tsx}"],
