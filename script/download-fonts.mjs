@@ -1,5 +1,5 @@
 import { writeFileSync, mkdirSync } from "node:fs";
-import { basename, join, dirname } from "node:path";
+import { basename, join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -46,8 +46,14 @@ while ((match = fontFaceRegex.exec(css)) !== null) {
 
 console.log(`Found ${fontFaces.length} font variants`);
 
+const RESOLVED_FONTS_DIR = resolve(FONTS_DIR);
+
 for (const face of fontFaces) {
   const filepath = join(FONTS_DIR, face.filename);
+  const resolvedFilepath = resolve(filepath);
+  if (!resolvedFilepath.startsWith(RESOLVED_FONTS_DIR)) {
+    throw new Error(`Path traversal detected: ${face.filename}`);
+  }
   if (process.argv.includes("--download")) {
     const resp = await fetch(face.url);
     if (!resp.ok) throw new Error(`Failed to download ${face.url}: ${resp.status}`);
