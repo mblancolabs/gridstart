@@ -9,11 +9,6 @@
 
 A modern motorsport calendar application that aggregates racing schedules from multiple series into a unified calendar view. Built with React, TypeScript, and Hono.
 
-GridStart is available in two editions:
-
-- **Free Edition** (current) — No database required. User preferences are stored in a browser cookie. Fully self-contained.
-- **Premium Edition** (planned) — Adds persistent storage with SQLite, user accounts, and per-user preferences.
-
 ![GridStart](./docs/assets/gridstart.png)
 
 ## Features
