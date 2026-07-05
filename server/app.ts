@@ -56,23 +56,26 @@ if (corsOrigin) {
 app.use("*", async (c, next) => {
   await next();
   setSecurityHeaders(c.res.headers);
-  c.res.headers.set("Cache-Control", "private, no-store");
+  c.res.headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
-  const csp = isProduction
-    ? getProductionCsp()
-    : [
-        "default-src 'self'",
-        `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${devCspOrigin}`,
-        "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
-        "font-src 'self' https://api.fontshare.com https://cdn.fontshare.com",
-        "img-src 'self' data:",
-        `connect-src 'self' https://api.fontshare.com ${devCspOrigin} ${devCspOrigin.replace(/^https?:/, "ws:")}`,
-        "object-src 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-        "frame-ancestors 'none'",
-      ].join("; ");
-  c.res.headers.set("Content-Security-Policy", csp);
+  const isApiRoute = c.req.path.startsWith("/api");
+  if (!isApiRoute) {
+    const csp = isProduction
+      ? getProductionCsp()
+      : [
+          "default-src 'self'",
+          `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${devCspOrigin}`,
+          "style-src 'self' 'unsafe-inline'",
+          "font-src 'self'",
+          "img-src 'self' data:",
+          `connect-src 'self' ${devCspOrigin} ${devCspOrigin.replace(/^https?:/, "ws:")}`,
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "frame-ancestors 'none'",
+        ].join("; ");
+    c.res.headers.set("Content-Security-Policy", csp);
+  }
 });
 
 app.use("/api/*", csrfProtection);

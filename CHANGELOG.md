@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.9] - 2026-07-05
+
+### Added
+
+- **Self-hosted fonts** — replaced Fontshare CDN with local `woff2` files for Cabinet Grotesk (5 weights) and General Sans (5 weights), referenced via `/fonts.css`. Removed Fontshare URLs from CSP `style-src` and `font-src` directives. ([#185](https://github.com/mblancolabs/gridstart/issues/185))
+
+### Changed
+
+- **CSRF cookie now HttpOnly** — the `csrf-token` cookie is set with `; HttpOnly` to prevent JavaScript access. The client now reads the token from the `X-CSRF-Token` response header (captured on the first GET response) instead of `document.cookie`. ([#186](https://github.com/mblancolabs/gridstart/issues/186))
+- **Removed redundant `X-Frame-Options`** — the `DENY` value was already covered by CSP `frame-ancestors 'none'`; removed from `setSecurityHeaders()`. ([#186](https://github.com/mblancolabs/gridstart/issues/186))
+- **CSP scoped to non-API routes** — the `Content-Security-Policy` header is no longer set on `/api/*` responses in the development server. The production worker already scoped CSP to HTML pages only. ([#186](https://github.com/mblancolabs/gridstart/issues/186))
+- **Cache-Control aligned** — unified to `no-cache, no-store, must-revalidate` across both `app.ts` and `worker.ts` for consistent caching semantics. ([#186](https://github.com/mblancolabs/gridstart/issues/186))
+- **Charset utf-8 on text MIME types** — appended `; charset=utf-8` to `Content-Type` for JavaScript, CSS, HTML, and JSON assets served by the worker. ([#186](https://github.com/mblancolabs/gridstart/issues/186))
+- **Bumped version** to 0.9.9.
+
 ## [0.9.8] - 2026-07-05
 
 ### Changed

@@ -3,14 +3,14 @@ import type { Env } from "./app";
 import { getProductionCsp, setSecurityHeaders } from "./security-headers";
 
 const MIME_TYPES: Record<string, string> = {
-  ".js": "application/javascript",
-  ".css": "text/css",
-  ".html": "text/html",
+  ".js": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".ico": "image/x-icon",
   ".webmanifest": "application/manifest+json",
-  ".json": "application/json",
+  ".json": "application/json; charset=utf-8",
 };
 
 function inferContentType(pathname: string): string | null {

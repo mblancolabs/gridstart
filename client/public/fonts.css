@@ -1,0 +1,79 @@
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/TW4KNQIPR4LNP4I6I6C6HKQ23B2EQAU5.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/7YY3ZAAE3TRV2LANYOLXNHTPHLXVWTKH.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/SB2OEB6IKZPRR6JT4GFJ2TFT6HBB6AZN.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/3ZLMEXZEQPLTEPMHTQDAUXP5ZZXCZAEN.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/NIQ54PVBBIWVK3PFSOIOUJSXIJ5WTNDP.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/MT4CWVHB3N2C6KFUZ75QK4JQ2FYK4J4M.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/4CO2ETY7NITKLUDKMYJ75RHJSPHOJ7XT.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/WN5274VQ3AUBDFP74GB4EC4XYJ3EKVNE.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/6QH2ALVTTK7IRVO5MYOQQ3OZNXW5SSS3.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/TZVUWRP4UW5PEJWBLXHG5VVGPODI2WLC.woff2') format('woff2');
+}
