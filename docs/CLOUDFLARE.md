@@ -111,6 +111,32 @@ A WAF rate limiting rule provides burst protection for the staging hostname:
 
 DAST traffic stays under the burst threshold or uses the `x-dast-bypass` header.
 
+## Logging
+
+Cloudflare Pages provides several ways to view server-side logs from your Worker:
+
+### Dashboard Logs
+
+Cloudflare Dashboard → Workers & Pages → **gridstart** → **Logs**. Shows live request logs (method, path, status, timing) for recent traffic. No setup required.
+
+### `wrangler tail` (CLI)
+
+Streams live logs from a specific deployment to your terminal, including `console.log` / `console.warn` output:
+
+```bash
+# List recent deployments
+npx wrangler pages deployment list --project-name gridstart
+
+# Tail logs from a deployment
+npx wrangler pages deployment tail --project-name gridstart <deployment-id>
+```
+
+The app outputs structured JSON logs via `server/logger.ts` (method, path, status, duration, request ID), which appear in both the dashboard and `wrangler tail`.
+
+### Logpush (advanced)
+
+For long-term retention, enable Logpush in Pages project → Settings → Logpush to forward logs to R2, Datadog, or Grafana Loki.
+
 ## Deployment Pipeline
 
 | Branch | Method | Trigger |
