@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.10] - 2026-07-05
+
+### Added
+
+- **Cloudflare KV CacheProvider** — new `KVCache` backend implementing `CacheProvider` via `KVNamespace.get()` / `KVNamespace.put()` with `expirationTtl`. Same `cache:` key prefix and TTL buffering pattern as `RedisCache`. ([#193](https://github.com/mblancolabs/gridstart/issues/193))
+
+### Changed
+
+- **Explicit cache provider selection** — replaced implicit Redis auto-detection with a `CACHE_PROVIDER` env var (`memory` | `redis` | `kv`). The old `KV_REST_API_URL` / `KV_REST_API_TOKEN` fallback vars are removed. Deployments using Redis must now set `CACHE_PROVIDER=redis` alongside `REDIS_URL` + `REDIS_TOKEN`. ([#193](https://github.com/mblancolabs/gridstart/issues/193))
+- **Bumped version** to 0.9.10.
+
 ## [0.9.9] - 2026-07-05
 
 ### Added
