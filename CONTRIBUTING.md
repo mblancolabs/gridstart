@@ -86,6 +86,36 @@ When opening a pull request:
 
 Small, focused pull requests are easier to review and merge than large mixed changes.
 
+## Commit Messages
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and PR titles. PR titles are validated automatically by a GitHub Action on open/edit.
+
+The format is:
+
+```
+type(scope): description
+```
+
+Allowed types:
+
+| Type | Release | Description |
+|------|---------|-------------|
+| `feat` | minor | A new feature |
+| `fix` | patch | A bug fix |
+| `docs` | — | Documentation changes |
+| `style` | — | Code style (formatting, missing semicolons, etc.) |
+| `refactor` | — | Code refactoring |
+| `perf` | patch | Performance improvements |
+| `test` | — | Adding or fixing tests |
+| `build` | — | Build system or dependencies |
+| `ci` | — | CI/CD configuration |
+| `chore` | — | Maintenance, tooling, minor changes |
+| `revert` | — | Reverting a previous change |
+
+Use `!` after the type/scope for breaking changes (e.g. `feat!:`, `feat(api)!:`). Breaking changes bump the major version.
+
+Scopes are optional but encouraged for larger changes (e.g. `feat(cache):`, `fix(export):`).
+
 ### Target branch
 
 All pull requests should target `main` unless you have been explicitly asked to target `staging`.
@@ -283,11 +313,47 @@ Both must pass before opening a pull request.
 
 ## Changelog
 
-`CHANGELOG.md` is maintained by the project owner and updated as part of each release. Contributors do **not** need to edit it directly.
+`CHANGELOG.md` is auto-generated from conventional commit history by [Release Please](https://github.com/googleapis/release-please) and updated as part of each release. Contributors do **not** need to edit it directly.
 
-If your PR fixes a notable bug or adds a meaningful feature, mention it clearly in the PR description — the relevant entry will be written at release time.
+If your PR fixes a notable bug or adds a meaningful feature, make sure the PR title follows conventional commit format — the relevant entry will appear in the changelog at release time.
 
-> Once Conventional Commits are adopted, `CHANGELOG.md` will be generated automatically from commit history and this section will be updated accordingly.
+## CI/CD
+
+The project uses several GitHub Actions workflows:
+
+- **PR Title Lint** (`pr-title-lint.yaml`) — validates PR titles follow conventional commit format on every pull request. Skips PRs labelled `dependencies` (like dependabot).
+- **CI** (`ci.yaml`) — runs linting, typechecking, tests, and build on every pull request and push to `main`. This is the main validation gate. Does not deploy.
+- **Release Please** (`release-please.yaml`) — on every push to `main`, scans for conventional commits since the last release. Opens or updates a Release PR that includes the version bump and changelog. When the Release PR is merged, creates a GitHub release and deploys to Cloudflare Pages.
+- **Deploy Production** (`deploy.yaml`) — manual `workflow_dispatch` fallback for emergency re-deployments. Not part of normal flow.
+
+### Release process
+
+1. Merge feature PRs into `main` with conventional commit titles.
+2. Release Please automatically creates/updates a Release PR with the proposed version bump and changelog.
+3. Verify the Release PR content, then merge it.
+4. Release Please tags the release, creates a GitHub Release, and deploys to Cloudflare Pages.
+5. The release is live on production.
+
+### Release Please setup
+
+Release Please requires a GitHub Personal Access Token (PAT) with sufficient permissions to create release PRs, push version bumps, and create GitHub releases. The default `GITHUB_TOKEN` cannot be used because GitHub Actions does not trigger new workflow runs for events created by the built-in token — without a PAT, CI checks would not run on the Release PR.
+
+These must be set in **Settings → Secrets and variables → Actions**:
+
+| Type | Name | Value |
+|------|------|-------|
+| Secret | `RELEASE_PLEASE_PAT` | Fine-grained PAT with `Contents: Write` and `Pull requests: Write` |
+
+**Creating the PAT:**
+
+1. Go to https://github.com/settings/tokens → **Fine-grained tokens** → **Generate new token**
+2. Repository access: **Only select repositories** → `mblancolabs/gridstart`
+3. Permissions: **Contents: Write** (push version bumps and tags), **Pull requests: Write** (create and update Release PRs), **Metadata: Read** (auto-granted)
+4. Generate and copy the token
+
+```bash
+gh secret set RELEASE_PLEASE_PAT -R mblancolabs/gridstart
+```
 
 ## Reporting Bugs
 
