@@ -142,5 +142,5 @@ For long-term retention, enable Logpush in Pages project → Settings → Logpus
 | Branch | Method | Trigger |
 |---|---|---|
 | `staging` | Cloudflare Pages auto-build | Push to `staging` |
-| `main` | GitHub Actions (`deploy.yaml`) | Push to `main` |
-| `main` (future: release-please) | GitHub Actions (`deploy.yaml`) | Merge Release PR |
+| `main` | Release Please (`release-please.yaml`) | Merge Release PR |
+| `main` (manual fallback) | GitHub Actions (`deploy.yaml`) | `workflow_dispatch` |
