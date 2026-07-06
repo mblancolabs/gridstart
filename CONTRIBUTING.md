@@ -112,7 +112,13 @@ Allowed types:
 | `chore` | — | Maintenance, tooling, minor changes |
 | `revert` | — | Reverting a previous change |
 
-Use `!` after the type/scope for breaking changes (e.g. `feat!:`, `feat(api)!:`). Breaking changes bump the major version.
+Use `!` after the type/scope for breaking changes (e.g. `feat!:`, `feat(api)!:`). Breaking changes would normally bump the major version, but while GridStart is pre-v1 (`bump-minor-pre-major: true`), they bump the minor version instead (e.g. 0.9.10 → 0.10.0).
+
+When the project is ready for v1.0.0, push an empty commit with `Release-As: 1.0.0` in the body:
+
+```bash
+git commit --allow-empty -m "chore: release 1.0.0" -m "Release-As: 1.0.0"
+```
 
 Scopes are optional but encouraged for larger changes (e.g. `feat(cache):`, `fix(export):`).
 
