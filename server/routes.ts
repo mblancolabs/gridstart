@@ -250,7 +250,12 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
           })
         );
 
-        const allEvents = results.flat();
+      const seenEventIds = new Set<string>();
+      const allEvents = results.flat().filter((e) => {
+        if (seenEventIds.has(e.id)) return false;
+        seenEventIds.add(e.id);
+        return true;
+      });
 
         allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
