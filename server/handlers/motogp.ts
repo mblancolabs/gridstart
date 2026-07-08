@@ -149,6 +149,14 @@ export class MotoGPHandler implements FeedHandler {
       // Filter out test events
       allMotoGPEvents = allMotoGPEvents.filter((e) => !e.test);
 
+      // Deduplicate by event id — PulseLive returns the same event in both isFinished responses
+      const seenEventIds = new Set<string>();
+      allMotoGPEvents = allMotoGPEvents.filter((e) => {
+        if (seenEventIds.has(e.id)) return false;
+        seenEventIds.add(e.id);
+        return true;
+      });
+
       const events: CalendarEvent[] = [];
       let roundNum = 0;
 
