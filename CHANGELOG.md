@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.10.0...gridstart-v0.10.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* add --project-name gridstart to deploy workflows after wrangler.toml removal ([#216](https://github.com/mblancolabs/gridstart/issues/216)) ([d84a913](https://github.com/mblancolabs/gridstart/commit/d84a9135636e4a4f262465fe6f1ede1c5c17e407))
+
 ## [0.10.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.9.10...gridstart-v0.10.0) (2026-07-13)
 
 
