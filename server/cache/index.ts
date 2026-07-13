@@ -29,7 +29,7 @@ export function getCache(): CacheProvider {
       } else {
         console.warn(
           "CACHE_PROVIDER=kv but no CACHE_KV namespace binding found, falling back to MemoryCache. " +
-            "Ensure the binding is configured in wrangler.toml and injected in worker.ts.",
+            "Ensure the binding is configured in the Cloudflare Pages dashboard (Settings → Functions → KV namespace bindings) and injected in worker.ts.",
         );
         cacheInstance = new MemoryCache();
       }

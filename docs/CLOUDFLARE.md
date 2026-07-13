@@ -14,29 +14,38 @@ Staging is protected by Cloudflare Access. Only authenticated users (and the DAS
 
 ## Environment Variables
 
-### `wrangler.toml` (committed, plaintext)
+### Cloudflare Pages dashboard environment variables
 
-Non-sensitive config that differs between environments:
+**All** environment variables (both plaintext and secret) are set in **Pages → gridstart → Settings → Environment variables**, with separate values per scope:
 
-| Variable | Preview/Staging | Production |
+| Scope | Variable | Value | Purpose |
+|---|---|---|---|
+| Preview | `CACHE_PROVIDER` | `kv` | Cache backend (optional — defaults to MemoryCache) |
+| Preview | `CACHE_TTL` | `3600` | Cache TTL in seconds (optional) |
+| Preview | `CORS_ORIGIN` | `https://staging.<project-name>.pages.dev` | CORS allowed origin |
+| Preview | `CSRF_SECRET` | *unique random hex* | CSRF token signing |
+| Preview | `DAST_BYPASS_KEY` | *unique random hex* | Bypass secret for DAST scanner (rate limiting) |
+| Preview | `RATE_LIMIT_MAX` | `5000` | Max requests per rate-limit window |
+| Production | `CACHE_PROVIDER` | `kv` | Cache backend (add after staging test) |
+| Production | `CACHE_TTL` | `3600` | Cache TTL in seconds (optional) |
+| Production | `CORS_ORIGIN` | `https://<project-name>.pages.dev` | CORS allowed origin |
+| Production | `CSRF_SECRET` | *unique random hex* | CSRF token signing |
+| Production | `RATE_LIMIT_MAX` | `2000` | Max requests per rate-limit window |
+
+**Policy:** All config is managed in the dashboard. Previously, non-sensitive values lived in `wrangler.toml` — that file has been removed (Phase 1b). `DAST_BYPASS_KEY` is only set in Preview scope — the rate limiter ignores the bypass header when the env var is absent.
+
+### KV namespace bindings (dashboard)
+
+KV bindings are configured in **Pages → gridstart → Settings → Functions → KV namespace bindings**, not in a local config file:
+
+| Scope | Variable name | Namespace |
 |---|---|---|
-| `RATE_LIMIT_MAX` | `5000` | `2000` |
+| Production | `CACHE_KV` | `gridstart-cache` (production namespace ID) |
+| Preview | `CACHE_KV` | `gridstart-cache` (preview namespace ID) |
 
-These are set in `[vars]` (staging) and `[env.production]` (production) sections of `wrangler.toml`.
+### Compatibility flags
 
-### Cloudflare Pages dashboard secrets (encrypted, per-scope)
-
-Sensitive values set in **Pages → gridstart → Settings → Environment variables**:
-
-| Scope | Variable | Purpose |
-|---|---|---|
-| Preview | `CORS_ORIGIN` | `https://staging.<project-name>.pages.dev` |
-| Preview | `CSRF_SECRET` | Unique random hex (separate from production) |
-| Preview | `DAST_BYPASS_KEY` | Bypass secret for DAST scanner (rate limiting) |
-| Production | `CORS_ORIGIN` | `https://<project-name>.pages.dev` |
-| Production | `CSRF_SECRET` | Unique random hex (separate from staging) |
-
-**Policy:** Non-sensitive configurable values go in `wrangler.toml`. Secrets go in the dashboard. `DAST_BYPASS_KEY` is never set in Production scope — the rate limiter ignores the bypass header when the env var is absent.
+The `nodejs_compat` compatibility flag is enabled in **Pages → gridstart → Settings → General → Compatibility flags** (previously set in `wrangler.toml`).
 
 ### GitHub Actions deploy token
 
