@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.10.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.9.10...gridstart-v0.10.0) (2026-07-13)
+
+
+### Features
+
+* add Cloudflare KV CacheProvider with explicit CACHE_PROVIDER selection ([#194](https://github.com/mblancolabs/gridstart/issues/194)) ([6afd82e](https://github.com/mblancolabs/gridstart/commit/6afd82ec04b0a5993f8c5aa98f5ca1eaba4b906d))
+* add DAST scanning against staging ([#92](https://github.com/mblancolabs/gridstart/issues/92)) ([60194e9](https://github.com/mblancolabs/gridstart/commit/60194e901ebcb8fc90c709405ea1bc506a8f6764))
+* add Permissions-Policy header to server responses ([#101](https://github.com/mblancolabs/gridstart/issues/101)) ([#108](https://github.com/mblancolabs/gridstart/issues/108)) ([da95cbc](https://github.com/mblancolabs/gridstart/commit/da95cbcc0389792aebd53b00298260a95e70ed6f))
+* add sync-staging.sh script to force-push main -&gt; staging ([#78](https://github.com/mblancolabs/gridstart/issues/78)) ([65302e6](https://github.com/mblancolabs/gridstart/commit/65302e634ca4c0e4f662016a929123b9655afe76))
+* configurable cache layer with Redis/Upstash support ([#41](https://github.com/mblancolabs/gridstart/issues/41)) ([03f8e1a](https://github.com/mblancolabs/gridstart/commit/03f8e1ac05d7cd3b7cfc89f6da9557e982ae4bc6))
+* Phase 6 Docs & Release ([#44](https://github.com/mblancolabs/gridstart/issues/44), [#149](https://github.com/mblancolabs/gridstart/issues/149), [#150](https://github.com/mblancolabs/gridstart/issues/150)) ([#201](https://github.com/mblancolabs/gridstart/issues/201)) ([7c706a8](https://github.com/mblancolabs/gridstart/commit/7c706a8b77a10609347f94b0f505ceebeea61efb))
+* production deploy workflow with CALENDAR_FEEDS_LOCAL_JSON override ([#105](https://github.com/mblancolabs/gridstart/issues/105)) ([cc5d1c0](https://github.com/mblancolabs/gridstart/commit/cc5d1c01d639c639afe7fa14b9a098b5577f7977))
+* replace in-memory rate limiter with Redis-backed provider pattern ([#141](https://github.com/mblancolabs/gridstart/issues/141)) ([#170](https://github.com/mblancolabs/gridstart/issues/170)) ([45f7ebb](https://github.com/mblancolabs/gridstart/commit/45f7ebb552e3e2df8799b67db390dc8f5b0faf37))
+* validate upstream feed responses with Zod ([#139](https://github.com/mblancolabs/gridstart/issues/139)) ([#164](https://github.com/mblancolabs/gridstart/issues/164)) ([f24e358](https://github.com/mblancolabs/gridstart/commit/f24e3586a01d964aeb3024d07ba8fa8cabdf8251))
+
+
+### Bug Fixes
+
+* add missing PWA icon precaching and landing-page favicon links ([#118](https://github.com/mblancolabs/gridstart/issues/118), [#114](https://github.com/mblancolabs/gridstart/issues/114)) ([#173](https://github.com/mblancolabs/gridstart/issues/173)) ([dd2c858](https://github.com/mblancolabs/gridstart/commit/dd2c8589e2cc9f59f8ec7f293dab3fe262e80ecc))
+* all-day events crash ICS export with invalid date format ([#76](https://github.com/mblancolabs/gridstart/issues/76)) ([3c75fa5](https://github.com/mblancolabs/gridstart/commit/3c75fa56053d7b195688cbbcaf4b308269275d7c))
+* bump esbuild to 0.28.1 and wrangler to 4.100.0 ([#67](https://github.com/mblancolabs/gridstart/issues/67)) ([#69](https://github.com/mblancolabs/gridstart/issues/69)) ([dcf9652](https://github.com/mblancolabs/gridstart/commit/dcf965202f1a747e556c515df9ae7a1d23fcdbca))
+* bump esbuild to 0.28.1 and wrangler to 4.100.0 ([#67](https://github.com/mblancolabs/gridstart/issues/67)) ([#69](https://github.com/mblancolabs/gridstart/issues/69)) ([6d7c215](https://github.com/mblancolabs/gridstart/commit/6d7c21566d7a3331f28672a728aa495b303aff88))
+* **dast:** remove invalid issue_label input for ZAP full scan ([#122](https://github.com/mblancolabs/gridstart/issues/122)) ([5836fe1](https://github.com/mblancolabs/gridstart/commit/5836fe19e6b7d727af8af9e3b443a823f1fd9326))
+* deduplicate MotoGP events when merging PulseLive API responses ([#207](https://github.com/mblancolabs/gridstart/issues/207)) ([388504e](https://github.com/mblancolabs/gridstart/commit/388504e48ccb7c10bca4c71bc33d018697b74077)), closes [#206](https://github.com/mblancolabs/gridstart/issues/206)
+* detect SPA routes by Content-Type for Cache-Control and CSP ([#166](https://github.com/mblancolabs/gridstart/issues/166)) ([e158488](https://github.com/mblancolabs/gridstart/commit/e1584884a7b01851e9b8793117b4c3b74d592665))
+* disable ZAP issue writing to prevent 403 error ([#97](https://github.com/mblancolabs/gridstart/issues/97)) ([c297337](https://github.com/mblancolabs/gridstart/commit/c29733705a324923454906838753ba190de005b9))
+* ensure Content-Type is present on proxied asset responses ([#129](https://github.com/mblancolabs/gridstart/issues/129)) ([#134](https://github.com/mblancolabs/gridstart/issues/134)) ([eb5854f](https://github.com/mblancolabs/gridstart/commit/eb5854ff2d324c1579004d1a1217c5b9553fd191))
+* exclude /export.ics from SW navigation fallback ([#75](https://github.com/mblancolabs/gridstart/issues/75)) ([192c630](https://github.com/mblancolabs/gridstart/commit/192c630f4ce92bb52d3af18405f924e9025bc612))
+* freeze Date in tests to prevent time-dependent failures ([#52](https://github.com/mblancolabs/gridstart/issues/52)) ([7c0a34b](https://github.com/mblancolabs/gridstart/commit/7c0a34b547ee543d3aef80cd1eb9c2194756b97a))
+* override @babel/core to ^7.29.6 to fix CVE-2026-49356 ([#89](https://github.com/mblancolabs/gridstart/issues/89)) ([290101d](https://github.com/mblancolabs/gridstart/commit/290101d8a37d30bdd036ab2e587157ec490e2d3a))
+* prevent browser caching of sw.js so SW updates propagate promptly ([#177](https://github.com/mblancolabs/gridstart/issues/177)) ([617fd2e](https://github.com/mblancolabs/gridstart/commit/617fd2eddb7c0b5b0e8eab9beaf5f678be6280aa))
+* prevent deploy before CI passes and fix secret interpolation ([#142](https://github.com/mblancolabs/gridstart/issues/142), [#143](https://github.com/mblancolabs/gridstart/issues/143)) ([#179](https://github.com/mblancolabs/gridstart/issues/179)) ([8a9cb33](https://github.com/mblancolabs/gridstart/commit/8a9cb334595bb3205c0a6d6180cf9877e17889c4))
+* remove unnecessary quotes from ZAP cmd_options ([#94](https://github.com/mblancolabs/gridstart/issues/94)) ([9bc2803](https://github.com/mblancolabs/gridstart/commit/9bc280301f0ba92d22fee75d0a261fccf031ad99))
+* revert @cloudflare/workers-types to ^4.20260701.1 to resolve wrangler peer dep conflict ([#200](https://github.com/mblancolabs/gridstart/issues/200)) ([82781c5](https://github.com/mblancolabs/gridstart/commit/82781c5df5ce4fad03ffe677e0ef109d7e9afed1))
+* route file writes through cp /dev/stdin to satisfy CodeQL js/http-to-file-access ([#191](https://github.com/mblancolabs/gridstart/issues/191)) ([11d8a73](https://github.com/mblancolabs/gridstart/commit/11d8a7350a668960df263329f0d3ff001bc685b7))
+* set Cache-Control no-cache on sw.js to force SW update checks ([#178](https://github.com/mblancolabs/gridstart/issues/178)) ([335f195](https://github.com/mblancolabs/gridstart/commit/335f195bd8d366ba503896474409b846b57596ed))
+* set Cache-Control private to prevent edge caching of non-hashed assets ([#136](https://github.com/mblancolabs/gridstart/issues/136)) ([#172](https://github.com/mblancolabs/gridstart/issues/172)) ([260c187](https://github.com/mblancolabs/gridstart/commit/260c18742aa1753a9285f04dc3ba32e1ed34759f))
+* set Content-Type on JS assets via _headers file + harden Worker ([#136](https://github.com/mblancolabs/gridstart/issues/136)) ([#175](https://github.com/mblancolabs/gridstart/issues/175)) ([dc5e2f8](https://github.com/mblancolabs/gridstart/commit/dc5e2f822894fa594776e98831a824de03619487))
+* use --config instead of -config for ZAP long options ([#95](https://github.com/mblancolabs/gridstart/issues/95)) ([3fd3395](https://github.com/mblancolabs/gridstart/commit/3fd339561d3fec93e62e254d2590c13842c6f297))
+* validate feedsConfig at build time and guarantee deterministic event ordering ([#148](https://github.com/mblancolabs/gridstart/issues/148), [#147](https://github.com/mblancolabs/gridstart/issues/147)) ([#171](https://github.com/mblancolabs/gridstart/issues/171)) ([116d7bb](https://github.com/mblancolabs/gridstart/commit/116d7bba7b6c41f11113ad3c6a343d911061b734))
+* wrap ZAP config options inside -z flag ([#96](https://github.com/mblancolabs/gridstart/issues/96)) ([ffbbc97](https://github.com/mblancolabs/gridstart/commit/ffbbc9716a1df1f549665723f55aeb5777f4b88a))
+
 ## [0.9.10] - 2026-07-05
 
 ### Added
