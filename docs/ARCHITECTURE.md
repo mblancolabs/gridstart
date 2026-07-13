@@ -28,7 +28,7 @@ The top-level repository includes `client/`, `server/`, `shared/`, and `script/`
 | `shared/`                    | Shared types, schemas, or contracts used across client and server boundaries.                       |
 | `script/`                    | Build scripts (esbuild Worker bundle, Node.js server bundle) and maintenance helpers.               |
 | `config/calendar-feeds.json` | Configuration-driven definition of motorsport series, handlers, colors, and feed parameters.        |
-| `wrangler.toml`              | Cloudflare Pages configuration — `nodejs_compat` flag, build command, deploy config.                 |
+| `wrangler.toml` *(removed)*  | Previously held Cloudflare Pages config (`nodejs_compat`, env vars, build settings). Migrated to Cloudflare dashboard (project settings, env vars, KV bindings). See `docs/CLOUDFLARE.md`. |
 
 ## Runtime components
 
@@ -139,7 +139,7 @@ Caching uses a `CacheProvider` interface with three implementations selected via
 
 - **MemoryCache** — in-memory `Map`. Default when unset or `CACHE_PROVIDER=memory`. No external dependencies.
 - **RedisCache** — backed by Upstash Redis (HTTP REST API). Enabled via `CACHE_PROVIDER=redis` with `REDIS_URL` + `REDIS_TOKEN`. Persists across restarts and works in serverless environments.
-- **KVCache** — backed by Cloudflare KV. Enabled via `CACHE_PROVIDER=kv` with a `CACHE_KV` binding in `wrangler.toml`. Same key prefix (`cache:`) and TTL buffering pattern as RedisCache. Only available in Workers runtime; falls back to MemoryCache with a warning if the binding is unavailable (e.g. local Node.js dev).
+- **KVCache** — backed by Cloudflare KV. Enabled via `CACHE_PROVIDER=kv` with a `CACHE_KV` binding configured in the Cloudflare Pages dashboard (Settings → Functions → KV namespace bindings). Same key prefix (`cache:`) and TTL buffering pattern as RedisCache. Only available in Workers runtime; falls back to MemoryCache with a warning if the binding is unavailable (e.g. local Node.js dev).
 
 The cache backend is selected at startup and is a singleton across the application. Handlers interact only with the `CacheProvider` interface and are unaware of which backend is in use.
 
@@ -172,7 +172,7 @@ The feeds configuration is handled differently per target:
 npm run deploy   # build:worker + wrangler pages deploy dist --branch main
 ```
 
-The `_worker.js` bundle handles all API routes. Static assets (`dist/public/`) are served by Cloudflare Pages infrastructure. Env vars (`CSRF_SECRET`, `CORS_ORIGIN`, `CACHE_PROVIDER`, `REDIS_URL`, `REDIS_TOKEN`) and KV bindings (`CACHE_KV`) are configured in the Cloudflare dashboard and `wrangler.toml`. The `nodejs_compat` flag is enabled in `wrangler.toml` for `process.env` access.
+The `_worker.js` bundle handles all API routes. Static assets (`dist/public/`) are served by Cloudflare Pages infrastructure. Env vars (`CSRF_SECRET`, `CORS_ORIGIN`, `CACHE_PROVIDER`, `CACHE_TTL`, `REDIS_URL`, `REDIS_TOKEN`) and KV bindings (`CACHE_KV`) are configured in the Cloudflare Pages dashboard (Settings → Environment variables, Settings → Functions → KV namespace bindings). The `nodejs_compat` flag is set in the Pages project settings (Project → Settings → General → Compatibility flags).
 
 ### VPS
 
