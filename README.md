@@ -105,7 +105,7 @@ Three selectable backends via the `CACHE_PROVIDER` env var:
 
 - **MemoryCache** (default): In-memory Map, lost on restart — no dependencies. Set `CACHE_PROVIDER=memory` or unset.
 - **RedisCache**: Persistent cache via Upstash Redis (HTTP REST API). Set `CACHE_PROVIDER=redis` with `REDIS_URL` + `REDIS_TOKEN`.
-- **KVCache**: Persistent cache via Cloudflare KV. Set `CACHE_PROVIDER=kv` with `CACHE_KV` binding in `wrangler.toml`.
+- **KVCache**: Persistent cache via Cloudflare KV. Set `CACHE_PROVIDER=kv` with a `CACHE_KV` binding configured in the Cloudflare Pages dashboard (Settings → Functions → KV namespace bindings).
 
 ### Manual Refresh
 
