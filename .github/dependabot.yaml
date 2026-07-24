@@ -12,16 +12,20 @@ updates:
     groups:
       production-dependencies:
         dependency-type: "production"
+      cloudflare-sdk:
+        patterns:
+          - "wrangler"
+          - "@cloudflare/workers-types"
+        update-types:
+          - "minor"
+          - "patch"
       development-dependencies:
         dependency-type: "development"
+        exclude-patterns:
+          - "wrangler"
+          - "@cloudflare/workers-types"
     ignore:
       - dependency-name: "typescript"
-        update-types:
-          - "version-update:semver-major"
-      - dependency-name: "wrangler"
-        update-types:
-          - "version-update:semver-major"
-      - dependency-name: "@cloudflare/workers-types"
         update-types:
           - "version-update:semver-major"
 
