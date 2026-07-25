@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.10.1...gridstart-v0.11.0) (2026-07-25)
+
+
+### Features
+
+* add feed endpoint monitoring via GitHub Actions ([#237](https://github.com/mblancolabs/gridstart/issues/237)) ([67359e1](https://github.com/mblancolabs/gridstart/commit/67359e13139d850ca2b64766e3e9b8d082acba35))
+
+
+### Bug Fixes
+
+* **deps:** upgrade brace-expansion to fix DoS vulnerability ([#232](https://github.com/mblancolabs/gridstart/issues/232)) ([ef34431](https://github.com/mblancolabs/gridstart/commit/ef34431d0541b777cae88931123c7cd27369d1fa))
+* upgrade wrangler and @cloudflare/workers-types together ([#230](https://github.com/mblancolabs/gridstart/issues/230)) ([a081bfc](https://github.com/mblancolabs/gridstart/commit/a081bfc05462219141eedcacde93baf88db7e5ef)), closes [#218](https://github.com/mblancolabs/gridstart/issues/218)
+
 ## [0.10.1](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.10.0...gridstart-v0.10.1) (2026-07-13)
 
 
