@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.0...gridstart-v0.11.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **deps:** force undici &gt;= 7.29.0 under miniflare ([#256](https://github.com/mblancolabs/gridstart/issues/256)) ([212c9b0](https://github.com/mblancolabs/gridstart/commit/212c9b0c7a03215f044244ff0a7625e6b8e0abef))
+
 ## [0.11.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.10.1...gridstart-v0.11.0) (2026-07-25)
 
 
