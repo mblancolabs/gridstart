@@ -131,6 +131,9 @@
   },
   "overrides": {
     "@babel/core": "^7.29.6",
+    "miniflare": {
+      "undici": "^7.29.0"
+    },
     "workbox-build": {
       "glob": "^13.0.6"
     },
