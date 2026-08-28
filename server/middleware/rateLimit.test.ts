@@ -147,6 +147,39 @@ describe("limiter config fallback", () => {
     expect(res.headers.get("x-ratelimit-limit")).toBe("100");
   });
 
+  it("falls back to process.env when binding is absent", async () => {
+    process.env.RATE_LIMIT_WINDOW_MS = "60000";
+    process.env.RATE_LIMIT_MAX = "5";
+    clearRateLimitStore();
+    const app = new Hono();
+    app.use("/*", generalApiLimiter);
+    app.get("/limited", (c) => c.json({ ok: true }));
+
+    const ipHeader = { "cf-connecting-ip": "10.9.9.9" };
+    for (let i = 0; i < 5; i++) {
+      const res = await app.request("/limited", { headers: ipHeader }, {});
+      expect(res.status).toBe(200);
+    }
+    const res6 = await app.request("/limited", { headers: ipHeader }, {});
+    expect(res6.status).toBe(429);
+    expect(res6.headers.get("x-ratelimit-limit")).toBe("5");
+  });
+
+  it("prefers c.env binding over process.env", async () => {
+    process.env.RATE_LIMIT_MAX = "5";
+    const limiter = createLimiter(
+      { windowMsKey: "RATE_LIMIT_WINDOW_MS", windowMsDefault: 60000, maxKey: "RATE_LIMIT_MAX", maxDefault: 100, name: "precedence-test" },
+      new MemoryRateLimitStore(),
+    );
+    const app = new Hono();
+    app.use("/*", limiter);
+    app.get("/limited", (c) => c.json({ ok: true }));
+
+    const res = await app.request("/limited", {}, { RATE_LIMIT_MAX: "5000" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-ratelimit-limit")).toBe("5000");
+  });
+
   it("logs resolved config once per isolate", async () => {
     const infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
     const limiter = testLimiter(new MemoryRateLimitStore(), { name: "log-once-test" });

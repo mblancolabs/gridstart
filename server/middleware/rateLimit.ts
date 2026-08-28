@@ -3,11 +3,11 @@ import type { RateLimitStore } from "./rateLimitStore";
 import { getRateLimitStore } from "./rateLimitStore";
 import * as logger from "../logger";
 
-function readConfigNumber(source: Record<string, unknown>, key: string, fallback: number): number {
+function readConfigNumber(source: Record<string, unknown>, key: string): number | undefined {
   const val = source[key];
-  if (val === undefined || val === null || val === "") return fallback;
+  if (val === undefined || val === null || val === "") return undefined;
   const parsed = typeof val === "number" ? val : parseInt(String(val), 10);
-  return isNaN(parsed) ? fallback : parsed;
+  return isNaN(parsed) ? undefined : parsed;
 }
 
 interface LimiterDefinition {
@@ -32,8 +32,14 @@ export function createLimiter(definition: LimiterDefinition, store?: RateLimitSt
   return async function limiter(c: Context, next: Next): Promise<Response | void> {
     const bindings = ((c.env ?? {}) as Record<string, unknown>);
 
-    const windowMs = readConfigNumber(bindings, definition.windowMsKey, definition.windowMsDefault);
-    const max = readConfigNumber(bindings, definition.maxKey, definition.maxDefault);
+    const windowMs =
+      readConfigNumber(bindings, definition.windowMsKey) ??
+      readConfigNumber(process.env, definition.windowMsKey) ??
+      definition.windowMsDefault;
+    const max =
+      readConfigNumber(bindings, definition.maxKey) ??
+      readConfigNumber(process.env, definition.maxKey) ??
+      definition.maxDefault;
     const bypassKey =
       (typeof bindings.DAST_BYPASS_KEY === "string" ? bindings.DAST_BYPASS_KEY : undefined) ??
       process.env.DAST_BYPASS_KEY;
