@@ -21,6 +21,16 @@ export function usePreferences() {
   });
 }
 
+let eventsInvalidateTimer: ReturnType<typeof setTimeout> | undefined;
+
+function invalidateEventsDebounced(): void {
+  if (eventsInvalidateTimer !== undefined) clearTimeout(eventsInvalidateTimer);
+  eventsInvalidateTimer = setTimeout(() => {
+    eventsInvalidateTimer = undefined;
+    void queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+  }, 400);
+}
+
 export function useSavePreferences() {
   return useMutation({
     mutationFn: async (enabledSeries: string[]) => {
@@ -29,7 +39,7 @@ export function useSavePreferences() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferences"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      invalidateEventsDebounced();
     },
   });
 }

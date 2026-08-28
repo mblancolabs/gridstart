@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { apiRequest, getQueryFn, __resetCsrfToken, __setCsrfToken } from "./queryClient";
+import { apiRequest, getQueryFn, ApiError, __resetCsrfToken, __setCsrfToken } from "./queryClient";
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
@@ -106,6 +106,28 @@ describe("queryClient", () => {
       fetchMock.mockResolvedValue(mockRes);
 
       await expect(apiRequest("GET", "/api/test")).rejects.toThrow("404: Not found");
+    });
+
+    it("throws ApiError with status and Retry-After on 429", async () => {
+      const headers = new Headers({ "Retry-After": "30" });
+      const mockRes = {
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        headers,
+        text: vi.fn().mockResolvedValue(JSON.stringify({ error: "Too Many Requests", retryAfter: 30 })),
+      };
+      fetchMock.mockResolvedValue(mockRes);
+
+      try {
+        await apiRequest("GET", "/api/test");
+        expect.unreachable("expected apiRequest to throw");
+      } catch (err) {
+        expect(err).toBeInstanceOf(ApiError);
+        const apiError = err as ApiError;
+        expect(apiError.status).toBe(429);
+        expect(apiError.retryAfterSeconds).toBe(30);
+      }
     });
 
     it("captures CSRF token from response headers on GET", async () => {
