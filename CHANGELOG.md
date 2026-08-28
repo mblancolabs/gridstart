@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.1...gridstart-v0.11.2) (2026-08-28)
+
+
+### Bug Fixes
+
+* **export:** remove redundant ICS export aggregate cache ([#260](https://github.com/mblancolabs/gridstart/issues/260)) ([32c9b14](https://github.com/mblancolabs/gridstart/commit/32c9b1473ad346076c6062e6e074610601bca123)), closes [#258](https://github.com/mblancolabs/gridstart/issues/258)
+* **rate-limit:** surface 429s in UI, resolve limiter config per-request ([#261](https://github.com/mblancolabs/gridstart/issues/261)) ([892adb9](https://github.com/mblancolabs/gridstart/commit/892adb9374e7452aa41016fd026c351883aaa55a))
+
 ## [0.11.1](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.0...gridstart-v0.11.1) (2026-08-24)
 
 
