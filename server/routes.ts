@@ -12,7 +12,6 @@ import { ECALHandler } from "./handlers/ecal";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
-import { getOrSet, CACHE_TTL_MS } from "./cache";
 import { exportLimiter } from "./middleware/rateLimit";
 export { fetchICSData } from "./icsFetcher";
 
@@ -235,20 +234,18 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
         return c.body("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GridStart//EN\r\nEND:VCALENDAR");
       }
 
-      const sortedIds = [...seriesIds].sort().join(",");
-      const icsString = await getOrSet(`ics-export-${sortedIds}`, CACHE_TTL_MS, async () => {
-        const results = await Promise.all(
-          seriesIds.map(async (seriesId: string) => {
-            const series = allSeries.find((s) => s.id === seriesId);
-            if (!series) return [];
-            try {
-              return await fetchEventsForSeries(series);
-            } catch (err) {
-              logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
-              return [];
-            }
-          })
-        );
+      const results = await Promise.all(
+        seriesIds.map(async (seriesId: string) => {
+          const series = allSeries.find((s) => s.id === seriesId);
+          if (!series) return [];
+          try {
+            return await fetchEventsForSeries(series);
+          } catch (err) {
+            logger.error(err, `Failed to fetch events for export ${seriesId}`, { seriesId });
+            return [];
+          }
+        })
+      );
 
       const seenEventIds = new Set<string>();
       const allEvents = results.flat().filter((e) => {
@@ -257,10 +254,9 @@ export async function registerRoutes(app: Hono<any, any, any>): Promise<void> {
         return true;
       });
 
-        allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      allEvents.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-        return generateICS(allEvents);
-      });
+      const icsString = generateICS(allEvents);
 
       c.header("Content-Type", "text/calendar; charset=utf-8");
       c.header("Content-Disposition", 'attachment; filename="gridstart.ics"');
