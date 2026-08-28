@@ -3,6 +3,7 @@ import { act, renderWithProviders, screen, userEvent } from "../test/utils/test-
 import Home, * as home from "./home";
 import { createMockEvent, createMockPreferences } from "../test/utils/mocks";
 import * as hooks from "../lib/hooks";
+import { ApiError } from "../lib/queryClient";
 
 // Mock the hooks module
 vi.mock("../lib/hooks", async () => {
@@ -421,6 +422,41 @@ describe("Home Page", () => {
     renderWithProviders(<Home />);
     expect(screen.getByTestId("skeleton-events")).toBeInTheDocument();
     expect(screen.getByText("Loading events...")).toBeInTheDocument();
+  });
+
+  it("should show error banner and retry on generic failure", async () => {
+    const refetch = vi.fn().mockResolvedValue(undefined);
+    // @ts-expect-error
+    hooks.useEvents.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("400: bad"),
+      refetch,
+    });
+
+    renderWithProviders(<Home />);
+    expect(screen.getByTestId("text-events-error")).toBeInTheDocument();
+    expect(screen.getByText("Unable to load events. Something went wrong.")).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId("button-retry-events"));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("should show rate-limited message on 429", async () => {
+    // @ts-expect-error
+    hooks.useEvents.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new ApiError("429: Too Many Requests", 429, 30),
+      refetch: vi.fn(),
+    });
+
+    renderWithProviders(<Home />);
+    expect(screen.getByTestId("text-events-error")).toBeInTheDocument();
+    expect(screen.getByText(/rate limited/)).toBeInTheDocument();
   });
 
   it("should handle selected day and scroll to events", async () => {

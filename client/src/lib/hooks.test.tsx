@@ -178,19 +178,33 @@ describe("hooks", () => {
       expect(mockSetCookie).toHaveBeenCalledWith(["f1", "motogp"]);
     });
 
-    it("invalidates preferences and events on success", async () => {
-      const { result } = renderHook(() => useSavePreferences(), {
-        wrapper: createWrapper(),
-      });
+    it("invalidates preferences immediately and debounces events on success", async () => {
+      vi.useFakeTimers();
+      try {
+        const { result } = renderHook(() => useSavePreferences(), {
+          wrapper: createWrapper(),
+        });
 
-      await result.current.mutateAsync(["f1"]);
+        await result.current.mutateAsync(["f1"]);
 
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: ["/api/preferences"],
-      });
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: ["/api/events"],
-      });
+        // Preferences invalidated immediately; events debounced
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({
+          queryKey: ["/api/preferences"],
+        });
+        expect(mockInvalidateQueries).not.toHaveBeenCalledWith({
+          queryKey: ["/api/events"],
+        });
+
+        vi.advanceTimersByTime(400);
+        await Promise.resolve();
+
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({
+          queryKey: ["/api/events"],
+        });
+      } finally {
+        vi.useRealTimers();
+        mockInvalidateQueries.mockClear();
+      }
     });
 
     it("handles empty series list", async () => {

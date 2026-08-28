@@ -1,6 +1,19 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryCache, QueryClient, QueryFunction, MutationCache } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 const API_BASE = ".";
+
+export class ApiError extends Error {
+  status: number;
+  retryAfterSeconds?: number;
+
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
 
 let _csrfToken: string | null = null;
 
@@ -19,7 +32,47 @@ async function getCsrfToken(): Promise<string | null> {
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let retryAfterSeconds: number | undefined;
+    const headerVal = res.headers.get("Retry-After") ?? res.headers.get("retry-after");
+    if (headerVal) {
+      retryAfterSeconds = Number.parseInt(headerVal, 10);
+      if (Number.isNaN(retryAfterSeconds) || retryAfterSeconds < 0) retryAfterSeconds = undefined;
+    }
+    if (retryAfterSeconds === undefined) {
+      try {
+        const body = JSON.parse(text);
+        if (typeof body.retryAfter === "number") retryAfterSeconds = body.retryAfter;
+      } catch {
+        /* non-JSON body — leave retryAfterSeconds unset */
+      }
+    }
+    throw new ApiError(`${res.status}: ${text}`, res.status, retryAfterSeconds);
+  }
+}
+
+const lastErrorToastAt = { query: 0, mutation: 0 };
+const ERROR_TOAST_THROTTLE_MS = 5000;
+
+function handleErrorToast(error: unknown, kind: "query" | "mutation"): void {
+  if (error instanceof ApiError) {
+    const now = Date.now();
+    if (now - lastErrorToastAt[kind] < ERROR_TOAST_THROTTLE_MS) return;
+    if (error.status === 429) {
+      const wait = error.retryAfterSeconds ? ` Retry in ${error.retryAfterSeconds}s.` : "";
+      toast({
+        variant: "destructive",
+        title: "Rate limited",
+        description: `Too many requests.${wait}`,
+      });
+      lastErrorToastAt[kind] = now;
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: "Unable to load data. Please try again.",
+      });
+      lastErrorToastAt[kind] = now;
+    }
   }
 }
 
@@ -66,6 +119,12 @@ export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryF
   };
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => handleErrorToast(error, "query"),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => handleErrorToast(error, "mutation"),
+  }),
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),

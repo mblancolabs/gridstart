@@ -47,6 +47,8 @@ KV bindings are configured in **Pages → gridstart → Settings → Functions �
 
 The `nodejs_compat` compatibility flag is enabled in **Pages → gridstart → Settings → General → Compatibility flags** (previously set in `wrangler.toml`).
 
+The project's compatibility date is set to `2026-06-12` (≥ `2025-04-01`), so environment variable bindings are automatically populated into `process.env` (this is when the `nodejs_compat_populate_process_env` flag's behavior becomes the default). The rate limiter additionally reads its configuration bindings via the runtime `c.env` (falling back to `process.env` then defaults), so limit values are deterministic regardless of this setting. If the compatibility date is ever lowered below `2025-04-01`, add the `nodejs_compat_populate_process_env` compatibility flag so env bindings reach `process.env` (used by the cache/Redis store selection).
+
 ### GitHub Actions deploy token
 
 Production deploys use `wrangler pages deploy` via `.github/workflows/deploy.yaml`, authenticated with a `CLOUDFLARE_API_TOKEN` GitHub secret.
