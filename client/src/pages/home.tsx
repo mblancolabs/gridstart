@@ -17,7 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEvents, usePreferences } from "@/lib/hooks";
+import { ApiError } from "@/lib/queryClient";
 import type { CalendarEvent } from "@shared/schema";
+
+function isRateLimited(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 429;
+}
 
 // ---------- Timezone helpers ----------
 
@@ -227,7 +232,7 @@ export default function Home() {
   const from = format(subMonths(startOfMonth(currentMonth), 1), "yyyy-MM-dd");
   const to = format(addMonths(endOfMonth(currentMonth), 1), "yyyy-MM-dd");
 
-  const { data: events, isLoading } = useEvents(enabledSeries, from, to);
+  const { data: events, isLoading, isError, error, refetch } = useEvents(enabledSeries, from, to);
 
   // Build a map of date -> events for the calendar grid (using local dates)
   const eventsByDate = useMemo(() => {
@@ -416,9 +421,11 @@ export default function Home() {
               ? "No series selected"
               : isLoading
                 ? "Loading events..."
-                : upcomingItems.length === 0
-                  ? "No upcoming events this month"
-                  : "Upcoming Events"}
+                : isError
+                  ? "Unable to load events"
+                  : upcomingItems.length === 0
+                    ? "No upcoming events this month"
+                    : "Upcoming Events"}
           </h3>
 
           {isLoading && (
@@ -439,6 +446,22 @@ export default function Home() {
             <div className="text-center py-12 text-muted-foreground" data-testid="text-empty-state">
               <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-40" />
               <p className="text-sm">Enable some series from the sidebar to see events.</p>
+            </div>
+          )}
+
+          {!isLoading && isError && enabledSeries.length > 0 && (
+            <div
+              className="rounded-lg border border-destructive bg-destructive/10 px-4 py-6 flex flex-col items-center gap-3 text-center"
+              data-testid="text-events-error"
+            >
+              <p className="text-sm font-medium">
+                {isRateLimited(error)
+                  ? "You've been rate limited due to too many requests. Please wait a moment and try again."
+                  : "Unable to load events. Something went wrong."}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => void refetch()} data-testid="button-retry-events">
+                Retry
+              </Button>
             </div>
           )}
 
