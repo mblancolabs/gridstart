@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.2...gridstart-v0.11.3) (2026-09-25)
+
+
+### Bug Fixes
+
+* **monitor:** tolerate empty IndyCar feed ([#282](https://github.com/mblancolabs/gridstart/issues/282)) ([2e0bf5b](https://github.com/mblancolabs/gridstart/commit/2e0bf5bc896bf90912c8531c7a4858b705d15a6e))
+
 ## [0.11.2](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.1...gridstart-v0.11.2) (2026-08-28)
 
 
