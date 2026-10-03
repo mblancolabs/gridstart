@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.4](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.3...gridstart-v0.11.4) (2026-10-03)
+
+
+### Bug Fixes
+
+* **motogp:** derive short event title from canonical name ([#292](https://github.com/mblancolabs/gridstart/issues/292)) ([673d7b0](https://github.com/mblancolabs/gridstart/commit/673d7b052fa3c1bae0afb6fcb57515c79299bb38)), closes [#291](https://github.com/mblancolabs/gridstart/issues/291)
+
 ## [0.11.3](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.2...gridstart-v0.11.3) (2026-09-25)
 
 
