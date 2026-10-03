@@ -11,6 +11,27 @@ import {
 import type { MotoGPEvent } from "./feed-schemas";
 
 const MOTOGP_API_BASE = "https://api.motogp.pulselive.com/motogp/v1";
+const MOTOGP_EVENT_NAME_PATTERN = /\bGRAND\s+PRIX\s+(?:OF|DE)\s+(.+)$/i;
+const MOTOGP_LEADING_ARTICLES = new Set(["the", "los", "las", "les", "il", "lo"]);
+const MOTOGP_SMALL_WORDS = new Set([
+  "and",
+  "of",
+  "the",
+  "de",
+  "del",
+  "della",
+  "di",
+  "da",
+  "von",
+  "la",
+  "le",
+  "du",
+  "dos",
+  "das",
+  "a",
+  "e",
+  "y",
+]);
 const MOTOGP_CATEGORY_IDS: Record<string, string> = {
   MotoGP: "e8c110ad-64aa-4e8e-8a86-f2f152f6a942",
   Moto2: "549640b8-fd9c-4245-acfd-60e4bc38b25c",
@@ -67,6 +88,33 @@ const MOTOGP_COUNTRY_TIMEZONES: Record<string, string> = {
   US: "America/Chicago",
   SM: "Europe/Rome",
 };
+
+function titleCaseWord(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+/**
+ * Short event name derived from the canonical `name` field, used for the event
+ * `title` (ICS summary and calendar cells). `sponsored_name` is avoided here on
+ * purpose: it leaks the season sponsor and drifts naming conventions
+ * mid-season (Title Case pre-2026, partially ALL-CAPS from 2026).
+ */
+export function toMotoGPShortName(event: MotoGPEvent): string {
+  const name = event.name.replace(/\s+/g, " ").trim();
+  const match = name.match(MOTOGP_EVENT_NAME_PATTERN);
+  if (!match) return name;
+
+  const words = match[1].trim().split(" ");
+  while (words.length > 1 && MOTOGP_LEADING_ARTICLES.has(words[0].toLowerCase())) {
+    words.shift();
+  }
+
+  const [first, ...rest] = words;
+  return [
+    titleCaseWord(first),
+    ...rest.map((word) => (MOTOGP_SMALL_WORDS.has(word.toLowerCase()) ? word.toLowerCase() : titleCaseWord(word))),
+  ].join(" ");
+}
 
 function getMotoGPTimeZone(event: MotoGPEvent): string | undefined {
   return MOTOGP_TIMEZONE_OVERRIDES[event.circuit.place] || MOTOGP_COUNTRY_TIMEZONES[event.country.iso];
@@ -172,6 +220,7 @@ export class MotoGPHandler implements FeedHandler {
 
           const sessions = motogpSessionSchema.array().parse(await sessionsRes.json());
           const raceName = mgpEvent.sponsored_name || mgpEvent.name;
+          const shortName = toMotoGPShortName(mgpEvent);
           const location = `${mgpEvent.circuit.name}, ${mgpEvent.circuit.place}, ${mgpEvent.country.name}`;
 
           for (const session of sessions) {
@@ -196,7 +245,7 @@ export class MotoGPHandler implements FeedHandler {
               seriesName: series.name,
               seriesShortName: series.shortName,
               seriesColor: series.color,
-              title: `${series.shortName} | ${raceName.split(" of ").pop()} ${label}`,
+              title: `${series.shortName} | ${shortName} ${label}`,
               startDate,
               endDate,
               location,
