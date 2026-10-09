@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.4...gridstart-v0.12.0) (2026-10-09)
+
+
+### Features
+
+* **motogp:** add ICS-based MotoGP feed handler ([#297](https://github.com/mblancolabs/gridstart/issues/297)) ([2a8505f](https://github.com/mblancolabs/gridstart/commit/2a8505f114528918c1d0f300d62801f12ed36046))
+
 ## [0.11.4](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.3...gridstart-v0.11.4) (2026-10-03)
 
 
