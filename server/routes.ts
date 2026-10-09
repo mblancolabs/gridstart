@@ -11,6 +11,7 @@ import { ICSHandler } from "./handlers/ics";
 import { ECALHandler } from "./handlers/ecal";
 import { JolpicaHandler } from "./handlers/jolpica";
 import { MotoGPHandler } from "./handlers/motogp";
+import { MotoGPICSHandler } from "./handlers/motogpics";
 import { normalizeSessionNames } from "./handlers/sessionLabels";
 import { exportLimiter } from "./middleware/rateLimit";
 export { fetchICSData } from "./icsFetcher";
@@ -88,6 +89,7 @@ handlerRegistry.register(new ICSHandler());
 handlerRegistry.register(new ECALHandler());
 handlerRegistry.register(new JolpicaHandler());
 handlerRegistry.register(new MotoGPHandler());
+handlerRegistry.register(new MotoGPICSHandler());
 
 function generateICS(events: CalendarEvent[]): string {
   const cal = new ICAL.Component(["vcalendar", [], []]);
