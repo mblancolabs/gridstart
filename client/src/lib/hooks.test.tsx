@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSeries, usePreferences, useSavePreferences, useEvents } from "./hooks";
 
@@ -185,7 +185,9 @@ describe("hooks", () => {
           wrapper: createWrapper(),
         });
 
-        await result.current.mutateAsync(["f1"]);
+        await act(async () => {
+          await result.current.mutateAsync(["f1"]);
+        });
 
         // Preferences invalidated immediately; events debounced
         expect(mockInvalidateQueries).toHaveBeenCalledWith({
@@ -195,8 +197,10 @@ describe("hooks", () => {
           queryKey: ["/api/events"],
         });
 
-        vi.advanceTimersByTime(400);
-        await Promise.resolve();
+        await act(async () => {
+          vi.advanceTimersByTime(400);
+          await Promise.resolve();
+        });
 
         expect(mockInvalidateQueries).toHaveBeenCalledWith({
           queryKey: ["/api/events"],
