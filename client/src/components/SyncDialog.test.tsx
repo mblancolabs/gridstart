@@ -26,14 +26,6 @@ describe("SyncDialog Component", () => {
       isLoading: false,
       error: null,
     });
-
-    // Mock window.location.origin
-    Object.defineProperty(window, "location", {
-      value: {
-        origin: "http://localhost:5173",
-      },
-      writable: true,
-    });
   });
 
   afterEach(() => {

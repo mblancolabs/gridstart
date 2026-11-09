@@ -1,10 +1,14 @@
 import "@testing-library/jest-dom";
 import { afterEach, afterAll, beforeAll, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { resetToasts } from "@/hooks/use-toast";
+import { resetInstallPrompt } from "@/lib/pwa";
 
-// Cleanup after each test
+// Cleanup after each test and reset shared module state
 afterEach(() => {
   cleanup();
+  resetToasts();
+  resetInstallPrompt();
 });
 
 // Mock window.matchMedia for mobile detection tests

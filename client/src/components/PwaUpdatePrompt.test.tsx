@@ -1,6 +1,6 @@
 import React from "react";
 import { act } from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterEach } from "vitest";
 import { renderWithProviders, screen, waitFor, userEvent } from "../test/utils/test-utils";
 import { Toaster } from "@/components/ui/toaster";
 import { PwaUpdatePrompt, PwaInstallButton } from "./PwaUpdatePrompt";
@@ -42,6 +42,10 @@ describe("captureInstallPrompt", () => {
 });
 
 describe("PwaInstallButton", () => {
+  beforeAll(() => {
+    captureInstallPrompt();
+  });
+
   beforeEach(() => {
     vi.restoreAllMocks();
     resetInstallPrompt();

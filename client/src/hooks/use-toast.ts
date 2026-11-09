@@ -130,6 +130,15 @@ function dispatch(action: Action) {
   });
 }
 
+export function resetToasts() {
+  toastTimeouts.forEach((timeout) => clearTimeout(timeout));
+  toastTimeouts.clear();
+  memoryState = { toasts: [] };
+  listeners.forEach((listener) => {
+    listener(memoryState);
+  });
+}
+
 type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {

@@ -18,6 +18,7 @@ export default defineConfig({
   test: {
     root: path.resolve(import.meta.dirname, "."),
     environment: "jsdom",
+    pool: "vmThreads",
     globals: true,
     setupFiles: ["./client/src/test/setup.ts"],
     include: ["client/src/**/*.{test,spec}.{ts,tsx}"],
