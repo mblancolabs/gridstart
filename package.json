@@ -140,7 +140,7 @@
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
-    "workerd@1.20260910.1": true,
-    "bufferutil@4.1.0": true
+    "bufferutil@4.1.0": true,
+    "workerd@1.20261104.1": true
   }
 }
