@@ -9,6 +9,8 @@ updates:
       time: "05:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
     groups:
       production-dependencies:
         dependency-type: "production"
