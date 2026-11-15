@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.12.0...gridstart-v0.12.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **deps:** patch minimatch, glob and postcss-selector-parser advisories ([#323](https://github.com/mblancolabs/gridstart/issues/323)) ([abb0aab](https://github.com/mblancolabs/gridstart/commit/abb0aab5519badc80641f6696844143ba8fdead4))
+
 ## [0.12.0](https://github.com/mblancolabs/gridstart/compare/gridstart-v0.11.4...gridstart-v0.12.0) (2026-10-09)
 
 
